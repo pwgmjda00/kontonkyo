@@ -33,7 +33,7 @@ node tests/browser.cjs
 ## 検証と残件
 
 - 添付バリデーター成功：1026件、18族、642 BONUS対象。
-- 最小版はPages公開ジョブ成功を確認済み。完成版のコミットと結果は最終公開時に追記します。
+- 最小版のPages公開ジョブ成功を確認済み。完成版ソース・ビルドは `ced0bf252a84526acb771ffa7ee5730d76f9f96d` にpush済み。CI（データ検証・44件のVitest・本番ビルド）は成功。Pagesジョブも成功確認済み（https://github.com/pwgmjda00/kontonkyo/actions/runs/41145490593）。
 - この環境のネットワーク規則が `pwgmjda00.github.io` と `api.github.com` にCONNECT403を返すため、公開URLへの直接HTTP確認は未実施。ドメイン許可追加の設定案は保存済み、実行環境への反映は未確認です。
 - 実機登録は0件。一次資料未確認のため、公開のために推測した値は加えていません。
 - 実機iPhone Safariは未検証。ブラウザー検証ではChromiumのタッチ端末相当を使用します。
@@ -54,3 +54,7 @@ node tests/browser.cjs
 - 差し替えていない本番Workerによる1026条件の実抽選と記録
 
 レアな演出のUI確認ではテスト内だけでWorker応答を差し替え、確率エンジン自体の検証とは分けています。最後のWorker確認では本番Workerを使います。実機Safari/WebKitは未検証です。この環境にはPlaywright WebKitの実行ファイルがありません。
+
+## 確率処理の実測
+
+Chromiumの本番Workerで3成功を測定：計算0.6〜2.6ms、requestから応答12.7〜13.5ms、各成功で104〜105件の実当選を記録しました。この環境だけの測定で、iPhone実機の速度保証ではありません。

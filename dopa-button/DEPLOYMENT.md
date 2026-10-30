@@ -25,3 +25,11 @@ git -C /tmp/dopa-publish push origin main
 公開処理はリポジトリの Actions にある「pages build and deployment」で確認します。成功後、公開URLのHTML・CSS・JSと実際のPUSH操作も確認してください。ワークフローの成功だけをHTTP確認済みとは扱いません。
 
 この作業時点では環境のHTTPプロキシが `api.github.com` と `pwgmjda00.github.io` を403で拒否しています。既存HTTPS Gitプロキシ経由のpushと、`github.com` 上の公開Actions実行結果の読み取りは成功しています。通信設定が反映されたら公開URLの直接検証を再実行してください。認証値をチャットやコードに書く必要はありません。
+
+## 確認済みリリース
+
+- 完成版コミット: `ced0bf252a84526acb771ffa7ee5730d76f9f96d`
+- [データ検証・単体テスト・ビルド成功](https://github.com/pwgmjda00/kontonkyo/actions/runs/41145490638)
+- [GitHub Pages公開処理成功](https://github.com/pwgmjda00/kontonkyo/actions/runs/41145490593)
+- 元のルートの `index.html` と `README.md` は、作業前の `7bfc91a` とGit blobが完全一致しています。
+- 公開ジョブの成功を確認した一方、この環境から公開URLのHTTP応答・ブラウザー操作は確認できていません。プロキシの接続拒否と公開サーバーの応答を区別してください。
