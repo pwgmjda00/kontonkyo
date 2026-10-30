@@ -121,4 +121,4 @@ function suspend() {
   try { void context?.suspend().catch(() => {}); } catch { /* no context */ }
 }
 
-export const sound = { setMuted, unlock, setPlaying, cue, suspend };
+export const sound = { setMuted, unlock, setPlaying, cue, suspend, hush: silence };

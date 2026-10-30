@@ -44,6 +44,8 @@ jobs:
         run: npm ci --prefix '${{ steps.app.outputs.path }}'
       - name: Validate the supplied probability data
         run: python3 '${{ steps.app.outputs.path }}/tools/validate_data.py'
+      - name: Unit tests
+        run: npm test --prefix '${{ steps.app.outputs.path }}'
       - name: Build
         run: npm run build --prefix '${{ steps.app.outputs.path }}'
       # The repository already publishes main through GitHub Pages. The release
