@@ -1,0 +1,78 @@
+name: Deploy Dopa Button
+
+on:
+  push:
+    branches: [main, dopa-button-release]
+    paths:
+      - 'dopa-button/**'
+      - '.github/workflows/dopa-pages.yml'
+      - '.github/workflows/pages.yml'
+      - 'src/**'
+      - 'public/**'
+      - 'data/**'
+      - 'tools/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'index.html'
+      - 'tsconfig.json'
+      - 'vite.config.ts'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Locate the isolated game directory
+        id: app
+        shell: bash
+        run: |
+          if [ -f dopa-button/package.json ]; then
+            echo 'path=dopa-button' >> "$GITHUB_OUTPUT"
+          else
+            echo 'path=.' >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: ${{ steps.app.outputs.path }}/package-lock.json
+      - name: Install locked dependencies
+        run: npm ci --prefix '${{ steps.app.outputs.path }}'
+      - name: Validate the supplied probability data
+        run: python3 '${{ steps.app.outputs.path }}/tools/validate_data.py'
+      - name: Build
+        run: npm run build --prefix '${{ steps.app.outputs.path }}'
+      - name: Prepare the public site without replacing the original game
+        shell: bash
+        env:
+          APP_PATH: ${{ steps.app.outputs.path }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/dopa-pages"
+          if [ "$APP_PATH" = '.' ]; then
+            cp -R dist/. "$RUNNER_TEMP/dopa-pages/"
+          else
+            rsync -a --exclude='.git/' --exclude='.github/' --exclude='dopa-button/' --exclude='node_modules/' ./ "$RUNNER_TEMP/dopa-pages/"
+            mkdir -p "$RUNNER_TEMP/dopa-pages/dopa-button"
+            cp -R dopa-button/dist/. "$RUNNER_TEMP/dopa-pages/dopa-button/"
+          fi
+          touch "$RUNNER_TEMP/dopa-pages/.nojekyll"
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ runner.temp }}/dopa-pages
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
