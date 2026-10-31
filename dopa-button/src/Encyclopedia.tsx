@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { EVENTS, EVENT_BY_ID, isBonusEligible, type ProbabilityEvent } from './probability';
-import { compareRarity, hundredTrialChance, MACHINE_REFERENCES, type RecordState } from './records';
+import { compareRarity, hundredTrialChance, type RecordState } from './records';
+import { MACHINE_EVENTS, isUltraRare } from './machineLottery';
 import './encyclopedia.css';
 
 export interface EncyclopediaProps {
@@ -46,6 +47,8 @@ export function Encyclopedia({ open, onClose, records, onPreview }: Encyclopedia
   const [sort, setSort] = useState<Sort>('rare');
   const [foundOnly, setFoundOnly] = useState(false);
   const [page, setPage] = useState(0);
+  const [machineQuery, setMachineQuery] = useState('');
+  const [machinePage, setMachinePage] = useState(0);
 
   useEffect(() => {
     const element = dialog.current;
@@ -67,6 +70,9 @@ export function Encyclopedia({ open, onClose, records, onPreview }: Encyclopedia
   const currentPage = Math.min(page, pageCount - 1);
   const shown = filtered.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
   const rarest = records.rarestId ? EVENT_BY_ID.get(records.rarestId) : undefined;
+  const machineFiltered = MACHINE_EVENTS.filter(item => [item.machine, item.maker, item.category].join(' ').normalize('NFKC').toLocaleLowerCase('ja').includes(machineQuery.normalize('NFKC').toLocaleLowerCase('ja')));
+  const machinePages = Math.max(1, Math.ceil(machineFiltered.length / PAGE_SIZE));
+  const machineCurrentPage = Math.min(machinePage,machinePages-1);
 
   function resetSearch(change: () => void) { change(); setPage(0); }
 
@@ -88,7 +94,7 @@ export function Encyclopedia({ open, onClose, records, onPreview }: Encyclopedia
     <nav className="encyclopedia-tabs" aria-label="図鑑の種類">
       <button type="button" aria-pressed={section === 'math'} onClick={() => setSection('math')}>数学イベント <b>{EVENTS.length}</b></button>
       <button type="button" aria-pressed={section === 'history'} onClick={() => setSection('history')}>実当選の履歴</button>
-      <button type="button" aria-pressed={section === 'machines'} onClick={() => setSection('machines')}>実機資料 <b>{MACHINE_REFERENCES.length}</b></button>
+      <button type="button" aria-pressed={section === 'machines'} onClick={() => setSection('machines')}>実機資料 <b>{MACHINE_EVENTS.length}</b></button>
     </nav>
 
     {section === 'math' && <>
@@ -130,8 +136,24 @@ export function Encyclopedia({ open, onClose, records, onPreview }: Encyclopedia
     </section>}
 
     {section === 'machines' && <section className="encyclopedia-machines" aria-label="実機資料">
-      {MACHINE_REFERENCES.length === 0 ? <div className="encyclopedia-empty"><strong>確認済みの実機資料：0件</strong><p>今回の1026件は数学データです。公式メーカー一次情報を確認できた実機を、出典・条件付きで追加できる構成にしています。</p></div> : MACHINE_REFERENCES.map(machine => <article className="encyclopedia-card" key={machine.id}><div className="encyclopedia-card-meta"><span>{machine.maker}</span><span>{machine.model ?? '型式未確認'}</span></div><h3>{machine.name}</h3><p>{machine.probability.condition}</p><code>{machine.probability.numerator}/{machine.probability.denominator}{machine.probability.approximate ? '（近似値）' : ''}</code><p>導入年月：{machine.introduced ?? '未確認'} · 確認日：{machine.checkedAt}</p><a href={machine.sourceUrl} target="_blank" rel="noopener noreferrer">公式の出典 ↗</a></article>)}
-      <p className="encyclopedia-note">実機の条件付き確率は数学イベントの通常抽選に混ぜません。</p>
+      <p className="encyclopedia-intro">パチンコ・パチスロ実機の掲載確率 {MACHINE_EVENTS.length}条件。メーカー公式と二次資料を併用し、初当り・合算・設定など条件が異なります。通常・ドパの1026数学抽選とは別枠です。</p>
+      <label className="encyclopedia-search">機種を検索
+        <input type="search" value={machineQuery} placeholder="例：北斗、ジャグラー、エヴァ" onChange={event=>{setMachineQuery(event.target.value);setMachinePage(0);}}/>
+      </label>
+      <p className="encyclopedia-note">1/666より希少な実機も、特別枠だけではなく一般一覧に掲載します。該当機種には ✦ を付けています。</p>
+      <div className="encyclopedia-events">
+        {machineFiltered.slice(machineCurrentPage*PAGE_SIZE,(machineCurrentPage+1)*PAGE_SIZE).map(machine=><article className="encyclopedia-card" key={machine.id}>
+          <div className="encyclopedia-card-meta"><span>{machine.maker}</span><span>{machine.kind==='pachinko'?'パチンコ':'パチスロ'}</span></div>
+          <h3>{machine.machine}{isUltraRare(machine)?' ✦':''}</h3>
+          <p className="encyclopedia-condition">{machine.category}</p>
+          <strong className="encyclopedia-probability">{machine.publishedProbability}</strong>
+          <p className="encyclopedia-fact">{machine.condition}</p>
+          <a href={machine.sourceUrl} target="_blank" rel="noopener noreferrer">掲載確率の出典 ↗</a>
+        </article>)}
+      </div>
+      {!machineFiltered.length&&<p className="encyclopedia-empty">該当する実機はありません。</p>}
+      <div className="encyclopedia-pagination"><button type="button" disabled={machineCurrentPage===0} onClick={()=>setMachinePage(n=>Math.max(0,n-1))}>← 前へ</button><span>{machineCurrentPage+1} / {machinePages}</span><button type="button" disabled={machineCurrentPage+1>=machinePages} onClick={()=>setMachinePage(n=>n+1)}>次へ →</button></div>
+      <p className="encyclopedia-note">実機確率の模擬抽選は実機一斉モードで行います。通常・ドパでは元の数学イベントを抽選します。</p>
     </section>}
   </dialog>;
 }
