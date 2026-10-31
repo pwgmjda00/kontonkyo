@@ -1,12 +1,12 @@
-name: Weekly Dopa Community Hall
+name: Daily Dopa Community Hall
 
 on:
   schedule:
-    - cron: '12 0 * * 1' # Monday 09:12 JST
+    - cron: '12 0 * * *' # Every day 09:12 JST (GitHub may run later)
   workflow_dispatch:
 
 concurrency:
-  group: dopa-hall-weekly
+  group: dopa-hall-daily
   cancel-in-progress: false
 
 permissions:
@@ -30,7 +30,7 @@ jobs:
           cache-dependency-path: dopa-button/package-lock.json
       - name: Install site dependencies
         run: npm ci --prefix dopa-button
-      - name: Read opt-in, moderator-approved entries and publish weekly showcase
+      - name: Read opt-in, moderator-approved entries and publish daily showcase
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
@@ -52,12 +52,12 @@ jobs:
             git add dopa-button/data/hall_of_fame.json
             git add -A dopa-button/play
             if git diff --cached --quiet; then
-              echo 'No new approved hall entries'
+              echo 'No changes to daily hall'
               exit 0
             fi
-            git commit -m 'community: publish approved hall and playable site [skip ci]'
+            git commit -m 'community: publish daily hall and playable site [skip ci]'
             if git push origin HEAD:main; then
-              echo 'Updated weekly community hall'
+              echo 'Updated daily community hall'
               exit 0
             fi
             sleep 3
