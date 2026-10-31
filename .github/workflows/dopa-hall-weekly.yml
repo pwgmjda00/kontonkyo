@@ -1,0 +1,50 @@
+name: Weekly Dopa Community Hall
+
+on:
+  schedule:
+    - cron: '12 0 * * 1' # Monday 09:12 JST
+  workflow_dispatch:
+
+concurrency:
+  group: dopa-hall-weekly
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Read opt-in, moderator-approved entries and publish weekly showcase
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          for attempt in 1 2 3 4; do
+            git fetch origin main
+            git reset --hard origin/main
+            python3 dopa-button/tools/publish_hall.py
+            git add dopa-button/data/hall_of_fame.json
+            if git diff --cached --quiet; then
+              echo 'No new approved hall entries'
+              exit 0
+            fi
+            git commit -m 'community: refresh approved weekly Dopa hall'
+            if git push origin HEAD:main; then
+              echo 'Updated weekly community hall'
+              exit 0
+            fi
+            sleep 3
+          done
+          exit 1
