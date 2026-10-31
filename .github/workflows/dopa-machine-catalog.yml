@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - 'dopa-button/tools/sync_machine_catalog.py'
+      - 'dopa-button/tools/sync_slot_details.py'
       - '.github/workflows/dopa-machine-catalog.yml'
   workflow_dispatch:
   schedule:
@@ -24,6 +25,7 @@ jobs:
         run: |
           cd dopa-button
           python tools/sync_machine_catalog.py
+          python tools/sync_slot_details.py
           python - <<'PY'
           import json
           from pathlib import Path
