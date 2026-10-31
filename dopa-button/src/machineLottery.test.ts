@@ -23,13 +23,25 @@ describe('Real-machine jackpot catalog', () => {
       expect(a>0n&&a<=b).toBe(true);
     }
   });
-  it('explains the title, probability conditions, and source for every machine', () => {
+  it('has entertaining and non-citation-heavy trivia for every machine', () => {
     for(const entry of MACHINE_EVENTS){
       const facts=machineTrivia(entry);
       expect(facts.theme.length).toBeGreaterThan(12);
-      expect(facts.odds).toContain(entry.category);
-      expect(facts.context).toContain(entry.publishedProbability);
+      expect(facts.highlight.length).toBeGreaterThan(15);
+      expect(facts.odds).toContain(entry.publishedProbability);
+      expect(facts.context.length).toBeGreaterThan(15);
+      for(const line of Object.values(facts)){
+        expect(line).not.toMatch(/要確認|出典|未照合|未確認|公式資料/);
+      }
     }
+  });
+  it('uses characteristic series facts rather than generic source notices', () => {
+    const j=MACHINE_EVENTS.find(entry=>entry.machine.includes('ジャグラー'));
+    const h=MACHINE_EVENTS.find(entry=>entry.machine.includes('北斗の拳'));
+    const e=MACHINE_EVENTS.find(entry=>entry.machine.includes('エヴァンゲリオン'));
+    expect(j&&machineTrivia(j).highlight).toMatch(/ランプ/);
+    expect(h&&machineTrivia(h).highlight).toMatch(/ケンシロウ|ラオウ/);
+    expect(e&&machineTrivia(e).highlight).toMatch(/使徒|初号機|怪獣/);
   });
   it('draws each provided machine exactly once and preserves order and exact odds', () => {
     const list=MACHINE_EVENTS.slice(0,3);
