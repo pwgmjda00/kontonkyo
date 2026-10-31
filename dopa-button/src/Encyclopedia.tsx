@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { EVENTS, EVENT_BY_ID, isBonusEligible, type ProbabilityEvent } from './probability';
 import { compareRarity, hundredTrialChance, type RecordState } from './records';
 import { MACHINE_EVENTS } from './machineLottery';
+import { machineTrivia } from './machineTrivia';
 import './encyclopedia.css';
 
 export interface EncyclopediaProps {
@@ -136,19 +137,18 @@ export function Encyclopedia({ open, onClose, records, onPreview }: Encyclopedia
     </section>}
 
     {section === 'machines' && <section className="encyclopedia-machines" aria-label="実機資料">
-      <p className="encyclopedia-intro">パチンコ・パチスロ実機の掲載確率 {MACHINE_EVENTS.length}条件。メーカー公式と二次資料を併用し、初当り・合算・設定など条件が異なります。通常・ドパの1026数学抽選とは別枠です。</p>
+      <p className="encyclopedia-intro">パチンコ・パチスロ {MACHINE_EVENTS.length}条件。好きな作品を探して、その台ならではの面白ポイントも覗いてみよう。</p>
       <label className="encyclopedia-search">機種を検索
         <input type="search" value={machineQuery} placeholder="例：北斗、ジャグラー、エヴァ" onChange={event=>{setMachineQuery(event.target.value);setMachinePage(0);}}/>
       </label>
-      <p className="encyclopedia-note">機種ごとに掲載確率と条件を確認できます。実機の結果を予測するものではありません。</p>
+      <p className="encyclopedia-note">作品や機種を横断して面白ポイントを探せます。表示確率はゲーム用の模擬抽選に使う値です。</p>
       <div className="encyclopedia-events">
         {machineFiltered.slice(machineCurrentPage*PAGE_SIZE,(machineCurrentPage+1)*PAGE_SIZE).map(machine=><article className="encyclopedia-card" key={machine.id}>
           <div className="encyclopedia-card-meta"><span>{machine.maker}</span><span>{machine.kind==='pachinko'?'パチンコ':'パチスロ'}</span></div>
           <h3>{machine.machine}</h3>
-          <p className="encyclopedia-condition">{machine.category}</p>
           <strong className="encyclopedia-probability">{machine.publishedProbability}</strong>
-          <p className="encyclopedia-fact">{machine.condition}</p>
-          <a href={machine.sourceUrl} target="_blank" rel="noopener noreferrer">掲載確率の出典 ↗</a>
+          <p className="encyclopedia-fact">💡 <strong>面白ポイント</strong> {machineTrivia(machine).highlight}</p>
+          <details className="machine-trivia-details"><summary>シリーズの豆知識をもっと見る</summary><p>{machineTrivia(machine).theme}</p><p>{machineTrivia(machine).odds}</p><p>{machineTrivia(machine).context}</p></details>
         </article>)}
       </div>
       {!machineFiltered.length&&<p className="encyclopedia-empty">該当する実機はありません。</p>}
