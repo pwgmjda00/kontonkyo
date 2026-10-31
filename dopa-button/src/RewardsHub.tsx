@@ -11,8 +11,8 @@ import { shareMachineCard, collectionTweet } from './machineCard';
 import hallData from '../data/hall_of_fame.json';
 
 type HallEntry={issue:number;nickname:string;badge:string;message:string;mode:string;url:string};
-type HallWeek={week:string;entries:HallEntry[]};
-const HALL:HallWeek[]=(hallData as {weeks:HallWeek[]}).weeks;
+type HallDay={date:string;entries:HallEntry[]};
+const HALL:HallDay[]=(hallData as {days:HallDay[]}).days;
 type Tab='stickers'|'badges'|'hall';
 const iconFor=(event:MachineDrawEntry)=>machineEmojiPack(event).icons.slice(0,5).join(' ');
 const issueURL='https://github.com/pwgmjda00/kontonkyo/issues/new?template=dopa-hall.yml';
@@ -125,13 +125,13 @@ export function RewardsHub({profile,onUpdate,disabled=false}:{
       </>}
       {tab==='hall'&&<>
         <section className="dopa-hall">
-          <h3>🏆 ドパ殿堂｜週間コミュニティ展示</h3>
+          <h3>🏆 ドパ殿堂｜毎日更新のコミュニティ展示</h3>
           <p>希望者のニックネームや称号だけを紹介する場所。順位も賞金もなし。参加無料、本人応募・運営承認制。ブラウザ記録はサーバー検証されないため、公式の実力ランキングではありません。</p>
-          {HALL.length===0?<div className="dopa-hall-empty">🏁 初代殿堂の応募受付中！<small>承認された投稿が入ると、ここに週間の記録が掲載される。</small></div>:HALL.map(week=><div className="dopa-hall-week" key={week.week}>
-            <h4>📅 {week.week} の週</h4>
-            {week.entries.map(entry=><a href={entry.url} target="_blank" rel="noopener noreferrer" key={entry.issue} className="dopa-hall-entry"><strong>🎉 {entry.nickname}</strong><small>{entry.mode} · {entry.badge||'ドパコレクター'}</small><p>{entry.message}</p></a>)}
+          {HALL.length===0?<div className="dopa-hall-empty">🏁 初代殿堂の応募受付中！<small>承認された投稿が入ると、毎日の掲載欄に登場する。</small></div>:HALL.map(day=><div className="dopa-hall-week" key={day.date}>
+            <h4>📅 {day.date} に登場したコレクター</h4>
+            {day.entries.map(entry=><a href={entry.url} target="_blank" rel="noopener noreferrer" key={entry.issue} className="dopa-hall-entry"><strong>🎉 {entry.nickname}</strong><small>{entry.mode} · {entry.badge||'ドパコレクター'}</small><p>{entry.message}</p></a>)}
           </div>)}
-          <p className="dopa-rewards-footnote">応募にはGitHubアカウントが必要。投稿内容は公開されるので、本名や住所は書かないでね。応募後、掲載は運営の確認・承認が必要。</p>
+          <p className="dopa-rewards-footnote">応募にはGitHubアカウントが必要。投稿内容は公開されるので、本名や住所は書かないでね。毎朝9:12 JSTごろ更新予定。GitHub側の処理遅延があるほか、掲載は運営の確認・承認後になる。</p>
           <a href={issueURL} target="_blank" rel="noopener noreferrer" className="dopa-apply">🏆 殿堂掲載に応募する ↗</a>
         </section>
         <section className="dopa-creative-rights">
