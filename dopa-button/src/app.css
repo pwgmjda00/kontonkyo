@@ -358,3 +358,13 @@
   .machine-new-radiance{display:none}
   .machine-result-flash .machine-flash-emojis{animation:none}
 }
+
+
+/* Keep the explanation of combined probabilities available without covering PUSH. */
+.machine-odds-disclosure{margin:9px 0 12px;padding:0;border:1px solid #735586;border-radius:11px;background:#251934;text-align:left}
+.machine-odds-disclosure summary{padding:11px 13px;color:#ead8ff;font-weight:800;font-size:12px;cursor:pointer}
+.machine-odds-disclosure p{padding:0 13px 11px;margin:0;color:#e7daee;font-size:12px;line-height:1.7}
+.machine-odds-disclosure b{color:#ffe087}
+.machine-odds-disclosure span{font-weight:bold}
+.machine-odds-disclosure:focus-within{border-color:#ffda79}
+@media(max-width:430px){.machine-odds-disclosure summary{font-size:11px;padding:10px}.machine-odds-disclosure p{font-size:11px;padding:0 10px 10px}}
