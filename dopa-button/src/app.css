@@ -53,3 +53,31 @@
 .mode-normal .push-button,.mode-dopa .push-button{animation:none}
 .is-reduced .mode-gaming .push-button{animation:none}
 @media(prefers-reduced-motion:reduce){.mode-gaming .push-button{animation:none}}
+
+/* Machine-first hero: reflex is the product, cabinet is secondary. */
+.machine-reflex{position:relative;overflow:hidden;border:1px solid #bb77f7;box-shadow:0 24px 100px #6b25b429,inset 0 0 60px #a73ed510}
+.machine-reflex::before{content:"";position:absolute;left:5%;top:40px;width:90%;height:260px;background:radial-gradient(circle,#c757ff33,transparent 70%);pointer-events:none}
+.machine-hero-kicker{letter-spacing:.25em;font-size:10px!important;color:#e9b7fc;font-weight:900;margin-top:28px}
+.machine-hero-copy{max-width:510px;margin:12px auto 22px;color:#e3d6f1}
+.machine-hero-copy strong{color:#ffe29b}
+.machine-reflex .real-machine-stats{display:flex;align-items:center;justify-content:center;gap:25px;flex-wrap:wrap;margin:15px auto 25px}
+.machine-reflex .real-machine-stats span{font-size:10px;letter-spacing:.14em;color:#d3bce9}
+.machine-reflex .real-machine-stats strong{display:block;font-size:32px;letter-spacing:0;color:white;margin:5px 0}
+.machine-instruction{margin:0 auto 14px;min-height:100px;display:grid;place-items:center;font-size:clamp(48px,13vw,88px);font-weight:1000;line-height:1.12;color:#ffeaa8;text-shadow:0 0 18px #fcb53488}
+.machine-instruction[data-prompt=stop][data-phase=round]{color:#ffa4b8;text-shadow:0 0 25px #ed1f6688}
+.machine-instruction[data-phase=over]{font-size:clamp(30px,8vw,52px);color:#f99}
+.machine-countdown-track{height:7px;max-width:380px;margin:0 auto 30px;border-radius:99px;background:#4b345c;overflow:hidden}
+.machine-countdown-track span{display:block;width:100%;height:100%;transform-origin:left;background:linear-gradient(90deg,#ff73ec,#ffe29b,#83f7ff);border-radius:inherit}
+.machine-gameover{font-size:17px!important;color:#ffe1a8;font-weight:700}
+.machine-catalog-top{margin-top:38px;padding-top:24px;border-top:1px solid #654477;text-align:left}
+.machine-catalog-top h3{font-size:20px;margin:0 0 14px}
+.machine-catalog-top h3 span{font-size:13px;color:#ddc4f9}
+.machine-catalog-top label{display:block;font-size:12px}
+.machine-catalog-top input{width:100%;margin-top:7px;border:1px solid #8f65b3;border-radius:11px;padding:13px;color:white;background:#1b122b}
+.machine-filters{display:flex;gap:8px;margin-top:12px}
+.machine-filters button{background:#271638;color:#e8d8f8;border:1px solid #775391;border-radius:30px;padding:9px 14px;font-size:12px}
+.machine-filters button[aria-pressed=true]{color:#1e1530;background:#e6b3ff;border-color:#f5daff}
+.machine-more{display:block;width:100%;margin-top:14px;padding:15px;border-radius:12px;background:#51306d;color:white;border:1px solid #9b67cd;font-size:13px;font-weight:bold}
+.machine-reflex .real-machine-push:disabled{opacity:.65;filter:grayscale(.35);box-shadow:0 0 0 8px #7322bc,0 0 18px #a73cff}
+@media(max-width:500px){.machine-reflex .real-machine-stats{gap:20px}.machine-reflex .real-machine-stats strong{font-size:25px}.machine-instruction{min-height:90px}.machine-catalog-top h3{font-size:17px}}
+@media(prefers-reduced-motion:reduce){.machine-reflex::before{display:none}}
