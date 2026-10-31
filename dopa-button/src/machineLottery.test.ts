@@ -1,8 +1,37 @@
 import { describe, expect, it } from 'vitest';
 import { MACHINE_EVENTS, drawEveryMachine, judgeContact } from './machineLottery';
 import { machineTrivia } from './machineTrivia';
+import { machineEmojiPack, emojiBurst, firstTimeMachineHits } from './machineEmoji';
 
 describe('Real-machine jackpot catalog', () => {
+  it('assigns title-specific emoji themes to every currently listed machine', () => {
+    const tokens=new Set<string>();
+    for(const machine of MACHINE_EVENTS){
+      const pack=machineEmojiPack(machine);
+      expect(pack.recognized, machine.machine+' lacked a dedicated emoji motif').toBe(true);
+      expect(pack.icons.length).toBeGreaterThanOrEqual(5);
+      expect(pack.chant.length).toBeGreaterThan(20);
+      tokens.add(pack.icons[0]);
+      expect(emojiBurst(pack,12)).toHaveLength(12);
+    }
+    expect(tokens.size).toBeGreaterThan(35);
+    const tokyo=MACHINE_EVENTS.find(x=>x.machine.includes('東京リベンジャーズ'));
+    expect(tokyo).toBeDefined();
+    if(tokyo){
+      const e=machineEmojiPack(tokyo);
+      expect(e.icons).toContain('卍');
+      expect(e.icons).toContain('🏍️');
+      expect(e.chant).toContain('マイキー');
+    }
+  });
+  it('pauses only for first-time hits while repeat machines stay in the rapid flow', () => {
+    const [a,b]=MACHINE_EVENTS.slice(0,2);
+    const results=[{event:a,hit:true},{event:b,hit:true},{event:a,hit:true},{event:b,hit:false}];
+    expect(firstTimeMachineHits(results,new Set()).map(x=>x.event.id)).toEqual([a.id,b.id]);
+    expect(firstTimeMachineHits(results,new Set([a.id])).map(x=>x.event.id)).toEqual([b.id]);
+    expect(firstTimeMachineHits(results,new Set([a.id,b.id]))).toEqual([]);
+    expect(emojiBurst(machineEmojiPack(a),99)).toHaveLength(14);
+  });
   it('judges contact at touch-down, not finger release, including deadline boundaries', () => {
     expect(judgeContact('go',1499,1500)).toBe('success');
     expect(judgeContact('go',1500,1500)).toBe('failure');
