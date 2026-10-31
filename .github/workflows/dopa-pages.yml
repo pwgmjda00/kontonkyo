@@ -19,7 +19,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: dopa-button-publish-main
+  group: dopa-button-publish-main-release
   cancel-in-progress: false
 
 permissions:
@@ -28,6 +28,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
       - name: Locate the isolated game directory
@@ -61,6 +62,7 @@ jobs:
           cd dopa-button
           npx playwright install --with-deps chromium
       - name: iPhone release smoke (PUSH, badges, PNG, instant Hall)
+        timeout-minutes: 3
         run: node dopa-button/tests/release-smoke.cjs
       - name: Upload mobile QA screenshots
         if: always()
