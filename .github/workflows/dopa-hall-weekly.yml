@@ -23,6 +23,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: dopa-button/package-lock.json
+      - name: Install site dependencies
+        run: npm ci --prefix dopa-button
       - name: Read opt-in, moderator-approved entries and publish weekly showcase
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -36,12 +43,19 @@ jobs:
             git reset --hard origin/main
             python3 -m unittest discover -s dopa-button/tools -p 'test_publish_hall.py'
             python3 dopa-button/tools/publish_hall.py
+            # Commits made with GITHUB_TOKEN do not trigger another push workflow.
+            # Build and publish the actual Pages assets right here, in the same commit.
+            npm test --prefix dopa-button
+            npm run build --prefix dopa-button
+            mkdir -p dopa-button/play
+            rsync -a --delete dopa-button/dist/ dopa-button/play/
             git add dopa-button/data/hall_of_fame.json
+            git add -A dopa-button/play
             if git diff --cached --quiet; then
               echo 'No new approved hall entries'
               exit 0
             fi
-            git commit -m 'community: refresh approved weekly Dopa hall'
+            git commit -m 'community: publish approved hall and playable site [skip ci]'
             if git push origin HEAD:main; then
               echo 'Updated weekly community hall'
               exit 0
