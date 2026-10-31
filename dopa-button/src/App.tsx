@@ -78,6 +78,7 @@ export default function App() {
     };
   }, []);
   useEffect(() => { saveRecords(records); }, [records]);
+  useEffect(() => { window.scrollTo({top:0,behavior:'instant'}); }, [machineLottery]);
   useEffect(() => { controller.current?.setEffectsEnabled(effectsEnabled); }, [effectsEnabled]);
   useEffect(() => {
     sound.setPlaying(['ROUND', 'GAP', 'DRAWING'].includes(game.phase));
