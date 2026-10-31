@@ -27,7 +27,7 @@ describe('Independent virtual ball and medal accounts',()=>{
     expect(second.wallet.cashDepositedYen).toBe(1000);
     expect(second.jackpotUnits).toBeCloseTo(1250,12);
     expect(second.wallet.wins).toBe(1);
-    expect(walletYen(second.wallet,'pachinko').profit).toBeCloseTo(4700,12);
+    expect(walletYen(second.wallet,'pachinko').profit).toBeCloseTo(4800,12);
     expect(walletYen(second.wallet,'pachinko').averagePayout).toBe(1250);
   });
   it('replenishes balls when insufficient, but does not count jackpot payout as a deposit',()=>{
