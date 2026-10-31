@@ -24,6 +24,7 @@ concurrency:
 
 permissions:
   contents: write
+  pages: write
 
 jobs:
   build:
@@ -75,9 +76,19 @@ jobs:
       - name: Publish tested build into GitHub Pages folder
         if: github.ref == 'refs/heads/main'
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           test -f dopa-button/dist/index.html
+          request_pages_build() {
+            curl --fail-with-body --show-error --silent --retry 3 --max-time 45 \
+              --request POST \
+              --header "Accept: application/vnd.github+json" \
+              --header "Authorization: Bearer $GITHUB_TOKEN" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/pages/builds"
+            echo "Requested Pages rebuild from latest main commit"
+          }
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           # Preserve this already-tested build outside the checked-out tree.
@@ -101,11 +112,13 @@ jobs:
             git add -A dopa-button/play
             if git diff --cached --quiet; then
               echo "Published files already match tested build"
+              request_pages_build
               exit 0
             fi
             git commit -m "deploy: update Dopa Button playable site [skip ci]"
             if git push origin HEAD:main; then
               echo "New tested build published into dopa-button/play"
+              request_pages_build
               exit 0
             fi
             sleep 2
