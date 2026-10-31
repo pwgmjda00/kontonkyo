@@ -1,17 +1,23 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { MachineHit } from './machineLottery';
 import { emojiBurst, machineEmojiPack } from './machineEmoji';
 import { machineTrivia } from './machineTrivia';
+import { shareMachineCard } from './machineCard';
+import type { RewardProfile } from './machineRewards';
 
 export function MachineCelebration({
-  hits, index, onNext, onSkip
+  hits, index, profile, earnedTitles, onNext, onSkip
 }: {
   hits: readonly MachineHit[];
   index: number;
+  profile: RewardProfile;
+  earnedTitles: readonly string[];
   onNext: () => void;
   onSkip: () => void;
 }) {
   const button=useRef<HTMLButtonElement>(null);
+  const [saving,setSaving]=useState(false);
+  const [shareText,setShareText]=useState('');
   const hit=hits[index];
   useEffect(()=>{button.current?.focus();},[hit?.event.id]);
   useEffect(()=>{
@@ -23,6 +29,13 @@ export function MachineCelebration({
   const machine=hit.event;
   const pack=machineEmojiPack(machine);
   const fact=machineTrivia(machine);
+  const saveCard=async()=>{
+    if(saving)return;
+    setSaving(true);
+    try{const result=await shareMachineCard(machine,profile);setShareText(result==='shared'?'記念カードを共有しました！':'記念カードを画像保存しました！');}
+    catch{setShareText('画像保存に失敗しました。端末の空き容量や設定を確認してください。');}
+    finally{setSaving(false);}
+  };
   return <div className="machine-new-overlay" role="dialog" aria-modal="true" aria-labelledby="machine-new-title" data-testid="machine-new-overlay" onKeyDown={event=>{
     if(event.key==='Escape'){event.preventDefault();onSkip();}
   }}>
@@ -38,10 +51,13 @@ export function MachineCelebration({
         <div className="machine-new-probability"><span>GET!</span> {machine.publishedProbability}</div>
         <p className="machine-new-chant">{pack.chant}</p>
         <p className="machine-new-trivia"><strong>💡 この台の面白ポイント</strong>{fact.theme}</p>
+        {earnedTitles.length>0&&index===0&&<p className="machine-new-titles">🏅 新称号GET！ {earnedTitles.join(' · ')}</p>}
         <div className="machine-new-controls">
+          <button type="button" className="machine-new-card" disabled={saving} onClick={()=>void saveCard()}>{saving?'画像を作成中…':'📸 この機種の記念カードを保存・共有'}</button>
           <button ref={button} className="machine-new-next" type="button" onClick={onNext} data-testid="machine-new-next">{index+1<hits.length?'次の新規当選を見る →':'▶ 反射ゲームを再開'}</button>
           {hits.length-index>1&&<button className="machine-new-skip" type="button" onClick={onSkip}>残り{hits.length-index-1}件をまとめてスキップ</button>}
         </div>
+        {shareText&&<small role="status">{shareText}</small>}
         <small>この機種は初獲得！ 次からは自動で流れます。</small>
       </div>
     </div>
