@@ -3,6 +3,8 @@ import { MACHINE_EVENTS, drawEveryMachine, judgeContact, machineRoundStatistics,
 import { machineTrivia } from './machineTrivia';
 import { machineEmojiPack, firstTimeMachineHits } from './machineEmoji';
 import { MachineCelebration } from './MachineCelebration';
+import { RewardsHub } from './RewardsHub';
+import { loadRewards, saveRewards, winRewards, failRewards, newEarnedBadges, type RewardProfile } from './machineRewards';
 import { DEFAULT_WALLET_SETTINGS, emptyVirtualWallet, validateVirtualWallet, applyVirtualRound, walletYen, theoreticalReturnPct, validateWalletSettings, slotNormalReturnPerSpin, type VirtualKind, type VirtualWallet, type WalletSettings, type WalletRound } from './machineWallet';
 
 type Phase = 'ready' | 'countdown' | 'round' | 'result' | 'celebrate' | 'paused' | 'over';
@@ -43,6 +45,9 @@ function fairPrompt():Prompt{const a=new Uint32Array(1);crypto.getRandomValues(a
 
 export function MachineLottery({onClose}:{onClose:()=>void}) {
   const [state,setState]=useState<MachineState>(INIT);
+  const [rewards,setRewards]=useState<RewardProfile>(loadRewards);
+  const rewardsRef=useRef(rewards);
+  const [latestBadges,setLatestBadges]=useState<string[]>([]);
   const [best,setBest]=useState(readBest);
   const [kind,setKind]=useState<VirtualKind>('pachinko');
   const kindRef=useRef<VirtualKind>('pachinko');
@@ -52,11 +57,10 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
   const walletsRef=useRef<TwoWallets>(wallets);
   const [lastRound,setLastRound]=useState<WalletRound|null>(null);
   const [confirmReset,setConfirmReset]=useState(false);
-  const [totals,setTotals]=useState<Record<string,number>>({});
   const [hitHistory,setHitHistory]=useState<MachineHit[]>([]);
   const [loadedUnlocks]=useState(loadUnlocks);
-  const discovered=useRef(loadedUnlocks);
-  const [unlockCount,setUnlockCount]=useState(loadedUnlocks.size);
+  const discovered=useRef(new Set([...loadedUnlocks,...Object.keys(rewards.counts)]));
+  const [unlockCount,setUnlockCount]=useState(discovered.current.size);
   const [newWins,setNewWins]=useState<MachineHit[]>([]);
   const [celebrateIndex,setCelebrateIndex]=useState(0);
   const [showAllHistory,setShowAllHistory]=useState(false);
@@ -67,10 +71,17 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
   const deadline=useRef(0);
   const keyboardHeld=useRef(false);
   useEffect(()=>{try{localStorage.setItem(WALLET_KEY,JSON.stringify(wallets));}catch{/* private browsing */}},[wallets]);
+  useEffect(()=>{saveRewards(rewards);},[rewards]);
+  const setRewardProfile=(next:RewardProfile)=>{rewardsRef.current=next;setRewards(next);};
   useEffect(()=>{try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));}catch{/* private browsing */}},[settings]);
   const publish=(patch:Partial<MachineState>)=>{const next={...live.current,...patch};live.current=next;setState(next);};
   const phase=(next:Phase,patch:Partial<MachineState>={})=>publish({...patch,phase:next,token:live.current.token+1});
-  const finish=()=>{const score=live.current.score;setBest(old=>{const next=Math.max(old,score);try{localStorage.setItem(BEST_KEY,String(next));}catch{/* storage disabled */}return next;});phase('over',{remaining:0});};
+  const finish=()=>{const score=live.current.score;
+    const before=rewardsRef.current;
+    const after=failRewards(before,score);
+    setRewardProfile(after);
+    setLatestBadges(newEarnedBadges(before,after).map(b=>b.emoji+b.name));
+    setBest(old=>{const next=Math.max(old,score);try{localStorage.setItem(BEST_KEY,String(next));}catch{/* storage disabled */}return next;});phase('over',{remaining:0});};
   const nextRound=(now:number)=>{
     const duration=Math.max(700,1500-live.current.score*25);
     deadline.current=now+duration;
@@ -88,8 +99,11 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
     setWallets(both);
     setLastRound(played);
     const score=live.current.score+1;
+    const beforeRewards=rewardsRef.current;
+    const afterRewards={...winRewards(beforeRewards,hits),bestStreak:Math.max(beforeRewards.bestStreak,score)};
+    setRewardProfile(afterRewards);
+    setLatestBadges(newEarnedBadges(beforeRewards,afterRewards).map(b=>b.emoji+b.name));
     if(hits.length) setHitHistory(old=>[...hits,...old].slice(0,40));
-    setTotals(prev=>{const next={...prev};for(const hit of hits)next[hit.event.id]=(next[hit.event.id]??0)+1;return next;});
     // New machine discoveries deserve a proper celebration, without running the clock.
     // Already-unlocked machines are just short flashes. Unlocks persist across sessions.
     const fresh=firstTimeMachineHits(hits,discovered.current);
@@ -149,6 +163,7 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
     deadline.current=now+900;
     setHitHistory([]);
     setShowAllHistory(false);
+    setLatestBadges([]);
     phase('countdown',{score:0,remaining:900,count:3,lastHits:[]});
   };
   // Physical input is decided on pointer DOWN, not delayed until finger release.
@@ -232,6 +247,7 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
       {result.length>0&&<><span className="machine-flash-emojis" aria-hidden="true">{machineEmojiPack(result[0].event).icons.slice(0,5).join(' ')}</span><span>{result[0].event.machine}{result.length>1?' ほか '+(result.length-1)+'件':''}</span><small className="machine-hit-fact">{machineEmojiPack(result[0].event).chant}</small></>}
     </div>}</div>
     <button className="real-machine-push" type="button" disabled={!canPush} data-testid="machine-push" onPointerDown={onPointerDown} onKeyDown={onKeyboardDown} onKeyUp={e=>{if(e.key===' '||e.key==='Enter')keyboardHeld.current=false;}} onBlur={()=>{keyboardHeld.current=false;}} onClick={e=>{if(e.detail===0&&!keyboardHeld.current)activate();}} aria-label={state.phase==='round'?(state.prompt==='stop'?'押すな。何も触らず待つ':'押せ。ボタンに触れる'):(state.phase==='ready'?'ゲームを開始':'ゲームをもう一度開始')}><small>{state.phase==='ready'?'TAP TO START':state.phase==='over'?'TRY AGAIN':kind==='pachinko'?'BALL DRAW':'MEDAL DRAW'}</small><strong>PUSH</strong><span>{state.phase==='round'&&state.prompt==='stop'?'触ったら終了':'一瞬で運命が変わる'}</span></button>
+    {latestBadges.length>0&&(state.phase==='result'||state.phase==='over')&&<p className="dopa-badge-toast" role="status">🏅 称号GET！ {latestBadges.join(' · ')}</p>}
     <section className="machine-wallet" aria-label={kind==='pachinko'?'仮想持ち玉・収支':'仮想持ちメダル・収支'} data-testid="machine-wallet">
       <div className="machine-wallet-top">
         <div className="machine-wallet-net"><span>💰 仮想収支</span><strong data-testid="machine-wallet-profit" className={money.profit>=0?'wallet-positive':'wallet-negative'}>{signed(money.profit)}円</strong><small>差{units} {signed(money.netUnits)}{units}</small></div>
@@ -259,6 +275,7 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
         <div className="wallet-reset"><button type="button" disabled={!canSwitch} onClick={resetWallet}>{confirmReset?'本当にこの会計をリセット':'この会計をリセット'}</button>{confirmReset&&<button type="button" onClick={()=>setConfirmReset(false)}>キャンセル</button>}</div>
       </details>
     </section>
+    <RewardsHub profile={rewards} onUpdate={next=>{if(canSwitch)setRewardProfile(next);}} disabled={!canSwitch}/>
     {state.phase==='over'&&<p className="machine-gameover">失敗。反射スコア {state.score} 。PUSHでもう一度。</p>}
     {(state.phase==='over'||state.phase==='ready')&&<section className="real-machine-result" aria-live="polite">
       <h3>{hitHistory.length?'🎰 今回のプレイで当選した実機 '+hitHistory.length+'件':result.length?'🎰 今回の実機当選 '+result.length+'件':state.score?'今回の実機当選なし':'成功したら実機を一斉抽選'}</h3>
@@ -270,8 +287,8 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
     <details className="machine-odds-disclosure"><summary>🎲 なぜこんなに当たるの？ 抽選の仕組み</summary><p>成功するたびに選択中の{activeCount}条件を<span>それぞれ1回ずつ独立抽選</span>しています。1回の成功で1件以上当たる理論確率は<b>{(activeStats.atLeastOne*100).toFixed(1)}%</b>、平均当選数は<b>{activeStats.expectedHits.toFixed(2)}件</b>。単独の機種の確率を甘くする仕組みはなく、初獲得・絵文字演出でも当選率は変わりません。</p></details>
     <details className="machine-catalog-expand"><summary>📚 実機図鑑・豆知識を見る <span>{MACHINE_EVENTS.length}条件</span></summary>
     <div className="machine-catalog-top"><h3>実機データ図鑑 <span>{MACHINE_EVENTS.length}条件</span></h3><p className="machine-catalog-summary">人気シリーズを先頭に表示。エヴァ、北斗、海物語、ジャグラー、スマスロなど。</p><p>お気に入りの作品の意外な見どころを発見。全機種に「面白ポイント」つき！</p><label>機種名検索 <input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="機種・メーカーで検索"/></label><div className="machine-filters">{(['all','pachinko','pachislot'] as const).map(value=><button key={value} type="button" aria-pressed={filter===value} onClick={()=>setFilter(value)}>{value==='all'?'全部':value==='pachinko'?'パチンコ':'パチスロ'}</button>)}</div></div>
-    <div className="real-machine-list machine-emoji-grid">{filtered.slice(0,shownCount).map(v=><article className="machine-emoji-card" key={v.id}><div className="machine-emoji-line" aria-hidden="true">{machineEmojiPack(v).icons.slice(0,6).join(' ')}</div><div><strong>{v.machine}</strong><span>{v.maker==='未確認'||v.maker==='未照合'||v.maker==='要確認'||v.maker==='機種ページ参照'?(v.kind==='pachislot'?'パチスロ':'パチンコ'):v.maker+' · '+(v.kind==='pachislot'?'パチスロ':'パチンコ')}</span></div><div><b>{v.publishedProbability}</b><small>この端末での当選 {totals[v.id]??0}回</small></div><p className="machine-emoji-chant">{machineEmojiPack(v).chant}</p><details className="machine-trivia-details"><summary>作品の話と確率の面白さをもっと読む</summary><p>{machineTrivia(v).theme}</p><p>{machineTrivia(v).odds}</p><p>{machineTrivia(v).context}</p></details></article>)}</div>{shownCount<filtered.length&&<button className="machine-more" type="button" onClick={()=>setShownCount(n=>n+(window.matchMedia('(max-width:540px)').matches?10:30))}>さらに機種を表示 ↓</button>}
+    <div className="real-machine-list machine-emoji-grid">{filtered.slice(0,shownCount).map(v=><article className="machine-emoji-card" key={v.id}><div className="machine-emoji-line" aria-hidden="true">{machineEmojiPack(v).icons.slice(0,6).join(' ')}</div><div><strong>{v.machine}</strong><span>{v.maker==='未確認'||v.maker==='未照合'||v.maker==='要確認'||v.maker==='機種ページ参照'?(v.kind==='pachislot'?'パチスロ':'パチンコ'):v.maker+' · '+(v.kind==='pachislot'?'パチスロ':'パチンコ')}</span></div><div><b>{v.publishedProbability}</b><small>累計当選 {rewards.counts[v.id]??0}回</small></div><p className="machine-emoji-chant">{machineEmojiPack(v).chant}</p><details className="machine-trivia-details"><summary>作品の話と確率の面白さをもっと読む</summary><p>{machineTrivia(v).theme}</p><p>{machineTrivia(v).odds}</p><p>{machineTrivia(v).context}</p></details></article>)}</div>{shownCount<filtered.length&&<button className="machine-more" type="button" onClick={()=>setShownCount(n=>n+(window.matchMedia('(max-width:540px)').matches?10:30))}>さらに機種を表示 ↓</button>}
     </details>
-    {state.phase==='celebrate'&&newWins.length>0&&<MachineCelebration hits={newWins} index={celebrateIndex} onNext={nextNewWin} onSkip={resumeAfterNewWins}/>}
+    {state.phase==='celebrate'&&newWins.length>0&&<MachineCelebration hits={newWins} index={celebrateIndex} profile={rewards} earnedTitles={latestBadges} onNext={nextNewWin} onSkip={resumeAfterNewWins}/>}
   </section>;
 }
