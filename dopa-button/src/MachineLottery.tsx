@@ -20,9 +20,8 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
   const [shownCount,setShownCount]=useState(30);
   const live=useRef(INIT);
   const deadline=useRef(0);
-  const generation=useRef(0);
   const lastPointerToken=useRef<number|null>(null);
-  const pausedTarget=useRef<{phase:'round'|'result';time:number}|null>(null);
+  const lastAction=useRef<{at:number;token:number}|null>(null);
   const publish=(patch:Partial<MachineState>)=>{const next={...live.current,...patch};live.current=next;setState(next);};
   const phase=(next:Phase,patch:Partial<MachineState>={})=>publish({...patch,phase:next,token:live.current.token+1});
   const finish=()=>{const score=live.current.score;setBest(old=>{const next=Math.max(old,score);try{localStorage.setItem(BEST_KEY,String(next));}catch{/* storage disabled */}return next;});phase('over',{remaining:0});};
@@ -38,22 +37,27 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
     const score=live.current.score+1;
     if(hits.length) setHitHistory(old=>[...hits,...old].slice(0,40));
     setTotals(prev=>{const next={...prev};for(const hit of hits)next[hit.event.id]=(next[hit.event.id]??0)+1;return next;});
-    const duration=hits.some(hit=>isUltraRare(hit.event))?2400:hits.length?450:180;
+    // Most wins are a brief pulse. Rare wins earn a readable moment, but never a long forced wait.
+    const duration=hits.some(hit=>isUltraRare(hit.event))?1450:hits.length?420:180;
     deadline.current=now+duration;
     phase('result',{score,lastHits:hits,remaining:duration});
   };
   const start=(now:number)=>{
-    generation.current++;
     deadline.current=now+900;
     setHitHistory([]);
     phase('countdown',{score:0,remaining:900,count:3,lastHits:[]});
   };
-  const onPush=()=>{
+  const onPush=(event:React.MouseEvent<HTMLButtonElement>)=>{
     const current=live.current;
     const token=lastPointerToken.current;
     lastPointerToken.current=null;
+    // Ignore clicks whose pointer went down in a previous phase, or synthetic duplicates
+    // in the same phase. Keyboard activation (detail 0) remains supported.
     if(token!==null && token!==current.token)return;
+    if(event.detail>0 && token===null)return;
     const now=performance.now();
+    if(lastAction.current && lastAction.current.token===current.token && now-lastAction.current.at<220)return;
+    lastAction.current={at:now,token:current.token};
     if(current.phase==='ready'||current.phase==='over')start(now);
     else if(current.phase==='round') {
       if(now>=deadline.current){if(current.prompt==='stop')success(now);else finish();}
@@ -79,13 +83,11 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
     const visibility=()=>{
       const s=live.current;
       if(document.hidden && (s.phase==='round'||s.phase==='result'||s.phase==='countdown')){
-        pausedTarget.current={phase:s.phase==='result'?'result':'round',time:Math.max(0,deadline.current-performance.now())};
         phase('paused');
       }else if(!document.hidden && live.current.phase==='paused'){
         deadline.current=performance.now()+900;
         phase('countdown',{remaining:900,count:3});
-        // Resume by starting a fresh reaction prompt, avoiding a lost deadline.
-        pausedTarget.current=null;
+        // Resume with a fresh prompt, avoiding a lost deadline.
       }
     };
     document.addEventListener('visibilitychange',visibility);
@@ -113,7 +115,7 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
       {result.length>0&&<span>{result.slice(0,2).map(h=>h.event.machine).join(' ／ ')}{result.length>2?' ほか':''}</span>}
       {ultraRareHits.length>0&&<button type="button" onClick={()=>nextRound(performance.now())}>演出を飛ばして続ける →</button>}
     </div>}
-    <button className="real-machine-push" type="button" disabled={!canPush} data-testid="machine-push" onPointerDown={()=>{lastPointerToken.current=live.current.token;}} onPointerCancel={()=>{lastPointerToken.current=null;}} onKeyDown={e=>{if(e.repeat&&(e.code==='Space'||e.code==='Enter'))e.preventDefault();}} onClick={onPush}><small>{state.phase==='ready'?'TAP TO START':state.phase==='over'?'TRY AGAIN':'ALL MACHINE DRAW'}</small><strong>PUSH</strong><span>{state.phase==='round'&&state.prompt==='stop'?'触ったら終了':'一瞬で運命が変わる'}</span></button>
+    <button className="real-machine-push" type="button" disabled={!canPush} data-testid="machine-push" onPointerDown={()=>{lastPointerToken.current=live.current.token;}} onPointerCancel={()=>{lastPointerToken.current=null;}} onKeyDown={e=>{if(e.code==='Space'||e.code==='Enter'){if(e.repeat)e.preventDefault();else lastPointerToken.current=live.current.token;}}} onClick={onPush}><small>{state.phase==='ready'?'TAP TO START':state.phase==='over'?'TRY AGAIN':'ALL MACHINE DRAW'}</small><strong>PUSH</strong><span>{state.phase==='round'&&state.prompt==='stop'?'触ったら終了':'一瞬で運命が変わる'}</span></button>
     {state.phase==='over'&&<p className="machine-gameover">失敗。反射スコア {state.score} 。PUSHでもう一度。</p>}
     {rareHistory.length>0&&state.phase==='over'&&<section className="machine-rare-spotlight" aria-label="666分の1を超える超希少な当選"><span>666 BREAK / 超希少当選</span><h3>1/666より重い確率を引いた！</h3><p>ゲームで引けた奇跡。実機での当たりを保証するものではないけど、実機が気になったら、ホールの設置情報を探してみよう。</p>{rareHistory.slice(0,5).map((hit,i)=><p key={hit.event.id+'-'+i}><strong>{hit.event.machine}</strong> · {hit.event.publishedProbability}</p>)}<a href="https://www.p-world.co.jp/" target="_blank" rel="noopener noreferrer" className="machine-hall-link">設置ホールを探す ↗</a></section>}
     {(state.phase==='over'||state.phase==='ready')&&<section className="real-machine-result" aria-live="polite">
