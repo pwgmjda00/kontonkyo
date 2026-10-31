@@ -17,8 +17,8 @@ describe('Real-machine jackpot catalog', () => {
     expect(isUltraRare({numerator:'1',denominator:'665'})).toBe(false);
     expect(isUltraRare({numerator:'1',denominator:'666'})).toBe(false);
     expect(isUltraRare({numerator:'1',denominator:'667'})).toBe(true);
-    expect(isUltraRare({numerator:'2',denominator:'1333'})).toBe(false);
-    expect(isUltraRare({numerator:'2',denominator:'1334'})).toBe(true);
+    expect(isUltraRare({numerator:'2',denominator:'1332'})).toBe(false);
+    expect(isUltraRare({numerator:'2',denominator:'1333'})).toBe(true);
   });
   it('draws each provided machine exactly once and preserves order and exact odds', () => {
     const list=MACHINE_EVENTS.slice(0,3);
