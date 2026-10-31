@@ -96,3 +96,13 @@
 .machine-hall-note a{color:#ffdb7b;text-decoration:underline;text-underline-offset:3px;font-weight:800}
 .machine-rare-toggle{display:flex!important;align-items:center;gap:9px;margin-top:14px;font-size:12px!important;color:#ffe28c}
 .machine-rare-toggle input{width:18px;height:18px;accent-color:#e5a01b}
+
+
+/* Main game: flash results next to PUSH without forcing the player to scroll. */
+.machine-result-flash{display:flex;gap:6px;flex-direction:column;align-items:center;justify-content:center;min-height:56px;margin:0 auto 10px;padding:10px 14px;width:min(100%,430px);border:1px solid #8c5ba4;border-radius:14px;background:#302048;color:#fff;text-align:center}
+.machine-result-flash strong{font-size:16px;color:#ffe8ab}
+.machine-result-flash span{font-size:11px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.machine-result-flash.is-rare{border-color:#ffe38b;box-shadow:0 0 20px #f5c24e63;background:linear-gradient(115deg,#51340e,#301927)}
+.machine-result-flash.is-rare strong{font-size:22px;color:#ffde75}
+.machine-result-flash button{font-size:12px;padding:9px 13px;background:#f6db88;color:#291f0f;border:0;border-radius:99px;margin-top:6px;font-weight:bold}
+.machine-reflex .real-machine-result{scroll-margin-top:24px}
