@@ -1,0 +1,38 @@
+name: 🎬 ドパボタン演出テーマの提案
+description: 演出ディレクター称号の獲得者向け。応募内容は公開されます。
+title: "[演出テーマ提案] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **ゲーム内で20機種を獲得し「演出ディレクター」を解除**した人向けの公開応募。
+        提案の採用・時期は運営の確認で決定します。著作権を侵害する素材や個人情報を投稿しないでください。
+        既存作品の固有イラスト・音源などの無断転載は避け、絵文字とオリジナル文章で提案してください。
+  - type: input
+    id: nickname
+    attributes:
+      label: ニックネーム
+      placeholder: ドパコレクター
+    validations:
+      required: true
+  - type: input
+    id: idea
+    attributes:
+      label: 演出テーマ名
+      placeholder: 星屑フィーバー
+    validations:
+      required: true
+  - type: textarea
+    id: emojis
+    attributes:
+      label: 飛ばしたい絵文字と短いセリフ
+      placeholder: 🌠✨🌌🚀「星を全部拾った気分だ！」
+    validations:
+      required: true
+  - type: textarea
+    id: proof
+    attributes:
+      label: 演出ディレクターの達成カード（任意）
+      description: 本名・メール・電話番号が含まれない画像だけ添付
+    validations:
+      required: false
