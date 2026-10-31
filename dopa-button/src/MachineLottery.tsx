@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { MACHINE_EVENTS, drawEveryMachine, type MachineHit } from './machineLottery';
+import { MACHINE_EVENTS, drawEveryMachine, isUltraRare, type MachineHit } from './machineLottery';
 
 type Phase = 'ready' | 'countdown' | 'round' | 'result' | 'paused' | 'over';
 type Prompt = 'go' | 'stop';
@@ -90,6 +90,8 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
   const canPush=state.phase==='ready'||state.phase==='over'||state.phase==='round';
   const instruction=state.phase==='round'?(state.prompt==='go'?'押せ！':'押すな！'):state.phase==='countdown'?String(state.count):state.phase==='over'?'GAME OVER':state.phase==='ready'?'READY?':state.phase==='paused'?'PAUSED':'GOOD!';
   const result=state.lastHits;
+  const ultraRareHits=result.filter(hit=>isUltraRare(hit.event));
+  const ultraRareCatalog=MACHINE_EVENTS.filter(isUltraRare);
   return <section className="real-machine-panel machine-reflex" aria-label="実機一斉抽選・反射ゲーム">
     <div className="real-machine-head"><span>REAL MACHINES × REFLEX</span><button type="button" onClick={onClose} disabled={!['ready','over'].includes(state.phase)}>旧3モードへ ↗</button></div>
     <p className="machine-hero-kicker">MAIN GAME · 押すな。でも押せ。</p>
@@ -100,13 +102,14 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
     <div className="machine-countdown-track"><span style={{transform:`scaleX(${state.phase==='round'?Math.max(0,state.remaining/state.duration):1})`}} /></div>
     <button className="real-machine-push" type="button" disabled={!canPush} data-testid="machine-push" onPointerDown={()=>{lastPointerToken.current=live.current.token;}} onPointerCancel={()=>{lastPointerToken.current=null;}} onKeyDown={e=>{if(e.repeat&&(e.code==='Space'||e.code==='Enter'))e.preventDefault();}} onClick={onPush}><small>{state.phase==='ready'?'TAP TO START':state.phase==='over'?'TRY AGAIN':'ALL MACHINE DRAW'}</small><strong>PUSH</strong><span>{state.phase==='round'&&state.prompt==='stop'?'触ったら終了':'一瞬で運命が変わる'}</span></button>
     {state.phase==='over'&&<p className="machine-gameover">失敗。反射スコア {state.score} 。PUSHでもう一度。</p>}
+    {ultraRareHits.length>0&&<section className="machine-rare-spotlight" aria-label="666分の1を超える超希少な当選"><span>666 BREAK / 超希少当選</span><h3>1/666より重い確率を引いた！</h3><p>ゲームで引けた奇跡。実機での当たりを保証するものではないけど、今日は気になる台を調べてみる？</p>{ultraRareHits.map(hit=><p key={hit.event.id}><strong>{hit.event.machine}</strong> · {hit.event.publishedProbability}</p>)}</section>}
     <section className="real-machine-result" aria-live="polite">
       <h3>{result.length?'🎰 今回の実機当選 '+result.length+'件':state.score?'今回の実機当選なし':'成功したら実機を一斉抽選'}</h3>
-      {result.slice(0,8).map(hit=><article key={hit.event.id}><strong>{hit.event.machine}</strong><span>{hit.event.category} · {hit.event.publishedProbability}</span><p>{hit.event.condition}</p><a href={hit.event.sourceUrl} target="_blank" rel="noopener noreferrer">データ出典 ↗</a></article>)}
+      {result.slice(0,8).map(hit=><article key={hit.event.id}><strong>{hit.event.machine}{isUltraRare(hit.event)?' ✦ 1/666突破':''}</strong><span>{hit.event.category} · {hit.event.publishedProbability}</span><p>{hit.event.condition}</p><a href={hit.event.sourceUrl} target="_blank" rel="noopener noreferrer">データ出典 ↗</a></article>)}
       {result.length>8&&<p>ほか {result.length-8} 件。収録一覧にも反映されています。</p>}
     </section>
     <p className="real-machine-warning">模擬確率ゲームです。実機の抽選結果や未来の収支は予測しません。データは公式と二次情報を含み、設定・状態・合算の違いがあります。すべての設置機種を網羅したものではありません。</p>
-    <div className="machine-catalog-top"><h3>実機データ図鑑 <span>{MACHINE_EVENTS.length}条件</span></h3><label>機種名検索 <input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="機種・メーカーで検索"/></label><div className="machine-filters">{(['all','pachinko','pachislot'] as const).map(value=><button key={value} type="button" aria-pressed={filter===value} onClick={()=>setFilter(value)}>{value==='all'?'全部':value==='pachinko'?'パチンコ':'パチスロ'}</button>)}</div></div>
-    <div className="real-machine-list">{filtered.slice(0,shownCount).map(v=><article key={v.id}><div><strong>{v.machine}</strong><span>{v.maker} · {v.category}</span></div><div><b>{v.publishedProbability}</b><small>この端末での当選 {totals[v.id]??0}回</small></div><p>{v.condition}</p><a href={v.sourceUrl} target="_blank" rel="noopener noreferrer">確率データの出典 ↗</a></article>)}</div>{shownCount<filtered.length&&<button className="machine-more" type="button" onClick={()=>setShownCount(n=>n+30)}>あと {Math.min(30,filtered.length-shownCount)} 機種を表示 ↓</button>}
+    <div className="machine-catalog-top"><h3>実機データ図鑑 <span>{MACHINE_EVENTS.length}条件</span></h3><p>✦ 1/666より重い超希少イベント：{ultraRareCatalog.length}件。機種のスペックと演出を見比べて、気になる台を探そう。</p><label>機種名検索 <input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="機種・メーカーで検索"/></label><div className="machine-filters">{(['all','pachinko','pachislot'] as const).map(value=><button key={value} type="button" aria-pressed={filter===value} onClick={()=>setFilter(value)}>{value==='all'?'全部':value==='pachinko'?'パチンコ':'パチスロ'}</button>)}</div></div>
+    <div className="real-machine-list">{filtered.slice(0,shownCount).map(v=><article key={v.id}><div><strong>{v.machine}{isUltraRare(v)?' ✦ 超希少':''}</strong><span>{v.maker} · {v.category}</span></div><div><b>{v.publishedProbability}</b><small>この端末での当選 {totals[v.id]??0}回</small></div><p>{v.condition}</p><a href={v.sourceUrl} target="_blank" rel="noopener noreferrer">確率データの出典 ↗</a></article>)}</div>{shownCount<filtered.length&&<button className="machine-more" type="button" onClick={()=>setShownCount(n=>n+30)}>あと {Math.min(30,filtered.length-shownCount)} 機種を表示 ↓</button>}
   </section>;
 }
