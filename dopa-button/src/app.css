@@ -83,33 +83,21 @@
 @media(prefers-reduced-motion:reduce){.machine-reflex::before{display:none}}
 
 
-/* Rare results emphasize exact sub-1/666 chances, not guaranteed real-world luck. */
-.machine-rare-spotlight{margin:20px auto;padding:22px 17px;border-radius:20px;border:2px solid #ffd86b;background:radial-gradient(circle at top,#563c0b,#211423 68%);box-shadow:0 0 35px #f2b83e55;text-align:center}
-.machine-rare-spotlight>span{font-size:10px;font-weight:900;color:#ffd35b;letter-spacing:.2em}
-.machine-rare-spotlight h3{font-size:clamp(22px,6vw,32px);color:#fff0a8;margin:12px 0}
-.machine-rare-spotlight p{font-size:12px;line-height:1.8;color:#f6e3b8}
-.machine-rare-spotlight strong{color:white;font-size:15px}
-
-
 .machine-hall-link{display:inline-block;margin-top:12px;padding:12px 19px;background:#ffd86b;border-radius:999px;color:#271a05;font-size:13px;font-weight:900}
 .machine-hall-note{font-size:13px;line-height:1.8;margin:16px auto 10px}
 .machine-hall-note a{color:#ffdb7b;text-decoration:underline;text-underline-offset:3px;font-weight:800}
-.machine-rare-toggle{display:flex!important;align-items:center;gap:9px;margin-top:14px;font-size:12px!important;color:#ffe28c}
-.machine-rare-toggle input{width:18px;height:18px;accent-color:#e5a01b}
 
 
 /* Main game: flash results next to PUSH without forcing the player to scroll. */
 .machine-result-flash{display:flex;gap:6px;flex-direction:column;align-items:center;justify-content:center;min-height:56px;margin:0 auto 10px;padding:10px 14px;width:min(100%,430px);border:1px solid #8c5ba4;border-radius:14px;background:#302048;color:#fff;text-align:center}
 .machine-result-flash strong{font-size:16px;color:#ffe8ab}
 .machine-result-flash span{font-size:11px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.machine-result-flash.is-rare{border-color:#ffe38b;box-shadow:0 0 20px #f5c24e63;background:linear-gradient(115deg,#51340e,#301927)}
-.machine-result-flash.is-rare strong{font-size:22px;color:#ffde75}
 .machine-result-flash button{font-size:12px;padding:9px 13px;background:#f6db88;color:#291f0f;border:0;border-radius:99px;margin-top:6px;font-weight:bold}
 .machine-reflex .real-machine-result{scroll-margin-top:24px}
 
 
 /* Reserve result area so PUSH never jumps under the player's finger. */
-.machine-result-slot{min-height:84px;display:grid;place-items:center;margin:0 auto 8px;width:min(100%,430px)}
+.machine-result-slot{min-height:98px;display:grid;place-items:center;margin:0 auto 8px;width:min(100%,430px)}
 .machine-result-slot .machine-result-flash{margin:0;width:100%;max-width:430px}
 .machine-reflex .real-machine-push{margin-top:12px}
 @media(max-width:500px){.machine-result-slot{min-height:90px}}
@@ -126,7 +114,7 @@
   .machine-reflex .real-machine-stats strong{font-size:24px;margin:1px 0}
   .machine-reflex .machine-instruction{min-height:67px;font-size:56px;margin-bottom:5px}
   .machine-reflex .machine-countdown-track{margin:0 auto 7px}
-  .machine-reflex .machine-result-slot{min-height:68px;margin-bottom:0}
+  .machine-reflex .machine-result-slot{min-height:82px;margin-bottom:0}
   .machine-reflex .real-machine-push{height:170px;width:170px;margin:6px auto 10px}
   .machine-reflex .real-machine-push strong{font-size:42px}
   .machine-reflex .real-machine-head{font-size:9px}
@@ -139,3 +127,11 @@
 .machine-legacy-link:hover,.machine-legacy-link:focus-visible{color:#ffe8a4}
 .machine-legacy-link:disabled{opacity:.4;cursor:default}
 @media(max-width:540px){.machine-reflex .machine-legacy-link{font-size:10px;margin:1px auto 3px;padding:5px 8px}}
+
+/* Facts enrich real wins without breaking the reaction-game rhythm. */
+.machine-result-flash .machine-hit-fact{display:block;font-size:11px;line-height:1.35;color:#f4dfb3;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.machine-trivia-details{margin:10px 0;padding:11px;border-radius:10px;background:#31203e;border:1px solid #735487}
+.machine-trivia-details summary{cursor:pointer;font-size:13px;font-weight:800;color:#f6dd9e}
+.machine-trivia-details p{line-height:1.7;font-size:12px;margin:9px 0;color:#e9deef}
+.machine-reflex .machine-result-flash{min-height:68px}
+@media(max-width:540px){.machine-result-flash .machine-hit-fact{max-width:280px;font-size:10px}}
