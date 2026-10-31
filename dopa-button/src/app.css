@@ -368,3 +368,46 @@
 .machine-odds-disclosure span{font-weight:bold}
 .machine-odds-disclosure:focus-within{border-color:#ffda79}
 @media(max-width:430px){.machine-odds-disclosure summary{font-size:11px;padding:10px}.machine-odds-disclosure p{font-size:11px;padding:0 10px 10px}}
+
+
+/* Independent fantasy ball and medal ledgers, compact below the big PUSH. */
+.machine-money-tabs{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:7px auto 6px;max-width:440px}
+.machine-money-tabs button{border:1px solid #9b78b3;background:#302140;border-radius:11px;padding:10px 8px;color:#e9d9f3;font-size:13px;font-weight:850;cursor:pointer;touch-action:manipulation}
+.machine-money-tabs button[aria-pressed="true"]{color:#21172b;background:linear-gradient(130deg,#ffe69e,#f9b360);border-color:#fceba9;box-shadow:0 2px 11px #f9ac4888}
+.machine-money-tabs button small{font-size:10px;opacity:.85}
+.machine-money-tabs button:disabled{cursor:default;opacity:.6}
+.machine-money-tabs button[aria-pressed="true"]:disabled{opacity:1}
+.machine-wallet{width:min(100%,520px);margin:14px auto 15px;text-align:left;padding:12px;background:linear-gradient(140deg,#251737,#1d172b);border-radius:16px;border:1px solid #765391}
+.machine-wallet-top{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.machine-wallet-net,.machine-wallet-carry{display:flex;flex-direction:column;gap:5px;min-width:0;padding:12px 10px;background:#38284d;border-radius:11px}
+.machine-wallet-net>span,.machine-wallet-carry>span{font-size:11px;color:#e4c7ff;font-weight:750}
+.machine-wallet-net>strong,.machine-wallet-carry>strong{font-size:clamp(18px,4.9vw,28px);font-weight:950;line-height:1.12;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.machine-wallet .wallet-positive{color:#7ff4c1}
+.machine-wallet .wallet-negative{color:#ffb2b2}
+.machine-wallet-carry>strong{color:#ffe4a1}
+.machine-wallet-carry>strong small{font-size:12px}
+.machine-wallet-net>small,.machine-wallet-carry>small{font-size:10px;color:#d0bfd7}
+.machine-wallet-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:9px}
+.machine-wallet-metrics>div{min-width:0;display:flex;flex-direction:column;gap:5px;padding:9px 10px;border:1px solid #4e3c62;border-radius:10px}
+.machine-wallet-metrics span{font-size:10px;color:#c8afdc}
+.machine-wallet-metrics strong{font-size:clamp(14px,4vw,19px);font-weight:800;overflow-wrap:anywhere;color:#f9f5ff;font-variant-numeric:tabular-nums}
+.machine-wallet-note{font-size:10px!important;line-height:1.6!important;color:#cfc0d7!important;margin:10px 0 0!important}
+.machine-wallet-config{margin-top:9px;border:1px solid #775a91;border-radius:10px;background:#281a37}
+.machine-wallet-config summary{padding:10px 11px;font-size:12px;color:#ffdfa3;font-weight:800;cursor:pointer}
+.machine-wallet-config p{font-size:11px!important;line-height:1.7!important;color:#e2d5ec!important;margin:9px 0!important}
+.machine-wallet-config .wallet-fields,.machine-wallet-config .wallet-warning,.machine-wallet-config .wallet-reset{margin:0 10px}
+.machine-wallet-config .wallet-warning{padding:9px;border-radius:8px;background:#392841}
+.wallet-fields label{display:flex;align-items:center;justify-content:space-between;gap:9px;margin:12px 0;flex-wrap:wrap;font-size:11px;font-weight:700;color:#f0e5fa}
+.wallet-fields input{width:75px;min-width:75px;padding:8px 7px;border-radius:7px;font-size:16px;background:#171120;color:#fff;outline-offset:2px;border:1px solid #9678a4;text-align:right;touch-action:manipulation}
+.wallet-reset{display:flex;gap:8px;padding:11px 0 13px}
+.wallet-reset button{padding:9px 10px;border:1px solid #c492af;border-radius:9px;background:#3b2947;color:#f8e9fc;cursor:pointer;font-size:11px}
+.machine-cash-result{color:#baf7db!important;line-height:1.4;max-width:100%;font-size:10px;white-space:nowrap}
+@media(max-width:430px){
+ .machine-money-tabs{margin:4px auto;gap:5px}
+ .machine-money-tabs button{font-size:11px;padding:6px 4px;border-radius:9px}
+ .machine-wallet{padding:9px;margin:10px auto 11px}
+ .machine-wallet-net,.machine-wallet-carry{padding:10px 8px}
+ .machine-wallet-metrics>div{padding:8px}
+ .machine-reflex .machine-hero-copy{font-size:10px;line-height:1.25;margin:2px auto 4px}
+}
+@media(prefers-reduced-motion:reduce){.machine-money-tabs button{transition:none}}
