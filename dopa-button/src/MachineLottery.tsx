@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type PointerEvent, type KeyboardEvent } from 'react';
-import { MACHINE_EVENTS, drawEveryMachine, isUltraRare, type MachineHit } from './machineLottery';
+import { MACHINE_EVENTS, drawEveryMachine, isUltraRare, judgeContact, type MachineHit } from './machineLottery';
 
 type Phase = 'ready' | 'countdown' | 'round' | 'result' | 'paused' | 'over';
 type Prompt = 'go' | 'stop';
@@ -52,11 +52,7 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
     const current=live.current;
     if(current.phase==='ready'||current.phase==='over')start(now);
     else if(current.phase==='round') {
-      if(now>=deadline.current){
-        // A late contact cannot turn a completed STOP into a user press.
-        if(current.prompt==='stop')success(deadline.current);
-        else finish();
-      } else if(current.prompt==='go')success(now);
+      if(judgeContact(current.prompt,now,deadline.current)==='success')success(now);
       else finish();
     }
   };
