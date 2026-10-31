@@ -19,7 +19,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -48,6 +48,31 @@ jobs:
         run: npm test --prefix '${{ steps.app.outputs.path }}'
       - name: Build
         run: npm run build --prefix '${{ steps.app.outputs.path }}'
-      # The repository already publishes main through GitHub Pages. The release
-      # process commits the tested dist to dopa-button/play/, keeping the old
-      # root site intact. Do not change the repository's existing Pages source.
+      - name: Publish tested build into GitHub Pages folder
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f dopa-button/dist/index.html
+          mkdir -p dopa-button/play
+          rsync -a --delete dopa-button/dist/ dopa-button/play/
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A dopa-button/play
+          if git diff --cached --quiet; then
+            echo "Published files already match build"
+            exit 0
+          fi
+          git commit -m "deploy: update Dopa Button playable site [skip ci]"
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then
+              echo "New build published into dopa-button/play"
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "Unable to update publication branch" >&2
+          exit 1
+      # The existing site root and all unrelated projects are preserved.
