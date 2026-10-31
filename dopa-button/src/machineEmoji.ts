@@ -1,4 +1,4 @@
-import type { MachineDrawEntry } from './machineLottery';
+import type { MachineDrawEntry, MachineHit } from './machineLottery';
 import { machineTrivia } from './machineTrivia';
 
 /** All 308 launch models have their own title-linked icon set. New records use
@@ -2203,4 +2203,15 @@ export function machineEmojiPack(machine: MachineDrawEntry): MachineEmojiPack {
 /** Stable, bounded emoji burst: no layout shift or continual animations. */
 export function emojiBurst(pack: MachineEmojiPack, count=12): string[] {
   return Array.from({length:Math.min(14,Math.max(0,count))},(_,index)=>pack.icons[index%pack.icons.length]);
+}
+
+/** One celebration per new catalog ID. Repeats are still drawn and recorded. */
+export function firstTimeMachineHits(hits: readonly MachineHit[], seen: ReadonlySet<string>): MachineHit[] {
+  const queued=new Set<string>();
+  return hits.filter(hit=>{
+    const id=hit.event.id;
+    if(!hit.hit||seen.has(id)||queued.has(id))return false;
+    queued.add(id);
+    return true;
+  });
 }
