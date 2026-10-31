@@ -4,6 +4,28 @@ import { machineTrivia } from './machineTrivia';
 import { machineEmojiPack, emojiBurst, firstTimeMachineHits } from './machineEmoji';
 
 describe('Real-machine jackpot catalog', () => {
+  it('never converts common bells or CZ odds into jackpot odds', () => {
+    const cases = [
+      ['スマスロ 押忍！番長4',259.5,'AT初当たり'],
+      ['グレートキングハナハナ-30',186,'ボーナス合算'],
+      ['スマスロ からくりサーカス',564,'AT初当たり'],
+    ] as const;
+    for(const [title,denominator,category] of cases){
+      const x=MACHINE_EVENTS.find(event=>event.machine===title);
+      expect(x,title+' missing').toBeDefined();
+      expect(x&&Number(x.denominator)/Number(x.numerator)).toBeCloseTo(denominator,5);
+      expect(x?.category).toContain(category);
+    }
+    expect(MACHINE_EVENTS.filter(x=>x.category.includes('約（設定1参考値）'))).toHaveLength(0);
+  });
+  it('does not double-count known machine-title aliases', () => {
+    const deprecated=[
+      'pachiflow-202610-006','pachiflow-202610-010','pachiflow-202610-015',
+      'pachiflow-202610-023','pachiflow-202610-033',
+      'sync-022fc587f2f37d10','sync-48a3cb6f40861ff9'
+    ];
+    for(const id of deprecated)expect(MACHINE_EVENTS.some(x=>x.id===id),id).toBe(false);
+  });
   it('assigns title-specific emoji themes to every currently listed machine', () => {
     const tokens=new Set<string>();
     for(const machine of MACHINE_EVENTS){
