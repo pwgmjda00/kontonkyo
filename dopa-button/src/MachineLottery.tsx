@@ -98,6 +98,7 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
   const instruction=state.phase==='round'?(state.prompt==='go'?'押せ！':'押すな！'):state.phase==='countdown'?String(state.count):state.phase==='over'?'GAME OVER':state.phase==='ready'?'READY?':state.phase==='paused'?'PAUSED':'GOOD!';
   const result=state.lastHits;
   const ultraRareHits=result.filter(hit=>isUltraRare(hit.event));
+  const rareHistory=hitHistory.filter(hit=>isUltraRare(hit.event));
   const ultraRareCatalog=MACHINE_EVENTS.filter(isUltraRare);
   return <section className="real-machine-panel machine-reflex" aria-label="実機一斉抽選・反射ゲーム">
     <div className="real-machine-head"><span>REAL MACHINES × REFLEX</span><button type="button" onClick={onClose} disabled={!['ready','over'].includes(state.phase)}>旧3モードへ ↗</button></div>
@@ -114,7 +115,7 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
     </div>}
     <button className="real-machine-push" type="button" disabled={!canPush} data-testid="machine-push" onPointerDown={()=>{lastPointerToken.current=live.current.token;}} onPointerCancel={()=>{lastPointerToken.current=null;}} onKeyDown={e=>{if(e.repeat&&(e.code==='Space'||e.code==='Enter'))e.preventDefault();}} onClick={onPush}><small>{state.phase==='ready'?'TAP TO START':state.phase==='over'?'TRY AGAIN':'ALL MACHINE DRAW'}</small><strong>PUSH</strong><span>{state.phase==='round'&&state.prompt==='stop'?'触ったら終了':'一瞬で運命が変わる'}</span></button>
     {state.phase==='over'&&<p className="machine-gameover">失敗。反射スコア {state.score} 。PUSHでもう一度。</p>}
-    {ultraRareHits.length>0&&state.phase==='over'&&<section className="machine-rare-spotlight" aria-label="666分の1を超える超希少な当選"><span>666 BREAK / 超希少当選</span><h3>1/666より重い確率を引いた！</h3><p>ゲームで引けた奇跡。実機での当たりを保証するものではないけど、実機が気になったら、ホールの設置情報を探してみよう。</p>{ultraRareHits.map(hit=><p key={hit.event.id}><strong>{hit.event.machine}</strong> · {hit.event.publishedProbability}</p>)}<a href="https://www.p-world.co.jp/" target="_blank" rel="noopener noreferrer" className="machine-hall-link">設置ホールを探す ↗</a></section>}
+    {rareHistory.length>0&&state.phase==='over'&&<section className="machine-rare-spotlight" aria-label="666分の1を超える超希少な当選"><span>666 BREAK / 超希少当選</span><h3>1/666より重い確率を引いた！</h3><p>ゲームで引けた奇跡。実機での当たりを保証するものではないけど、実機が気になったら、ホールの設置情報を探してみよう。</p>{rareHistory.slice(0,5).map((hit,i)=><p key={hit.event.id+'-'+i}><strong>{hit.event.machine}</strong> · {hit.event.publishedProbability}</p>)}<a href="https://www.p-world.co.jp/" target="_blank" rel="noopener noreferrer" className="machine-hall-link">設置ホールを探す ↗</a></section>}
     {(state.phase==='over'||state.phase==='ready')&&<section className="real-machine-result" aria-live="polite">
       <h3>{hitHistory.length?'🎰 今回のプレイで当選した実機 '+hitHistory.length+'件':result.length?'🎰 今回の実機当選 '+result.length+'件':state.score?'今回の実機当選なし':'成功したら実機を一斉抽選'}</h3>
       {hitHistory.slice(0,12).map(hit=><article key={hit.event.id}><strong>{hit.event.machine}{isUltraRare(hit.event)?' ✦ 1/666突破':''}</strong><span>{hit.event.category} · {hit.event.publishedProbability}</span><p>{hit.event.condition}</p><a href={hit.event.sourceUrl} target="_blank" rel="noopener noreferrer">データ出典 ↗</a></article>)}
