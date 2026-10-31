@@ -82,14 +82,29 @@ def rows_for(html_text,kind):
             yield name,probability,row[category] if category is not None and len(row)>category else ("大当たり確率" if kind=="pachinko" else "設定1の初当り")
 def main():
     rows=json.loads(TARGET.read_text(encoding="utf-8"))
-    seen={clean(x["machine"]) for x in rows}
-    failures=[];added=0
+    seen={clean(x["machine"]):x for x in rows}
+    failures=[];added=0;corrected=0
     for kind,url in PAGES:
         try:
             results=list(rows_for(fetch(url),kind))
             if not results:failures.append(f"No table found: {url}");continue
             for name,(numerator,denominator,display),category in results:
-                if clean(name) in seen:continue
+                previous=seen.get(clean(name))
+                if previous:
+                    # Prefer a currently sourced machine-list probability over an older
+                    # secondary hand-entered reference. Preserve official manufacturer entries.
+                    if previous.get("sourceStatus")=="secondary" and (
+                        previous["numerator"]!=numerator or previous["denominator"]!=denominator
+                    ):
+                        previous.update({
+                            "numerator":numerator,"denominator":denominator,
+                            "publishedProbability":"約1/"+display,"approximate":True,
+                            "category":category,"sourceUrl":url,"verifiedAt":TODAY.isoformat(),
+                            "condition":("設定1の掲載値" if kind=="pachislot" else "通常時に掲載された大当たり確率")
+                              +"。掲載サイトの抽選定義での模擬独立抽選。"
+                        })
+                        corrected+=1
+                    continue
                 event_id="sync-"+hashlib.sha256((kind+"|"+clean(name)).encode()).hexdigest()[:16]
                 rows.append({
                     "id":event_id,"machine":name,"maker":"未確認","kind":kind,
@@ -99,11 +114,11 @@ def main():
                     "condition":("パチスロの設定1" if kind=="pachislot" else "通常時掲載値")+"。初当り・合算・条件付きの定義は出典を要確認。掲載値での模擬抽選。",
                     "sourceUrl":url,"verifiedAt":TODAY.isoformat(),
                     "currentAvailability":"unverified","sourceStatus":"secondary"})
-                seen.add(clean(name));added+=1
+                seen[clean(name)]=rows[-1];added+=1
             print(f"Read {len(results)} table entries: {url}")
         except Exception as exc:failures.append(f"{url}: {exc}")
-    if added: TARGET.write_text(json.dumps(rows,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
-    print(f"New events: {added}; total events: {len(rows)}; sources failed: {len(failures)}")
+    if added or corrected: TARGET.write_text(json.dumps(rows,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+    print(f"New events: {added}; corrected: {corrected}; total events: {len(rows)}; sources failed: {len(failures)}")
     for failure in failures:print("WARN:",failure,file=sys.stderr)
     if failures and not added:sys.exit(1)
 if __name__=="__main__":main()
