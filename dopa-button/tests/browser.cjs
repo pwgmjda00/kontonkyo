@@ -78,6 +78,7 @@ async function main() {
       }, { outcome: worker });
       const response = await page.goto(url, { waitUntil: 'networkidle' });
       assert.equal(response.status(), 200);
+      await page.getByRole('button', { name: /旧3モードへ/ }).click();
       assert.equal(await phase(page), 'READY');
     }
     async function begin(page) {
