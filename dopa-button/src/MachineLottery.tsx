@@ -15,6 +15,7 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
   const [totals,setTotals]=useState<Record<string,number>>({});
   const [filter,setFilter]=useState<'all'|'pachinko'|'pachislot'>('all');
   const [query,setQuery]=useState('');
+  const [shownCount,setShownCount]=useState(30);
   const live=useRef(INIT);
   const deadline=useRef(0);
   const generation=useRef(0);
@@ -92,7 +93,7 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
   return <section className="real-machine-panel machine-reflex" aria-label="実機一斉抽選・反射ゲーム">
     <div className="real-machine-head"><span>REAL MACHINES × REFLEX</span><button type="button" onClick={onClose} disabled={!['ready','over'].includes(state.phase)}>旧3モードへ ↗</button></div>
     <p className="machine-hero-kicker">MAIN GAME · 押すな。でも押せ。</p>
-    <h2>全実機、一斉抽選。</h2>
+    <h2>収録実機、一斉抽選。</h2>
     <p className="machine-hero-copy">「押せ！」なら押す。「押すな！」なら待つ。成功した瞬間、収録した<strong>{MACHINE_EVENTS.length}条件</strong>をまとめて抽選。</p>
     <div className="real-machine-stats"><span>SCORE <strong data-testid="machine-score">{state.score}</strong></span><span>BEST <strong>{best}</strong></span><span>TIME <strong>{state.phase==='round'?(state.remaining/1000).toFixed(2):'—'}</strong></span></div>
     <div className="machine-instruction" data-testid="machine-instruction" data-prompt={state.prompt} data-phase={state.phase}>{instruction}</div>
@@ -106,6 +107,6 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
     </section>
     <p className="real-machine-warning">模擬確率ゲームです。実機の抽選結果や未来の収支は予測しません。データは公式と二次情報を含み、設定・状態・合算の違いがあります。すべての設置機種を網羅したものではありません。</p>
     <div className="machine-catalog-top"><h3>実機データ図鑑 <span>{MACHINE_EVENTS.length}条件</span></h3><label>機種名検索 <input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="機種・メーカーで検索"/></label><div className="machine-filters">{(['all','pachinko','pachislot'] as const).map(value=><button key={value} type="button" aria-pressed={filter===value} onClick={()=>setFilter(value)}>{value==='all'?'全部':value==='pachinko'?'パチンコ':'パチスロ'}</button>)}</div></div>
-    <div className="real-machine-list">{filtered.map(v=><article key={v.id}><div><strong>{v.machine}</strong><span>{v.maker} · {v.category}</span></div><div><b>{v.publishedProbability}</b><small>この端末での当選 {totals[v.id]??0}回</small></div><p>{v.condition}</p><a href={v.sourceUrl} target="_blank" rel="noopener noreferrer">確率データの出典 ↗</a></article>)}</div>
+    <div className="real-machine-list">{filtered.slice(0,shownCount).map(v=><article key={v.id}><div><strong>{v.machine}</strong><span>{v.maker} · {v.category}</span></div><div><b>{v.publishedProbability}</b><small>この端末での当選 {totals[v.id]??0}回</small></div><p>{v.condition}</p><a href={v.sourceUrl} target="_blank" rel="noopener noreferrer">確率データの出典 ↗</a></article>)}</div>{shownCount<filtered.length&&<button className="machine-more" type="button" onClick={()=>setShownCount(n=>n+30)}>あと {Math.min(30,filtered.length-shownCount)} 機種を表示 ↓</button>}
   </section>;
 }
