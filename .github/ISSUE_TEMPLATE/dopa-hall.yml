@@ -1,0 +1,58 @@
+name: 🏆 ドパ殿堂への掲載応募
+description: 無料・任意参加のコミュニティ殿堂。承認された応募だけが掲載されます。
+title: "[ドパ殿堂応募] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ニックネームだけで応募できます。住所・電話番号・本名・決済情報は書かないでください。
+        **このゲームのローカル記録はサーバー検証されていません。**
+        運営の目視確認と掲載承認を経て、週間のコミュニティ紹介欄に掲載されます。
+        応募しただけでは掲載されません。順位・賞金はありません。
+  - type: input
+    id: alias
+    attributes:
+      label: 公開ニックネーム
+      description: 16文字以内。個人情報は書かないでください。
+      placeholder: ドパコレクター
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: 好きなモード
+      options:
+        - 🟠 パチンコ
+        - 🪙 パチスロ
+        - 🎭 どっちも
+    validations:
+      required: true
+  - type: input
+    id: badge
+    attributes:
+      label: 飾りたい称号
+      placeholder: 最初の一撃
+    validations:
+      required: false
+  - type: textarea
+    id: message
+    attributes:
+      label: ひと言
+      description: コレクションの好きなところを50文字以内で
+      placeholder: あの絵文字演出が大好き！
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 画像など（任意）
+      description: ゲームの記念カード画像を添付できます。本人情報は写さないでください。
+    validations:
+      required: false
+  - type: checkboxes
+    id: consent
+    attributes:
+      label: 同意
+      options:
+        - label: このニックネーム・称号・ひと言を公開サイトに掲載してよい
+          required: true
