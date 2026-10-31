@@ -20,6 +20,14 @@ export const MACHINE_EVENTS: readonly MachineDrawEntry[] = machineRecords as Mac
 export function isUltraRare(event: Pick<MachineDrawEntry, 'numerator' | 'denominator'>): boolean {
   return BigInt(event.numerator) * 666n < BigInt(event.denominator);
 }
+
+/** Reaction judgment uses the contact timestamp, never the eventual release/click. */
+export function judgeContact(prompt:'go'|'stop', at:number, deadline:number):'success'|'failure' {
+  if(!Number.isFinite(at)||!Number.isFinite(deadline))throw new Error('Invalid round timing');
+  if(at>=deadline)return prompt==='stop'?'success':'failure';
+  return prompt==='go'?'success':'failure';
+}
+
 export interface MachineHit { event: MachineDrawEntry; hit: boolean }
 export function drawEveryMachine(events: readonly MachineDrawEntry[] = MACHINE_EVENTS): MachineHit[] {
   return events.map(event => {
