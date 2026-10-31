@@ -4,7 +4,7 @@ import { machineTrivia } from './machineTrivia';
 import { machineEmojiPack, firstTimeMachineHits } from './machineEmoji';
 import { MachineCelebration } from './MachineCelebration';
 import { RewardsHub } from './RewardsHub';
-import { loadRewards, saveRewards, winRewards, failRewards, newEarnedBadges, type RewardProfile } from './machineRewards';
+import { loadRewards, saveRewards, winRewards, failRewards, newEarnedBadges, stickerLevel, STICKER_TIERS, type RewardProfile } from './machineRewards';
 import { DEFAULT_WALLET_SETTINGS, emptyVirtualWallet, validateVirtualWallet, applyVirtualRound, walletYen, theoreticalReturnPct, validateWalletSettings, slotNormalReturnPerSpin, type VirtualKind, type VirtualWallet, type WalletSettings, type WalletRound } from './machineWallet';
 
 type Phase = 'ready' | 'countdown' | 'round' | 'result' | 'celebrate' | 'paused' | 'over';
@@ -48,6 +48,7 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
   const [rewards,setRewards]=useState<RewardProfile>(loadRewards);
   const rewardsRef=useRef(rewards);
   const [latestBadges,setLatestBadges]=useState<string[]>([]);
+  const [latestEvolution,setLatestEvolution]=useState<string>('');
   const [best,setBest]=useState(readBest);
   const [kind,setKind]=useState<VirtualKind>('pachinko');
   const kindRef=useRef<VirtualKind>('pachinko');
@@ -81,6 +82,7 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
     const after=failRewards(before,score);
     setRewardProfile(after);
     setLatestBadges(newEarnedBadges(before,after).map(b=>b.emoji+b.name));
+    setLatestEvolution('');
     setBest(old=>{const next=Math.max(old,score);try{localStorage.setItem(BEST_KEY,String(next));}catch{/* storage disabled */}return next;});phase('over',{remaining:0});};
   const nextRound=(now:number)=>{
     const duration=Math.max(700,1500-live.current.score*25);
@@ -102,6 +104,12 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
     const beforeRewards=rewardsRef.current;
     const afterRewards={...winRewards(beforeRewards,hits),bestStreak:Math.max(beforeRewards.bestStreak,score)};
     setRewardProfile(afterRewards);
+    const evolved=hits.filter(hit=>(beforeRewards.counts[hit.event.id]??0)>0
+      && stickerLevel(afterRewards.counts[hit.event.id]??0)>stickerLevel(beforeRewards.counts[hit.event.id]??0));
+    setLatestEvolution(evolved.length
+      ? STICKER_TIERS[stickerLevel(afterRewards.counts[evolved[0].event.id])].emoji
+        +' '+evolved[0].event.machine+' がステッカー進化！'+(evolved.length>1?' ほか'+(evolved.length-1)+'件':'')
+      : '');
     setLatestBadges(newEarnedBadges(beforeRewards,afterRewards).map(b=>b.emoji+b.name));
     if(hits.length) setHitHistory(old=>[...hits,...old].slice(0,40));
     // New machine discoveries deserve a proper celebration, without running the clock.
@@ -115,7 +123,7 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
       setCelebrateIndex(0);
       phase('celebrate',{score,lastHits:hits,remaining:0});
     }else{
-      const duration=hits.length?650:180;
+      const duration=evolved.length?1000:hits.length?650:180;
       deadline.current=now+duration;
       phase('result',{score,lastHits:hits,remaining:duration});
     }
@@ -164,6 +172,7 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
     setHitHistory([]);
     setShowAllHistory(false);
     setLatestBadges([]);
+    setLatestEvolution('');
     phase('countdown',{score:0,remaining:900,count:3,lastHits:[]});
   };
   // Physical input is decided on pointer DOWN, not delayed until finger release.
@@ -242,7 +251,7 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
     <div className="machine-instruction" data-testid="machine-instruction" data-prompt={state.prompt} data-phase={state.phase}>{instruction}</div>
     <div className="machine-countdown-track"><span style={{transform:`scaleX(${state.phase==='round'?Math.max(0,state.remaining/state.duration):1})`}} /></div>
     <div className="machine-result-slot">{state.phase==='result'&&<div className="machine-result-flash" role="status">
-      <strong>{result.length?'🎰 当選 '+result.length+'件':'✓ SUCCESS'}</strong>
+      <strong>{latestEvolution|| (result.length?'🎰 当選 '+result.length+'件':'✓ SUCCESS')}</strong>
       {lastRound&&<small className="machine-cash-result">投入 {fmt(lastRound.wagerUnits)}{units} ｜ 仮想払出 {fmt(lastRound.payoutUnits)}{units}</small>}
       {result.length>0&&<><span className="machine-flash-emojis" aria-hidden="true">{machineEmojiPack(result[0].event).icons.slice(0,5).join(' ')}</span><span>{result[0].event.machine}{result.length>1?' ほか '+(result.length-1)+'件':''}</span><small className="machine-hit-fact">{machineEmojiPack(result[0].event).chant}</small></>}
     </div>}</div>
