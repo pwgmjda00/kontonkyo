@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type PointerEvent, type KeyboardEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type PointerEvent, type KeyboardEvent } from 'react';
 import { MACHINE_EVENTS, drawEveryMachine, judgeContact, type MachineHit } from './machineLottery';
 import { machineTrivia } from './machineTrivia';
 
@@ -98,7 +98,7 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
   },[]);
   const popularKeywords=['エヴァンゲリオン','北斗の拳','東京喰種','海物語','リゼロ','Re:ゼロ','モンキーターン','ジャグラー','からくりサーカス','ゴッドイーター','カバネリ','ヴァルヴレイヴ','マギアレコード','モンスターハンター','炎炎ノ消防隊','戦国乙女','沖ドキ','ルパン三世','牙狼','吉宗'];
   const popularIndex=(name:string)=>{const n=name.normalize('NFKC').toLocaleLowerCase('ja');const i=popularKeywords.findIndex(x=>n.includes(x.normalize('NFKC').toLocaleLowerCase('ja')));return i<0?999:i;};
-  const filtered=MACHINE_EVENTS.filter(x=>(filter==='all'||x.kind===filter)&&(!query||[x.machine,x.maker,x.category].join(' ').toLocaleLowerCase('ja').includes(query.toLocaleLowerCase('ja')))).sort((a,b)=>popularIndex(a.machine)-popularIndex(b.machine)||a.machine.localeCompare(b.machine,'ja'));
+  const filtered=useMemo(()=>MACHINE_EVENTS.filter(x=>(filter==='all'||x.kind===filter)&&(!query||[x.machine,x.maker,x.category].join(' ').toLocaleLowerCase('ja').includes(query.toLocaleLowerCase('ja')))).sort((a,b)=>popularIndex(a.machine)-popularIndex(b.machine)||a.machine.localeCompare(b.machine,'ja')),[filter,query]);
   const canPush=state.phase==='ready'||state.phase==='over'||state.phase==='round';
   const instruction=state.phase==='round'?(state.prompt==='go'?'押せ！':'押すな！'):state.phase==='countdown'?String(state.count):state.phase==='over'?'GAME OVER':state.phase==='ready'?'READY?':state.phase==='paused'?'PAUSED':'GOOD!';
   const result=state.lastHits;
