@@ -10,8 +10,8 @@ interface Target {phase:Phase;remaining:number;bonus:Bonus|null}
 const eligible=EVENTS.filter(e=>e.bonusEligible);
 const initial=():GameState=>({phase:'READY',mode:'normal',score:0,prompt:'go',remainingMs:1500,roundMs:1500,countdown:3,bonus:null,token:0,error:null,lastDrawMs:0});
 export class GameController {
- private value=initial();private listeners=new Set<()=>void>();private deadline=0;private target:Target|null=null;private previewReturn:Phase|null=null;private effects=true;private generation=0;private dead=false;
- constructor(private options:Options){}
+ private value=initial();private listeners=new Set<()=>void>();private deadline=0;private target:Target|null=null;private previewReturn:Phase|null=null;private effects=true;private generation=0;private dead=false;private seenGaming=new Set<string>();
+ constructor(private options:Options){try{const saved=JSON.parse(localStorage.getItem('dopa-gaming-seen-v1')??'[]');if(Array.isArray(saved))this.seenGaming=new Set(saved.filter((x:unknown):x is string=>typeof x==='string'));}catch{/* storage unavailable */}}
  get state():GameState{return this.value;}
  getInputToken(){return this.value.token;}
  subscribe=(fn:()=>void)=>{this.listeners.add(fn);return()=>{this.listeners.delete(fn);};};
@@ -42,7 +42,14 @@ export class GameController {
    this.options.onSuccess?.({mode,score,wasStop,hits});
    this.update({lastDrawMs:result.durationMs});
    let bonus:Bonus|null=null;
-   if(this.effects&&mode==='gaming'&&result.tier&&result.tier!=='normal')bonus={kind:'casual',theme:result.tier==='super'?'cosmos':'numbers',event:null,tier:result.tier};
+   if(this.effects&&mode==='gaming'&&result.tier&&result.tier!=='normal'){
+    const key=result.tier;
+    if(!this.seenGaming.has(key)){
+      bonus={kind:'casual',theme:key==='super'?'cosmos':'numbers',event:null,tier:key};
+      this.seenGaming.add(key);
+      try{localStorage.setItem('dopa-gaming-seen-v1',JSON.stringify([...this.seenGaming]));}catch{/* storage unavailable */}
+    }
+   }
    if(this.effects&&mode!=='gaming'&&result.trigger){const event=result.candidateId?EVENT_BY_ID.get(result.candidateId)||null:null;bonus={kind:event?'actual':'theater',theme:event?.animationId??(['freeze','numbers','cosmos'] as const)[score%3],event:event??eligible[score%eligible.length]!,tier:null};}
    const next:Target={phase:bonus?'BONUS':'GAP',remaining:bonus?4500:220,bonus};
    if(this.value.phase==='PAUSED'||(this.value.phase==='COUNTDOWN'&&this.target?.phase==='DRAWING')){this.target=next;return;}
