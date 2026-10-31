@@ -89,3 +89,10 @@
 .machine-rare-spotlight h3{font-size:clamp(22px,6vw,32px);color:#fff0a8;margin:12px 0}
 .machine-rare-spotlight p{font-size:12px;line-height:1.8;color:#f6e3b8}
 .machine-rare-spotlight strong{color:white;font-size:15px}
+
+
+.machine-hall-link{display:inline-block;margin-top:12px;padding:12px 19px;background:#ffd86b;border-radius:999px;color:#271a05;font-size:13px;font-weight:900}
+.machine-hall-note{font-size:13px;line-height:1.8;margin:16px auto 10px}
+.machine-hall-note a{color:#ffdb7b;text-decoration:underline;text-underline-offset:3px;font-weight:800}
+.machine-rare-toggle{display:flex!important;align-items:center;gap:9px;margin-top:14px;font-size:12px!important;color:#ffe28c}
+.machine-rare-toggle input{width:18px;height:18px;accent-color:#e5a01b}
