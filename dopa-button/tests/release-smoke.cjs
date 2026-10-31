@@ -22,7 +22,7 @@ const mockIssue={
 let server;
 function startServer(){
   server=spawn('npm',['run','preview','--','--host','127.0.0.1','--port','4175','--strictPort'],{
-    cwd:root,stdio:['ignore','pipe','pipe'],
+    cwd:root,stdio:['ignore','pipe','pipe'],detached:true,
   });
   return new Promise((resolve,reject)=>{
     let out='';
@@ -91,5 +91,12 @@ async function main(){
   console.log('PASS '+passes+' mobile release smoke suites');
 }
 main().catch(e=>{console.error(e);process.exitCode=1;}).finally(()=>{
-  if(server){server.kill('SIGTERM');}
+  if(server){
+    try{process.kill(-server.pid,'SIGTERM');}
+    catch{server.kill('SIGTERM');}
+    server.stdout?.destroy();
+    server.stderr?.destroy();
+  }
+  // npm preview launches a child Vite process, and inherited stdio pipes can
+  // keep Node alive after tests complete. A full process-tree kill avoids CI hangs.
 });
