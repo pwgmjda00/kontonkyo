@@ -54,17 +54,23 @@ export function makeCollectionCard(machine:MachineDrawEntry,profile:RewardProfil
   c.fillStyle='#a7b1bf';c.font='23px system-ui,sans-serif';c.fillText('ゲーム内記念カード｜現金・換金性なし｜#ドパボタン',92,1234,900);
   return canvas;
 }
-function blobFromCanvas(canvas:HTMLCanvasElement):Promise<Blob>{
-  return new Promise((resolve,reject)=>{
-    canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('画像を書き出せませんでした')),'image/png');
-  });
+/** Create the PNG synchronously. Safari requires navigator.share() to be called
+ * while the original tap's transient user activation is still active.
+ * Awaiting canvas.toBlob() before navigator.share() loses that activation on iOS.
+ */
+function blobFromCanvas(canvas:HTMLCanvasElement):Blob{
+  const encoded=canvas.toDataURL('image/png');
+  if(!encoded.startsWith('data:image/png;base64,'))throw new Error('画像を書き出せませんでした');
+  const binary=atob(encoded.slice('data:image/png;base64,'.length));
+  const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
+  return new Blob([bytes],{type:'image/png'});
 }
 function safeFile(name:string):string {
   return name.normalize('NFKC').replace(/[\\/:*?"<>|\u0000-\u001f]/g,'').slice(0,40)||'machine';
 }
 export async function shareMachineCard(machine:MachineDrawEntry,profile:RewardProfile):Promise<'shared'|'saved'|'cancelled'> {
   const canvas=makeCollectionCard(machine,profile);
-  const blob=await blobFromCanvas(canvas);
+  const blob=blobFromCanvas(canvas);
   const filename='dopa-'+safeFile(machine.machine)+'-'+Date.now()+'.png';
   const file=new File([blob],filename,{type:'image/png'});
   const nav=navigator as Navigator & {canShare?:(data:{files:File[]})=>boolean;share?:(data:{files?:File[];title?:string;text?:string})=>Promise<void>};
