@@ -1,7 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { MACHINE_EVENTS } from './machineLottery';
 import {
-  EMPTY_REWARDS, BADGES, sanitizeRewards, winRewards, failRewards,
+  EMPTY_REWARDS, BADGES, REWARD_KEY, loadRewards, sanitizeRewards, winRewards, failRewards,
   ownedCount, totalRewardHits, stickerLevel, STICKER_TIERS,
   earnedBadges, decorateProfile, getEquippedBadge, newEarnedBadges,
 } from './machineRewards';
@@ -20,6 +20,19 @@ describe('Dopa Collectors: persistent achievements and stickers',()=>{
     expect(ownedCount(p)).toBe(1);
     expect(p.counts[a.id]).toBe(1);
     expect(p.featuredId).toBeNull();
+  });
+  it('keeps valid saved collection when the optional legacy history is malformed',()=>{
+    const item=MACHINE_EVENTS[0];
+    const saved=JSON.stringify({version:1,counts:{[item.id]:5},rounds:3,
+      dryRounds:0,fails:0,bestStreak:2,featuredId:item.id,equippedBadge:'first',alias:'保存済み'});
+    vi.stubGlobal('localStorage',{getItem:(key:string)=>key===REWARD_KEY?saved:'{broken legacy'});
+    try{
+      const restored=loadRewards();
+      expect(restored.counts[item.id]).toBe(5);
+      expect(restored.featuredId).toBe(item.id);
+      expect(restored.equippedBadge).toBe('first');
+      expect(restored.alias).toBe('保存済み');
+    }finally{vi.unstubAllGlobals();}
   });
   it('unlocks first hit, awards a badge, and upgrades copies at 2, 5, 10 without multiplying randomness',()=>{
     const e=MACHINE_EVENTS[0];
