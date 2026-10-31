@@ -18,9 +18,10 @@ const issueURL='https://github.com/pwgmjda00/kontonkyo/issues/new?template=dopa-
 const themeURL='https://github.com/pwgmjda00/kontonkyo/issues/new?template=dopa-theme.yml';
 const fmt=new Intl.NumberFormat('ja-JP');
 
-export function RewardsHub({profile,onUpdate}:{
+export function RewardsHub({profile,onUpdate,disabled=false}:{
   profile:RewardProfile;
   onUpdate:(profile:RewardProfile)=>void;
+  disabled?:boolean;
 }){
   const [tab,setTab]=useState<Tab>('stickers');
   const [search,setSearch]=useState('');
@@ -45,6 +46,7 @@ export function RewardsHub({profile,onUpdate}:{
     return (profile.counts[b.id]??0)-(profile.counts[a.id]??0)||a.machine.localeCompare(b.machine,'ja');
   }),[profile,search,view]);
   const update=(changes:Partial<Pick<RewardProfile,'alias'|'featuredId'|'equippedBadge'>>)=>{
+    if(disabled)return;
     onUpdate(decorateProfile(profile,changes));
   };
   const save=async(machine:MachineDrawEntry)=>{
@@ -61,7 +63,7 @@ export function RewardsHub({profile,onUpdate}:{
     window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(text),'_blank','noopener,noreferrer');
   };
   return <section className="dopa-rewards" aria-label="ドパ・コレクターズ" data-testid="dopa-rewards">
-    <button className="dopa-rewards-open" type="button" aria-expanded={opened} onClick={()=>setOpened(v=>!v)} data-testid="rewards-open">
+    <button className="dopa-rewards-open" type="button" disabled={disabled} aria-expanded={opened} onClick={()=>setOpened(v=>!v)} data-testid="rewards-open">
       <span className="dopa-rewards-open-icon">🎁</span>
       <span><b>ドパ・コレクターズ</b><small>ステッカー {owned}/{MACHINE_EVENTS.length} · 称号 {badges.length}/{BADGES.length}{equipped?' · '+equipped.emoji+equipped.name:''}</small></span>
       <span aria-hidden="true">{opened?'−':'＋'}</span>
@@ -123,7 +125,7 @@ export function RewardsHub({profile,onUpdate}:{
       {tab==='hall'&&<>
         <section className="dopa-hall">
           <h3>🏆 ドパ殿堂｜週間コミュニティ展示</h3>
-          <p>希望者のニックネームや称号だけを紹介する場所。順位も賞金もなし。**参加無料、本人応募・運営承認制。**ブラウザ記録はサーバー検証されないため、公式の実力ランキングではありません。</p>
+          <p>希望者のニックネームや称号だけを紹介する場所。順位も賞金もなし。参加無料、本人応募・運営承認制。ブラウザ記録はサーバー検証されないため、公式の実力ランキングではありません。</p>
           {HALL.length===0?<div className="dopa-hall-empty">🏁 初代殿堂の応募受付中！<small>承認された投稿が入ると、ここに週間の記録が掲載される。</small></div>:HALL.map(week=><div className="dopa-hall-week" key={week.week}>
             <h4>📅 {week.week} の週</h4>
             {week.entries.map(entry=><a href={entry.url} target="_blank" rel="noopener noreferrer" key={entry.issue} className="dopa-hall-entry"><strong>🎉 {entry.nickname}</strong><small>{entry.mode} · {entry.badge||'ドパコレクター'}</small><p>{entry.message}</p></a>)}
