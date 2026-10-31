@@ -15,6 +15,7 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
   const [best,setBest]=useState(readBest);
   const [totals,setTotals]=useState<Record<string,number>>({});
   const [hitHistory,setHitHistory]=useState<MachineHit[]>([]);
+  const [showAllHistory,setShowAllHistory]=useState(false);
   const [filter,setFilter]=useState<'all'|'pachinko'|'pachislot'>('all');
   const [query,setQuery]=useState('');
   const [shownCount,setShownCount]=useState(()=>window.matchMedia('(max-width:540px)').matches?10:30);
@@ -44,6 +45,7 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
   const start=(now:number)=>{
     deadline.current=now+900;
     setHitHistory([]);
+    setShowAllHistory(false);
     phase('countdown',{score:0,remaining:900,count:3,lastHits:[]});
   };
   // Physical input is decided on pointer DOWN, not delayed until finger release.
@@ -119,8 +121,8 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
     {state.phase==='over'&&<p className="machine-gameover">失敗。反射スコア {state.score} 。PUSHでもう一度。</p>}
     {(state.phase==='over'||state.phase==='ready')&&<section className="real-machine-result" aria-live="polite">
       <h3>{hitHistory.length?'🎰 今回のプレイで当選した実機 '+hitHistory.length+'件':result.length?'🎰 今回の実機当選 '+result.length+'件':state.score?'今回の実機当選なし':'成功したら実機を一斉抽選'}</h3>
-      {hitHistory.slice(0,12).map(hit=><article key={hit.event.id}><strong>{hit.event.machine}</strong><span>{hit.event.kind==='pachislot'?'パチスロ':'パチンコ'} · {hit.event.publishedProbability}</span><p className="machine-interest"><b>💡 面白ポイント</b> {machineTrivia(hit.event).highlight}</p><details className="machine-trivia-details" open><summary>もっとこの台を知る</summary><p>{machineTrivia(hit.event).theme}</p><p>{machineTrivia(hit.event).odds}</p><p>{machineTrivia(hit.event).context}</p></details></article>)}
-      {hitHistory.length>12&&<p>ほか {hitHistory.length-12} 件。直近40件を保持しています。</p>}
+      {hitHistory.slice(0,showAllHistory?40:5).map((hit,index)=><article key={hit.event.id}><strong>{hit.event.machine}</strong><span>{hit.event.kind==='pachislot'?'パチスロ':'パチンコ'} · {hit.event.publishedProbability}</span><p className="machine-interest"><b>💡 面白ポイント</b> {machineTrivia(hit.event).highlight}</p><details className="machine-trivia-details" open={index===0}><summary>もっとこの台を知る</summary><p>{machineTrivia(hit.event).theme}</p><p>{machineTrivia(hit.event).odds}</p><p>{machineTrivia(hit.event).context}</p></details></article>)}
+      {hitHistory.length>5&&<button className="machine-more" type="button" onClick={()=>setShowAllHistory(value=>!value)}>{showAllHistory?'当選履歴を5件に戻す':`ほか ${hitHistory.length-5} 件の当選履歴も見る ↓`}</button>}
     </section>}
     <p className="machine-hall-note">気になる台を見つけた？ <a href="https://www.p-world.co.jp/" target="_blank" rel="noopener noreferrer">P-WORLDでホールや設置機種を探す ↗</a></p>
     <p className="real-machine-warning">これは模擬抽選のゲームです。実際のホールでの当選や収支を予測するものではありません。</p>
