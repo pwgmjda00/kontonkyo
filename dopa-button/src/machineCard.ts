@@ -62,7 +62,7 @@ function blobFromCanvas(canvas:HTMLCanvasElement):Promise<Blob>{
 function safeFile(name:string):string {
   return name.normalize('NFKC').replace(/[\\/:*?"<>|\u0000-\u001f]/g,'').slice(0,40)||'machine';
 }
-export async function shareMachineCard(machine:MachineDrawEntry,profile:RewardProfile):Promise<'shared'|'saved'> {
+export async function shareMachineCard(machine:MachineDrawEntry,profile:RewardProfile):Promise<'shared'|'saved'|'cancelled'> {
   const canvas=makeCollectionCard(machine,profile);
   const blob=await blobFromCanvas(canvas);
   const filename='dopa-'+safeFile(machine.machine)+'-'+Date.now()+'.png';
@@ -73,7 +73,7 @@ export async function shareMachineCard(machine:MachineDrawEntry,profile:RewardPr
       await nav.share({files:[file],title:machine.machine+'｜ドパボタン',text:'#ドパボタン #ドパコレクターズ'});
       return 'shared';
     }catch(e){
-      if(e instanceof DOMException&&e.name==='AbortError')return 'shared';
+      if(e instanceof DOMException&&e.name==='AbortError')return 'cancelled';
       // Fall through to a local download on unsupported or failed share.
     }
   }
