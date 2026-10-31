@@ -48,12 +48,28 @@ jobs:
         run: npm ci --prefix '${{ steps.app.outputs.path }}'
       - name: Validate the supplied probability data
         run: python3 '${{ steps.app.outputs.path }}/tools/validate_data.py'
-      - name: Test opt-in weekly hall rules
+      - name: Test instant and daily public Hall rules
         run: python3 -m unittest discover -s dopa-button/tools -p 'test_publish_hall.py'
       - name: Unit tests
         run: npm test --prefix '${{ steps.app.outputs.path }}'
       - name: Build
         run: npm run build --prefix '${{ steps.app.outputs.path }}'
+      - name: Prepare real mobile browser for release smoke
+        shell: bash
+        run: |
+          npm install --prefix dopa-button --no-save --package-lock=false playwright@1.56.1
+          cd dopa-button
+          npx playwright install --with-deps chromium
+      - name: iPhone release smoke (PUSH, badges, PNG, instant Hall)
+        run: node dopa-button/tests/release-smoke.cjs
+      - name: Upload mobile QA screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dopa-release-qa-${{ github.run_id }}
+          path: dopa-button/release-screenshots/
+          retention-days: 7
+          if-no-files-found: ignore
       - name: Publish tested build into GitHub Pages folder
         if: github.ref == 'refs/heads/main'
         shell: bash
