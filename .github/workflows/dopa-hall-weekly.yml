@@ -34,6 +34,7 @@ jobs:
           for attempt in 1 2 3 4; do
             git fetch origin main
             git reset --hard origin/main
+            python3 -m unittest discover -s dopa-button/tools -p 'test_publish_hall.py'
             python3 dopa-button/tools/publish_hall.py
             git add dopa-button/data/hall_of_fame.json
             if git diff --cached --quiet; then
