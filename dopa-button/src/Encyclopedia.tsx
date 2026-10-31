@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { EVENTS, EVENT_BY_ID, isBonusEligible, type ProbabilityEvent } from './probability';
 import { compareRarity, hundredTrialChance, type RecordState } from './records';
-import { MACHINE_EVENTS, isUltraRare } from './machineLottery';
+import { MACHINE_EVENTS } from './machineLottery';
 import './encyclopedia.css';
 
 export interface EncyclopediaProps {
@@ -140,11 +140,11 @@ export function Encyclopedia({ open, onClose, records, onPreview }: Encyclopedia
       <label className="encyclopedia-search">機種を検索
         <input type="search" value={machineQuery} placeholder="例：北斗、ジャグラー、エヴァ" onChange={event=>{setMachineQuery(event.target.value);setMachinePage(0);}}/>
       </label>
-      <p className="encyclopedia-note">1/666より希少な実機も、特別枠だけではなく一般一覧に掲載します。該当機種には ✦ を付けています。</p>
+      <p className="encyclopedia-note">機種ごとに掲載確率と条件を確認できます。実機の結果を予測するものではありません。</p>
       <div className="encyclopedia-events">
         {machineFiltered.slice(machineCurrentPage*PAGE_SIZE,(machineCurrentPage+1)*PAGE_SIZE).map(machine=><article className="encyclopedia-card" key={machine.id}>
           <div className="encyclopedia-card-meta"><span>{machine.maker}</span><span>{machine.kind==='pachinko'?'パチンコ':'パチスロ'}</span></div>
-          <h3>{machine.machine}{isUltraRare(machine)?' ✦':''}</h3>
+          <h3>{machine.machine}</h3>
           <p className="encyclopedia-condition">{machine.category}</p>
           <strong className="encyclopedia-probability">{machine.publishedProbability}</strong>
           <p className="encyclopedia-fact">{machine.condition}</p>
