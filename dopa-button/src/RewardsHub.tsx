@@ -1,5 +1,5 @@
 import './rewards.css';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { MachineDrawEntry } from './machineLottery';
 import { MACHINE_EVENTS } from './machineLottery';
 import { machineEmojiPack } from './machineEmoji';
@@ -9,10 +9,9 @@ import {
 } from './machineRewards';
 import { shareMachineCard, collectionTweet } from './machineCard';
 import hallData from '../data/hall_of_fame.json';
+import { fetchPublicHall, type HallDay } from './liveHall';
 
-type HallEntry={issue:number;nickname:string;badge:string;message:string;mode:string;url:string};
-type HallDay={date:string;entries:HallEntry[]};
-const HALL:HallDay[]=(hallData as {days:HallDay[]}).days;
+const DAILY_BACKUP:HallDay[]=(hallData as {days:HallDay[]}).days;
 type Tab='stickers'|'badges'|'hall';
 const iconFor=(event:MachineDrawEntry)=>machineEmojiPack(event).icons.slice(0,5).join(' ');
 const issueURL='https://github.com/pwgmjda00/kontonkyo/issues/new?template=dopa-hall.yml';
@@ -31,6 +30,27 @@ export function RewardsHub({profile,onUpdate,disabled=false}:{
   const [busyId,setBusyId]=useState<string|null>(null);
   const [message,setMessage]=useState('');
   const [opened,setOpened]=useState(false);
+  const [hallDays,setHallDays]=useState<HallDay[]>(DAILY_BACKUP);
+  const [hallStatus,setHallStatus]=useState<'idle'|'loading'|'live'|'backup'>('idle');
+  const [hallError,setHallError]=useState('');
+  const [hallRefresh,setHallRefresh]=useState(0);
+  useEffect(()=>{
+    if(!opened||tab!=='hall'||disabled)return;
+    const controller=new AbortController();
+    setHallStatus('loading');
+    setHallError('');
+    fetchPublicHall(controller.signal).then(days=>{
+      if(controller.signal.aborted)return;
+      setHallDays(days);
+      setHallStatus('live');
+    }).catch(error=>{
+      if(controller.signal.aborted)return;
+      setHallStatus('backup');
+      setHallError(error instanceof Error?error.message:'通信できませんでした');
+      setHallDays(DAILY_BACKUP);
+    });
+    return()=>controller.abort();
+  },[opened,tab,disabled,hallRefresh]);
   const owned=ownedCount(profile),total=totalRewardHits(profile);
   const badges=earnedBadges(profile),badgeIds=new Set(badges.map(b=>b.id));
   const equipped=getEquippedBadge(profile);
@@ -126,13 +146,16 @@ export function RewardsHub({profile,onUpdate,disabled=false}:{
       {tab==='hall'&&<>
         <section className="dopa-hall">
           <h3>🏆 ドパ殿堂｜毎日更新のコミュニティ展示</h3>
-          <p>希望者のニックネームや称号だけを紹介する場所。順位も賞金もなし。参加無料、本人応募・運営承認制。ブラウザ記録はサーバー検証されないため、公式の実力ランキングではありません。</p>
-          {HALL.length===0?<div className="dopa-hall-empty">🏁 初代殿堂の応募受付中！<small>承認された投稿が入ると、毎日の掲載欄に登場する。</small></div>:HALL.map(day=><div className="dopa-hall-week" key={day.date}>
+          <p>GitHubで応募したら、そのまま殿堂に登場！🎉 承認待ちはなし。参加無料・順位や賞金なし。公開されるのは本人が入力したニックネーム・称号・ひと言だけ。ブラウザのスコアを検証するランキングではありません。</p>
+
+          <div className="dopa-hall-refresh"><span role="status">{hallStatus==='loading'?'⏳ 最新の応募を取得中…':hallStatus==='live'?'🟢 応募をリアルタイム取得':hallStatus==='backup'?'📦 通信できないため前回の保存データを表示':'📅 最新の投稿を表示'}</span><button type="button" onClick={()=>setHallRefresh(n=>n+1)} disabled={hallStatus==='loading'}>🔄 最新に更新</button></div>
+          {hallStatus==='backup'&&<p className="dopa-hall-warning">{hallError}。通信が戻ったら「最新に更新」を押してね。</p>}
+          {hallDays.length===0?<div className="dopa-hall-empty">🏁 初代殿堂の応募受付中！<small>GitHubで投稿したらこの欄へ。「最新に更新」で新着が見えるよ。</small></div>:hallDays.map(day=><div className="dopa-hall-week" key={day.date}>
             <h4>📅 {day.date} に登場したコレクター</h4>
             {day.entries.map(entry=><a href={entry.url} target="_blank" rel="noopener noreferrer" key={entry.issue} className="dopa-hall-entry"><strong>🎉 {entry.nickname}</strong><small>{entry.mode} · {entry.badge||'ドパコレクター'}</small><p>{entry.message}</p></a>)}
           </div>)}
-          <p className="dopa-rewards-footnote">応募にはGitHubアカウントが必要。投稿内容は公開されるので、本名や住所は書かないでね。毎朝9:12 JSTごろ更新予定。GitHub側の処理遅延があるほか、掲載は運営の確認・承認後になる。</p>
-          <a href={issueURL} target="_blank" rel="noopener noreferrer" className="dopa-apply">🏆 殿堂掲載に応募する ↗</a>
+          <p className="dopa-rewards-footnote">応募にはGitHubアカウントが必要。公開Issueを読み込むため、投稿直後は数秒ほど反映に時間がかかる場合があるよ。応募も掲載も承認不要。閉じた投稿や運営が非表示にした投稿は一覧から外れる。毎朝9:12 JSTごろの保存版更新も実施。本名・住所・連絡先は書かないでね。</p>
+          <a href={issueURL} target="_blank" rel="noopener noreferrer" className="dopa-apply">🏆 応募してすぐ殿堂に載る ↗</a>
         </section>
         <section className="dopa-creative-rights">
           <h3>🎬 演出ディレクターへの道</h3>
