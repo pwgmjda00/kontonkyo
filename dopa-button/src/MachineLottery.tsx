@@ -238,12 +238,12 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
         <div className="machine-wallet-carry"><span>{kind==='pachinko'?'🟠 持ち玉':'🪙 持ちメダル'}</span><strong data-testid="machine-wallet-balance">{fmt(money.balanceUnits)} <small>{units}</small></strong><small>仮想1,000円ずつ自動貸出</small></div>
       </div>
       <div className="machine-wallet-metrics">
-        <div><span>💸 投資した金額</span><strong data-testid="machine-wallet-invested">{fmt(money.investment)}円</strong></div>
-        <div><span>💵 今交換したら</span><strong data-testid="machine-wallet-recovered">{fmt(money.recovered)}円</strong></div>
+        <div><span>💸 仮想投資額</span><strong data-testid="machine-wallet-invested">{fmt(money.investment)}円</strong></div>
+        <div><span>💵 仮想回収額</span><strong data-testid="machine-wallet-recovered">{fmt(money.recovered)}円</strong></div>
         <div><span>🎲 総抽選数</span><strong data-testid="machine-wallet-spins">{fmt(wallet.spins)}回</strong></div>
         <div><span>🎁 当選時の平均払出</span><strong data-testid="machine-wallet-average">{fmt(money.averagePayout)}{units}</strong></div>
       </div>
-      <p className="machine-wallet-note">模擬レート <b>{kind==='pachinko'?'4円/玉':'20円/枚'}</b>。成功1回＝選択中の{activeCount}台が各1回転。投資と払出も{activeCount}台分を合算。累計{fmt(wallet.rounds)}ラウンド、{fmt(wallet.wins)}件当選。</p>
+      <p className="machine-wallet-note"><strong>現金・PayPayへの交換はできません。</strong> 模擬レート <b>{kind==='pachinko'?'4円/玉':'20円/枚'}</b>。成功1回＝選択中の{activeCount}台が各1回転。投資と払出も{activeCount}台分を合算。累計{fmt(wallet.rounds)}ラウンド、{fmt(wallet.wins)}件当選。</p>
       <details className="machine-wallet-config">
         <summary>⚙️ ボーダーと仮想出玉の計算・設定</summary>
         {kind==='pachinko'?<div className="wallet-fields">
@@ -255,7 +255,7 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
           <label>仮想ベース（50枚あたり）<input type="number" min={20} max={55} step={1} value={settings.slotGamesPer50} disabled={!canSwitch} onChange={e=>changeSetting('slotGamesPer50',Number(e.target.value))}/>G</label>
           <p>1Gにつき3枚BET、小役の仮想平均戻しは<strong>{slotNormalReturnPerSpin(settings).toFixed(2)}枚</strong>。残りを当選時の仮想払出に割り当て、想定機械割<strong>{theoreticalReturnPct(kind,settings).toFixed(1)}%</strong>になる計算。</p>
         </div>}
-        <p className="wallet-warning">⚠️ 実機ごとのボーダー・実出玉・連チャン・RUSH・設定差を再現した数値ではありません。掲載された当たり確率を使う架空の会計です。換金できず、現実の勝ち負けも予測しません。</p>
+        <p className="wallet-warning">⚠️ 実機ごとのボーダー・実出玉・連チャン・RUSH・設定差を再現した数値ではありません。掲載された当たり確率を使う架空の会計です。設定変更は今後の抽選だけに反映します。換金できず、現実の勝ち負けも予測しません。</p>
         <div className="wallet-reset"><button type="button" disabled={!canSwitch} onClick={resetWallet}>{confirmReset?'本当にこの会計をリセット':'この会計をリセット'}</button>{confirmReset&&<button type="button" onClick={()=>setConfirmReset(false)}>キャンセル</button>}</div>
       </details>
     </section>
