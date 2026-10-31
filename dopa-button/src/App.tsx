@@ -4,6 +4,7 @@ import { ProbabilityClient } from './worker-client';
 import { type ProbabilityEvent } from './probability';
 import { loadRecords, recordGameOver, recordPlay, recordSuccess, saveRecords, type Mode } from './records';
 import { Encyclopedia } from './Encyclopedia';
+import { MachineLottery } from './MachineLottery';
 import { sound } from './sound';
 import './app.css';
 
@@ -24,6 +25,7 @@ export default function App() {
   const [systemReduced, setSystemReduced] = useState(() => matchMedia('(prefers-reduced-motion: reduce)').matches);
   const [effectsEnabled, setEffectsEnabled] = useState(true);
   const [library, setLibrary] = useState(false);
+  const [machineLottery, setMachineLottery] = useState(false);
   const [shareStatus, setShareStatus] = useState('');
   const [copyText, setCopyText] = useState('');
   const controller = useRef<GameController | null>(null);
@@ -147,7 +149,7 @@ export default function App() {
   return <div className={`app-shell mode-${game.mode}${gentle ? ' is-reduced' : ''}`} data-phase={game.phase}>
     <div className="ambient ambient-one" aria-hidden="true" /><div className="ambient ambient-two" aria-hidden="true" />
     <header className="site-header"><a className="brand" href="./" aria-label="ドパボタン ホーム"><span className="brand-mark" aria-hidden="true">D<span>!</span></span><span>DOPA<br /><b>BUTTON</b></span></a><div className="header-right"><span className="header-edition">REFLEX × PROBABILITY<br /><b>PLAY WITH YOUR LUCK.</b></span><button className={`sound-toggle${muted ? '' : ' active'}`} data-testid="sound" onClick={toggleSound} aria-pressed={!muted} aria-label={`音声を${muted ? 'オン' : 'オフ'}にする`}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m11 5-5 4H3v6h3l5 4V5Z" stroke="currentColor" strokeWidth="1.5" /><path d={muted ? 'm16 9 5 6m0-6-5 6' : 'M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14'} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg><span>{muted ? 'SOUND OFF' : 'SOUND ON'}</span></button></div></header>
-    <main className="main-layout">
+    {machineLottery ? <MachineLottery onClose={() => setMachineLottery(false)} /> : <main className="main-layout">
       <section className="intro-block"><div className="eyebrow"><span /> NO THINKING. JUST FEEL IT.</div><h1>ドパボタン<span className="title-dot">。</span></h1><p className="tagline">押すな。<br className="desktop-break" /><strong>でも押せ。</strong></p><p className="intro-copy">わかってるのに、指が動く。<br />反射の先で、ありえない確率に出会う。</p><div className="intro-rules"><div><span>01</span><p>「押せ！」なら<strong>1回、押す。</strong></p></div><div><span>02</span><p>「押すな！」なら<strong>何もせず待つ。</strong></p></div><div><span>03</span><p>間違えたら<strong>そこで終了。</strong></p></div></div><div className="probability-note"><span className="tiny-star">✦</span><div><b>偶然は、ちゃんと本物。</b><p>18実験族・1,026条件を独立抽選。<br />演出と実当選は、別々に記録します。</p></div></div></section>
       <div className="machine-column">
         <div className="machine-top-label"><span><i /> PUSH YOUR LUCK</span><span>NO. 001 / INFINITE CHANCES</span></div>
@@ -165,7 +167,8 @@ export default function App() {
         {game.error && <p className="game-error" role="alert">{game.error}</p>}
         <p className="machine-footnote">無料・登録不要。必要なのは、言うことを聞く指だけ。</p>
       </div>
-    </main>
+    </main>}
+    {!machineLottery && <section className="machine-feature-launch"><button onClick={() => setMachineLottery(true)} disabled={!canChangeMode} data-testid="machine-mode">🎰 実機一斉抽選 <span>検証済み実機の確率を1ボタンで全件抽選 ↗</span></button></section>}
     <section className="bottom-proof"><div><span className="proof-symbol" aria-hidden="true">✦</span><p>反射は、実力。<br /><strong>その先は、偶然。</strong></p></div><div className="proof-stats"><span><strong>{records.totals.plays.toLocaleString('ja-JP')}</strong> TOTAL PLAYS</span><span><strong>{records.totals.successes.toLocaleString('ja-JP')}</strong> SUCCESS</span><span><strong>{records.totals.stopSuccesses.toLocaleString('ja-JP')}</strong> STOP SUCCESS</span></div><span className="proof-badge">1 / 99<small>SHOW TIME</small></span></section>
     <footer className="site-footer"><span>DOPA BUTTON <i>© 2026</i></span><p>1/99は平均99成功に1回の演出抽選。99回目の保証ではありません。<br />収録は数学的確率データです。実機パチンコ・パチスロのデータは含みません。</p><span>MADE FOR YOUR FINGER ↗</span></footer>
     <Encyclopedia open={library} onClose={closeLibrary} records={records} onPreview={['READY', 'GAME_OVER'].includes(libraryOrigin.current) ? preview : undefined} />
