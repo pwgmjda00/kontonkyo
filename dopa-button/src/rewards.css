@@ -1,0 +1,119 @@
+/* Dopa Collectors: progressive disclosure keeps iPhone 17e's PUSH first-screen. */
+.dopa-rewards{
+  width:min(100%,540px);margin:11px auto 16px;border:1px solid #a178b7;
+  border-radius:17px;background:linear-gradient(145deg,#24162e,#201c35);
+  color:#fff;overflow:hidden;box-shadow:0 3px 19px #29104050;
+}
+.dopa-rewards-open{
+  display:grid;grid-template-columns:auto minmax(0,1fr) auto;
+  gap:11px;align-items:center;width:100%;padding:13px 14px;
+  border:none;background:linear-gradient(105deg,#402051,#282044);
+  color:#fff;text-align:left;cursor:pointer;touch-action:manipulation;
+}
+.dopa-rewards-open:disabled{opacity:.63;cursor:default}
+.dopa-rewards-open-icon{font-size:27px}
+.dopa-rewards-open>b{font-size:14px}
+.dopa-rewards-open span:nth-child(2){display:flex;flex-direction:column;gap:4px;min-width:0}
+.dopa-rewards-open span:nth-child(2) b{color:#fff0ac;font-size:14px;font-weight:900}
+.dopa-rewards-open span:nth-child(2) small{font-size:10px;color:#e3c5ef;line-height:1.45}
+.dopa-rewards-body{padding:13px 12px 16px;text-align:left}
+.dopa-rewards-lead{font-size:11px!important;line-height:1.6!important;margin:2px 2px 12px!important;color:#eee0fc!important}
+.dopa-rewards-alias{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:9px 0 12px;font-size:11px;font-weight:800;color:#f6d49c}
+.dopa-rewards-alias input,.dopa-collection-tools input{
+  flex:1;min-width:155px;max-width:100%;border:1px solid #8973a6;border-radius:9px;
+  padding:9px;background:#1b1427;color:#fff;font-size:15px;
+}
+.dopa-rewards-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:8px 0 13px}
+.dopa-rewards-tabs button,.dopa-view-filter button{
+  padding:10px 4px;border:1px solid #70538c;border-radius:9px;
+  background:#32213f;color:#dacee8;cursor:pointer;font-size:11px;font-weight:800;
+}
+.dopa-rewards-tabs button[aria-pressed="true"],.dopa-view-filter button[aria-pressed="true"]{
+  background:#f6d795;color:#281731;border-color:#ffe9aa;
+}
+.dopa-collector-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:11px 0}
+.dopa-collector-stats>div{min-width:0;padding:9px 7px;border:1px solid #614b7a;border-radius:10px;background:#322341}
+.dopa-collector-stats small{font-size:9px;color:#dfccef;display:block}
+.dopa-collector-stats strong{font-size:clamp(16px,5vw,23px);line-height:1.5;color:#ffe4a5;font-variant-numeric:tabular-nums}
+.dopa-collector-stats strong span{font-size:10px;color:#ddd0e6}
+.dopa-collector-stats .dopa-favorite{font-size:11px;overflow-wrap:anywhere;display:block}
+.dopa-evolve-key{color:#ffe3a9!important;font-size:11px!important;line-height:1.6!important;margin:10px 1px!important}
+.dopa-collection-tools{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.dopa-collection-tools input{width:100%}
+.dopa-view-filter{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+.dopa-view-filter button{padding:8px 3px}
+.dopa-sticker-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.dopa-sticker-card{min-width:0;position:relative;display:flex;flex-direction:column;gap:6px;
+  border:1px solid #71528a;border-radius:14px;padding:11px 9px 12px;
+  background:linear-gradient(145deg,#3c254b,#241b31);
+  box-shadow:inset 0 0 20px #a16cd01a;
+}
+.dopa-sticker-card.tier-0{opacity:.67;filter:saturate(.6)}
+.dopa-sticker-card.tier-2{border-color:#bf9bea;box-shadow:inset 0 0 24px #ba8aee28}
+.dopa-sticker-card.tier-3{border-color:#7fdde2;background:linear-gradient(145deg,#314f64,#442450,#3a2f4f)}
+.dopa-sticker-card.tier-4{border-color:#ffe48d;background:linear-gradient(145deg,#57432e,#493262,#2b2355);box-shadow:0 0 15px #ffdd7759}
+.dopa-sticker-eyebrow{display:flex;justify-content:space-between;align-items:center;gap:7px;color:#ffe9ba;font-size:10px;font-weight:900}
+.dopa-sticker-emoji{text-align:center;font-size:clamp(18px,5.9vw,28px);line-height:1.5;
+ white-space:nowrap;overflow:hidden;text-overflow:clip;letter-spacing:-.06em;padding:5px 0}
+.dopa-sticker-card h4{margin:0;color:#fff;line-height:1.45;font-size:clamp(12px,3.3vw,15px);overflow-wrap:anywhere}
+.dopa-sticker-card p{margin:0!important;color:#ebcafe!important;font-size:11px!important;line-height:1.55!important}
+.dopa-sticker-card>small{font-size:10px;color:#baaaca}
+.dopa-sticker-actions{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:auto;padding-top:5px}
+.dopa-sticker-actions button{min-width:0;border:1px solid #9374af;background:#4d3162;
+ color:#fff6cd;border-radius:8px;padding:9px 4px;font-size:10px;font-weight:750;cursor:pointer;overflow-wrap:anywhere}
+.dopa-sticker-actions button:first-child{grid-column:span 2;background:#f3d58e;color:#281627;border-color:#ffe9b1}
+.dopa-sticker-actions button[aria-pressed="true"]{background:#7d3158;color:#ffe5ee}
+.dopa-sticker-actions button:disabled{opacity:.6}
+.dopa-empty,.dopa-hall-empty{text-align:center;font-size:13px;line-height:1.8;padding:19px 12px;color:#f9d89f;background:#362640;border-radius:12px}
+.dopa-more{display:block;margin:13px auto 0;background:#54336b;color:#ffe9b9;
+ border:1px solid #9374b0;border-radius:9px;padding:11px 18px;font-weight:800;font-size:12px;cursor:pointer}
+.dopa-badge-grid{display:grid;gap:8px}
+.dopa-badge{display:grid;grid-template-columns:38px minmax(0,1fr) auto;gap:8px;align-items:center;
+ border:1px solid #58466f;border-radius:11px;background:#2b213a;padding:11px 9px;opacity:.55}
+.dopa-badge.is-earned{border-color:#aa88ce;opacity:1;background:linear-gradient(110deg,#443059,#2a203d)}
+.dopa-badge-emoji{font-size:25px}
+.dopa-badge>div{min-width:0;display:flex;flex-direction:column;gap:5px}
+.dopa-badge strong{font-size:12px;color:#ffeab6;line-height:1.25}
+.dopa-badge small{font-size:10px;color:#d6c4e9;line-height:1.5}
+.dopa-badge button{min-width:75px;padding:8px 6px;color:#2e1a32;background:#f9d992;border:0;border-radius:8px;font-size:10px;font-weight:900;cursor:pointer}
+.dopa-badge button[aria-pressed="true"]{background:#d5b4ed}
+.dopa-badge-locked{font-size:10px;white-space:nowrap}
+.dopa-rewards-footnote{margin:12px 0 5px!important;font-size:10px!important;line-height:1.75!important;color:#c4b5d3!important}
+.dopa-hall,.dopa-creative-rights{margin:12px 0;padding:13px;border:1px solid #675584;border-radius:12px;background:#2a1f3a}
+.dopa-hall h3,.dopa-creative-rights h3{margin:0 0 9px;color:#ffe29f;font-size:15px}
+.dopa-hall>p,.dopa-creative-rights>p{font-size:12px!important;line-height:1.7!important;color:#eee0f6!important}
+.dopa-hall-empty{display:flex;flex-direction:column;gap:4px;margin:11px 0}
+.dopa-hall-empty small{font-size:10px;color:#dfcee7}
+.dopa-hall-week{padding-top:12px}
+.dopa-hall-week h4{margin:0 0 8px;color:#ffe5a5}
+.dopa-hall-entry{display:block;text-decoration:none;color:#f6e9fc;border:1px solid #856c9d;border-radius:10px;
+ background:#413052;margin:7px 0;padding:10px}
+.dopa-hall-entry strong{display:block;color:#ffe59d;font-size:14px}
+.dopa-hall-entry small{font-size:10px;color:#d0c0e6}
+.dopa-hall-entry p{margin:6px 0 0;font-size:12px;line-height:1.5}
+.dopa-apply{display:block;margin:12px 0 3px;padding:13px;text-align:center;border-radius:11px;
+ background:linear-gradient(135deg,#ffe096,#ffaf71);color:#271a2a;font-size:12px;font-weight:950;text-decoration:none}
+.dopa-director-progress{height:9px;margin:14px 0 6px;border-radius:99px;background:#574767;overflow:hidden}
+.dopa-director-progress span{height:100%;display:block;background:linear-gradient(90deg,#81c8ff,#e9a1ff,#ffe498);transition:width .3s}
+.dopa-creative-rights>small{font-size:12px;color:#ffeba7}
+.dopa-share-message{margin:11px 0;padding:10px;border-radius:8px;background:#194a3e;color:#c1ffe1;font-size:12px}
+.dopa-badge-toast{text-align:center;font-size:11px!important;color:#ffe69b!important;margin:8px 4px!important}
+.machine-new-card{background:#523767;color:#ffedb8;border:1px solid #a884c3!important;padding:12px;font-size:12px}
+.machine-new-card:disabled{opacity:.5}
+.machine-new-titles{margin:0!important;color:#fff0b7!important;font-size:11px!important;line-height:1.6!important}
+@media(max-width:430px){
+  .dopa-rewards{margin:8px auto 12px}
+  .dopa-rewards-open{padding:10px 12px;gap:7px}
+  .dopa-rewards-open-icon{font-size:22px}
+  .dopa-rewards-open span:nth-child(2) b{font-size:12px}
+  .dopa-rewards-open span:nth-child(2) small{font-size:9px}
+  .dopa-rewards-body{padding:11px 9px 13px}
+  .dopa-sticker-grid{gap:6px}
+  .dopa-sticker-card{padding:9px 7px}
+  .dopa-sticker-actions button{font-size:9px;padding:8px 3px}
+  .dopa-badge{grid-template-columns:30px minmax(0,1fr) auto;padding:8px 6px;gap:6px}
+  .dopa-badge-emoji{font-size:22px}
+  .dopa-badge button{min-width:66px}
+  .dopa-hall,.dopa-creative-rights{padding:10px}
+}
+@media(prefers-reduced-motion:reduce){.dopa-director-progress span{transition:none}}
