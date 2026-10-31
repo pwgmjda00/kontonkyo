@@ -98,6 +98,25 @@ async function main() {
     const inputEvents = JSON.parse(fs.readFileSync(path.join(root, 'data/probability_events_1026.json'), 'utf8'));
     const eligible = inputEvents.find(event => event.bonusEligible);
 
+    await check('iPhone 17e main machine screen shows PUSH without scrolling and catalog starts collapsed', async (page, context, url) => {
+      const response=await page.goto(url, {waitUntil:'networkidle'});
+      assert.equal(response.status(), 200);
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth<=innerWidth),true);
+      const push=tid(page,'machine-push');
+      const bounds=await push.boundingBox();
+      const screen=await page.evaluate(()=>({height:innerHeight,width:innerWidth}));
+      assert.equal(screen.width,390);
+      assert.ok(bounds && bounds.y>=0 && bounds.y+bounds.height<=screen.height-12,
+        `PUSH must fit first viewport, got ${JSON.stringify(bounds)} vs ${JSON.stringify(screen)}`);
+      assert.ok(await page.locator('.machine-legacy-link').isVisible());
+      const catalog=page.locator('.machine-catalog-expand');
+      assert.equal(await catalog.getAttribute('open'),null, 'Large machine list should not crowd the game');
+      await catalog.locator('summary').click();
+      assert.ok(await catalog.locator('.real-machine-list article').first().isVisible());
+      await catalog.locator('summary').click();
+      assert.equal(await catalog.getAttribute('open'),null);
+    }, {viewport:{width:390,height:844},deviceScaleFactor:3,reducedMotion:'reduce'});
+
     await check('Initial mobile cabinet, mute, mode selection, and 320px layout', async (page, context, url) => {
       await open(page, url);
       assert.match(await page.title(), /ドパボタン/);
