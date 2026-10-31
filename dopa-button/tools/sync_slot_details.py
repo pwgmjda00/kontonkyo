@@ -46,42 +46,51 @@ def parse_item(item):
         if h:
             title=Text();title.feed(h.group(1));name=" ".join(title.words).strip() or name
         if "導入前情報" in name:return None
-        # Prefer explicit setting-1 odds in the page's intro/spec rather than generic ratios.
-        match=re.search(r"設定\s*1\s*の\s*([^。\n]{1,35}?)\s*1\s*/\s*(\d+(?:\.\d+)?)",plain)
-        if not match:
-            match=re.search(r"(AT初当たり|ボーナス合算|BIG確率|初当たり確率|ボーナス初当たり|REG確率|初当たり)\s*1\s*/\s*(\d+(?:\.\d+)?)",plain)
+        # Extract ONLY clearly labelled jackpot/AT/CZ probabilities.
+        # Generic "setting 1's 1/xx" previously misread common bells and
+        # BIG-time watermelons as jackpot probabilities (e.g. 1/21.8, 1/47.6).
+        labels=("AT初当たり","AT初当り","初当たり合算","初当り合算",
+                "ボーナス初当たり","ボーナス初当り","疑似ボーナス初当たり",
+                "ボーナス合算","AT確率","初当たり確率","初当り確率",
+                "初当たり","初当り","CZ合算確率","CZ確率")
+        label_pattern="(?:"+"|".join(re.escape(label) for label in labels)+")"
+        match=None
+        for m in re.finditer(r"("+label_pattern+r")\\s*(?:[:：は=]\\s*)?1\\s*/\\s*(\\d+(?:\\.\\d+)?)", plain):
+            if float(m.group(2))<60:continue
+            match=m
+            break
         if not match:
             table_parser=Tables()
             table_parser.feed(doc)
+            # The source tables may be oriented with a setting-1 row OR column.
             for table in table_parser.tables:
                 if len(table)<2:continue
                 headers=table[0]
-                wanted=("初当たり","初当り","AT初当","ボーナス合算","BIG確率","REG確率")
-                # Format A: a setting-1 row, probability as a column
-                cols=[(i,label) for i,label in enumerate(headers) if any(t in label for t in wanted)]
+                cols=[(i,label) for i,label in enumerate(headers) if any(label.startswith(t) for t in labels)]
                 for row in table[1:]:
                     if not row:continue
                     if re.fullmatch(r"(?:設定\\s*)?1[◎★☆]?",row[0].strip()):
                         for i,label in cols:
                             if i<len(row):
                                 m=re.search(r"1\\s*/\\s*(\\d+(?:\\.\\d+)?)",row[i])
-                                if m:match=(label,m.group(1));break
+                                if m and float(m.group(1))>=60:
+                                    match=(label,m.group(1));break
                     if match:break
                 if match:break
-                # Format B: one row named AT初当り, setting 1 in the second column
                 for row in table[1:]:
-                    if len(row)<2 or not any(t in row[0] for t in wanted):continue
+                    if len(row)<2 or not any(row[0].strip().startswith(t) for t in labels):continue
                     setting_col=next((i for i,h in enumerate(headers) if "設定1" in h or h.strip()=="1"),1)
                     if setting_col<len(row):
                         m=re.search(r"1\\s*/\\s*(\\d+(?:\\.\\d+)?)",row[setting_col])
-                        if m:match=(row[0],m.group(1));break
+                        if m and float(m.group(1))>=60:
+                            match=(row[0],m.group(1));break
                 if match:break
         if not match:return None
         if isinstance(match,tuple):condition,den=match
         else:condition,den=match.group(1).strip(),match.group(2)
         if den.count("."):a,b=den.split(".");numerator=str(10**len(b));denominator=a+b
         else:numerator="1";denominator=den
-        if float(den)<3 or float(den)>1_000_000:return None
+        if float(den)<60 or float(den)>1_000_000:return None
         machine_id="slot-detail-"+hashlib.sha256(url.encode()).hexdigest()[:14]
         return {"id":machine_id,"machine":name,"maker":"機種ページ参照","kind":"pachislot",
             "model":None,"introduced":None,"category":condition+"（設定1参考値）",
