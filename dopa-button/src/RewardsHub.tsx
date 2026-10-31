@@ -55,7 +55,7 @@ export function RewardsHub({profile,onUpdate,disabled=false}:{
     setBusyId(machine.id);
     try{
       const result=await shareMachineCard(machine,profile);
-      setMessage(result==='shared'?'共有メニューに渡しました！':'記念画像を保存しました！');
+      setMessage(result==='shared'?'共有メニューに渡しました！':result==='cancelled'?'共有をキャンセルしました。':'記念画像を保存しました！');
     }catch{setMessage('画像の書き出しに失敗しました。端末の保存権限を確認してください。');}
     finally{setBusyId(null);}
   };
