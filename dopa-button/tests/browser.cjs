@@ -117,6 +117,32 @@ async function main() {
       assert.equal(await catalog.getAttribute('open'),null);
     }, {viewport:{width:390,height:844},deviceScaleFactor:3,reducedMotion:'reduce'});
 
+    await check('Collector gallery migrates saved machine and exports a PNG at iPhone width', async (page, context, url) => {
+      const entries = JSON.parse(fs.readFileSync(path.join(root, 'data/verified_machine_events.json'), 'utf8'));
+      const known = entries.find(entry => entry.machine.includes('東京リベンジャーズ')) || entries[0];
+      await page.addInitScript(({id}) => {
+        localStorage.setItem('dopa-collector-rewards-v1', JSON.stringify({
+          version:1, counts:{[id]:2},rounds:3,dryRounds:1,fails:1,bestStreak:5,
+          featuredId:id,equippedBadge:'first',alias:'ドパテスター'
+        }));
+      }, {id:known.id});
+      const response = await page.goto(url, {waitUntil:'networkidle'});
+      assert.equal(response.status(),200);
+      await tid(page,'rewards-open').click();
+      assert.match(await page.locator('.dopa-collector-stats').innerText(), /1/);
+      assert.match(await page.locator('.dopa-sticker-card').first().innerText(), /キラ/);
+      const [download] = await Promise.all([
+        page.waitForEvent('download',{timeout:12000}),
+        page.locator('.dopa-sticker-card').first().getByRole('button',{name:/画像にする/}).click(),
+      ]);
+      assert.match(download.suggestedFilename(),/\\.png$/);
+      await page.getByRole('button',{name:/称号/}).click();
+      assert.ok(await page.locator('.dopa-badge.is-earned').count()>=1);
+      await page.getByRole('button',{name:/殿堂・企画/}).click();
+      assert.ok(await page.locator('.dopa-hall').isVisible());
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth<=innerWidth),true);
+    }, {viewport:{width:390,height:844},deviceScaleFactor:3,reducedMotion:'reduce'});
+
     await check('Initial mobile cabinet, mute, mode selection, and 320px layout', async (page, context, url) => {
       await open(page, url);
       assert.match(await page.title(), /ドパボタン/);
