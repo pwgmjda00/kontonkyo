@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { MACHINE_EVENTS, drawEveryMachine, isUltraRare, type MachineHit } from './machineLottery';
 
 type Phase = 'ready' | 'countdown' | 'round' | 'result' | 'paused' | 'over';
@@ -47,7 +47,7 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
     setHitHistory([]);
     phase('countdown',{score:0,remaining:900,count:3,lastHits:[]});
   };
-  const onPush=(event:React.MouseEvent<HTMLButtonElement>)=>{
+  const onPush=(event:MouseEvent<HTMLButtonElement>)=>{
     const current=live.current;
     const token=lastPointerToken.current;
     lastPointerToken.current=null;
