@@ -53,7 +53,7 @@ export function earnedBadges(p:RewardProfile){return BADGES.filter(b=>b.check(p)
 export function getEquippedBadge(p:RewardProfile){
   return BADGES.find(b=>b.id===p.equippedBadge&&b.check(p))??earnedBadges(p)[0]??null;
 }
-const clampInt=(v:unknown,max=1_000_000):number=>Number.isSafeInteger(v)&&Number(v)>=0?Math.min(Number(v),max):0;
+const clampInt=(v:unknown,max=1_000_000):number=>typeof v==='number'&&Number.isSafeInteger(v)&&v>=0?Math.min(v,max):0;
 const aliasText=(str:unknown)=>typeof str==='string'?[...str.trim()].slice(0,16).join(''):''; 
 export function sanitizeRewards(input:unknown,legacy:unknown=[]):RewardProfile{
   const source=input&&typeof input==='object'?(input as Partial<RewardProfile>):{};
