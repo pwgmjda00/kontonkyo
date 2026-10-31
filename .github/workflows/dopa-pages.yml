@@ -18,6 +18,10 @@ on:
       - 'vite.config.ts'
   workflow_dispatch:
 
+concurrency:
+  group: dopa-button-publish-main
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
