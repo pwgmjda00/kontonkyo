@@ -76,11 +76,13 @@ export function sanitizeRewards(input:unknown,legacy:unknown=[]):RewardProfile{
   return base;
 }
 export function loadRewards():RewardProfile{
-  try{
-    const saved=JSON.parse(localStorage.getItem(REWARD_KEY)||'null');
-    const legacy=JSON.parse(localStorage.getItem(OLD_DISCOVERIES_KEY)||'[]');
-    return sanitizeRewards(saved,legacy);
-  }catch{return sanitizeRewards(null);}
+  // Old discovery data is optional. One broken old key must not erase a healthy
+  // new collection or its equipped titles.
+  let saved:unknown=null;
+  let legacy:unknown=[];
+  try{saved=JSON.parse(localStorage.getItem(REWARD_KEY)||'null');}catch{/* no accessible new store */}
+  try{legacy=JSON.parse(localStorage.getItem(OLD_DISCOVERIES_KEY)||'[]');}catch{/* old key is optional */}
+  return sanitizeRewards(saved,legacy);
 }
 export function saveRewards(p:RewardProfile){
   try{localStorage.setItem(REWARD_KEY,JSON.stringify(p));}catch{/* disabled storage */}
