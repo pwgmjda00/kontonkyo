@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent, type KeyboardEvent } from 'react';
-import { MACHINE_EVENTS, drawEveryMachine, judgeContact, type MachineHit } from './machineLottery';
+import { MACHINE_EVENTS, drawEveryMachine, judgeContact, machineRoundStatistics, type MachineHit } from './machineLottery';
 import { machineTrivia } from './machineTrivia';
 import { machineEmojiPack, firstTimeMachineHits } from './machineEmoji';
 import { MachineCelebration } from './MachineCelebration';
@@ -10,6 +10,7 @@ interface MachineState { phase: Phase; prompt: Prompt; score: number; remaining:
 const INIT: MachineState = {phase:'ready',prompt:'go',score:0,remaining:1500,duration:1500,count:3,lastHits:[],token:0};
 const BEST_KEY='dopa-machine-reflex-best-v1';
 const UNLOCK_KEY='dopa-machine-emoji-discoveries-v1';
+const ROUND_STATS=machineRoundStatistics();
 const catalogIds = new Set(MACHINE_EVENTS.map(item=>item.id));
 function loadUnlocks(): Set<string> {
   try {
@@ -146,7 +147,7 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
     <p className="machine-hero-kicker">MAIN GAME · 押すな。でも押せ。</p>
     <button type="button" className="machine-legacy-link" onClick={onClose} disabled={!['ready','over'].includes(state.phase)}>↗ 通常・ドパ・ゲーミングドパでも遊ぶ</button>
     <h2>収録実機、一斉抽選。</h2>
-    <p className="machine-hero-copy">「押せ！」はタップ、「押すな！」は待つ。成功で<strong>{MACHINE_EVENTS.length}機種一斉抽選</strong>。</p>
+    <p className="machine-hero-copy">「押せ！」はタップ、「押すな！」は待つ。成功で<strong>{MACHINE_EVENTS.length}条件を一斉抽選</strong>。</p>
     <div className="real-machine-stats"><span>SCORE <strong data-testid="machine-score">{state.score}</strong></span><span>BEST <strong>{best}</strong></span><span>NEW <strong data-testid="machine-unlocks">{unlockCount}<small>/{MACHINE_EVENTS.length}</small></strong></span></div>
     <div className="machine-instruction" data-testid="machine-instruction" data-prompt={state.prompt} data-phase={state.phase}>{instruction}</div>
     <div className="machine-countdown-track"><span style={{transform:`scaleX(${state.phase==='round'?Math.max(0,state.remaining/state.duration):1})`}} /></div>
@@ -163,6 +164,7 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
     </section>}
     <p className="machine-hall-note">気になる台を見つけた？ <a href="https://www.p-world.co.jp/" target="_blank" rel="noopener noreferrer">P-WORLDでホールや設置機種を探す ↗</a></p>
     <p className="real-machine-warning">これは模擬抽選のゲームです。実際のホールでの当選や収支を予測するものではありません。</p>
+    <details className="machine-odds-disclosure"><summary>🎲 なぜこんなに当たるの？ 抽選の仕組み</summary><p>成功するたびに収録した{MACHINE_EVENTS.length}条件を<span>それぞれ1回ずつ独立抽選</span>しています。1回の成功で1件以上当たる理論確率は<b>{(ROUND_STATS.atLeastOne*100).toFixed(1)}%</b>、平均当選数は<b>{ROUND_STATS.expectedHits.toFixed(2)}件</b>。単独の機種の確率を甘くする仕組みはなく、初獲得・絵文字演出でも当選率は変わりません。</p></details>
     <details className="machine-catalog-expand"><summary>📚 実機図鑑・豆知識を見る <span>{MACHINE_EVENTS.length}条件</span></summary>
     <div className="machine-catalog-top"><h3>実機データ図鑑 <span>{MACHINE_EVENTS.length}条件</span></h3><p className="machine-catalog-summary">人気シリーズを先頭に表示。エヴァ、北斗、海物語、ジャグラー、スマスロなど。</p><p>お気に入りの作品の意外な見どころを発見。全機種に「面白ポイント」つき！</p><label>機種名検索 <input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="機種・メーカーで検索"/></label><div className="machine-filters">{(['all','pachinko','pachislot'] as const).map(value=><button key={value} type="button" aria-pressed={filter===value} onClick={()=>setFilter(value)}>{value==='all'?'全部':value==='pachinko'?'パチンコ':'パチスロ'}</button>)}</div></div>
     <div className="real-machine-list machine-emoji-grid">{filtered.slice(0,shownCount).map(v=><article className="machine-emoji-card" key={v.id}><div className="machine-emoji-line" aria-hidden="true">{machineEmojiPack(v).icons.slice(0,6).join(' ')}</div><div><strong>{v.machine}</strong><span>{v.maker==='未確認'||v.maker==='未照合'||v.maker==='要確認'||v.maker==='機種ページ参照'?(v.kind==='pachislot'?'パチスロ':'パチンコ'):v.maker+' · '+(v.kind==='pachislot'?'パチスロ':'パチンコ')}</span></div><div><b>{v.publishedProbability}</b><small>この端末での当選 {totals[v.id]??0}回</small></div><p className="machine-emoji-chant">{machineEmojiPack(v).chant}</p><details className="machine-trivia-details"><summary>作品の話と確率の面白さをもっと読む</summary><p>{machineTrivia(v).theme}</p><p>{machineTrivia(v).odds}</p><p>{machineTrivia(v).context}</p></details></article>)}</div>{shownCount<filtered.length&&<button className="machine-more" type="button" onClick={()=>setShownCount(n=>n+(window.matchMedia('(max-width:540px)').matches?10:30))}>さらに機種を表示 ↓</button>}
