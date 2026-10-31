@@ -32,7 +32,7 @@ export function MachineCelebration({
   const saveCard=async()=>{
     if(saving)return;
     setSaving(true);
-    try{const result=await shareMachineCard(machine,profile);setShareText(result==='shared'?'記念カードを共有しました！':'記念カードを画像保存しました！');}
+    try{const result=await shareMachineCard(machine,profile);setShareText(result==='shared'?'共有メニューに渡しました！':result==='cancelled'?'共有をキャンセルしました。':'記念カードを画像保存しました！');}
     catch{setShareText('画像保存に失敗しました。端末の空き容量や設定を確認してください。');}
     finally{setSaving(false);}
   };
