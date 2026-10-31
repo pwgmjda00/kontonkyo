@@ -16,6 +16,10 @@ export interface MachineDrawEntry {
   currentAvailability: string;
 }
 export const MACHINE_EVENTS: readonly MachineDrawEntry[] = machineRecords as MachineDrawEntry[];
+/** Strictly rarer than 1/666 (not equal). Exact integer comparison. */
+export function isUltraRare(event: Pick<MachineDrawEntry, 'numerator' | 'denominator'>): boolean {
+  return BigInt(event.numerator) * 666n < BigInt(event.denominator);
+}
 export interface MachineHit { event: MachineDrawEntry; hit: boolean }
 export function drawEveryMachine(events: readonly MachineDrawEntry[] = MACHINE_EVENTS): MachineHit[] {
   return events.map(event => {
