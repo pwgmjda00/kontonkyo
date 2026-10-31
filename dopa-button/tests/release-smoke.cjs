@@ -27,7 +27,7 @@ function startServer(){
   return new Promise((resolve,reject)=>{
     let out='';
     const timer=setTimeout(()=>reject(new Error('Preview did not start: '+out)),25000);
-    const log=b=>{out+=String(b);if(out.includes('127.0.0.1:4175')){clearTimeout(timer);resolve();}};
+    const log=b=>{out+=String(b);const text=out.replace(/\\x1b\\[[0-9;]*m/g,'');if(text.includes('127.0.0.1:4175')){clearTimeout(timer);resolve();}};
     server.stdout.on('data',log);server.stderr.on('data',log);
     server.on('error',reject);
     server.on('exit',n=>{if(n!==0)reject(new Error('Preview stopped: '+out));});
