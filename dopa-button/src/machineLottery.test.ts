@@ -1,7 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { MACHINE_EVENTS, isUltraRare, drawEveryMachine } from './machineLottery';
+import { MACHINE_EVENTS, isUltraRare, drawEveryMachine, judgeContact } from './machineLottery';
 
 describe('Real-machine jackpot catalog', () => {
+  it('judges contact at touch-down, not finger release, including deadline boundaries', () => {
+    expect(judgeContact('go',1499,1500)).toBe('success');
+    expect(judgeContact('go',1500,1500)).toBe('failure');
+    expect(judgeContact('go',1501,1500)).toBe('failure');
+    expect(judgeContact('stop',1499,1500)).toBe('failure');
+    expect(judgeContact('stop',1500,1500)).toBe('success');
+    expect(judgeContact('stop',1501,1500)).toBe('success');
+    expect(() => judgeContact('go',Number.NaN,1500)).toThrow();
+  });
   it('has valid IDs and positive odds with a source for each entry', () => {
     expect(MACHINE_EVENTS.length).toBeGreaterThan(250);
     expect(new Set(MACHINE_EVENTS.map(item=>item.id)).size).toBe(MACHINE_EVENTS.length);
