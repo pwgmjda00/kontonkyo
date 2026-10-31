@@ -1,5 +1,5 @@
 import machineRecords from '../data/verified_machine_events.json';
-import { sampleBelow } from './probability';
+import { drawRational } from './probability';
 
 export interface MachineDrawEntry {
   id: string;
@@ -15,26 +15,13 @@ export interface MachineDrawEntry {
   sourceUrl: string;
   currentAvailability: string;
 }
-/** Real spec references, used only for trivia, never as fortune weighting. */
 export const MACHINE_EVENTS: readonly MachineDrawEntry[] = machineRecords as MachineDrawEntry[];
-
-export interface FortuneMachine {
-  id: string;
-  machine: string;
-  maker: string;
-  kind: 'pachinko' | 'pachislot';
-  sourceUrl?: string;
-  trivia?: string;
-}
-export const FORTUNE_POOL: readonly FortuneMachine[] = [
-  ...new Map(MACHINE_EVENTS.map(entry => [entry.machine, {
-    id: entry.id, machine: entry.machine, maker: entry.maker, kind: entry.kind,
-    sourceUrl: entry.sourceUrl, trivia: entry.publishedProbability + '（' + entry.category + '）',
-  }])).values(),
-];
-
-/** A fair, uniform fortune draw: exactly one machine, with no claims of prediction. */
-export function chooseTodaysMachine(pool: readonly FortuneMachine[] = FORTUNE_POOL): FortuneMachine {
-  if (pool.length === 0) throw new Error('占いの候補機種がありません');
-  return pool[Number(sampleBelow(BigInt(pool.length)))]!;
+export interface MachineHit { event: MachineDrawEntry; hit: boolean }
+export function drawEveryMachine(events: readonly MachineDrawEntry[] = MACHINE_EVENTS): MachineHit[] {
+  return events.map(event => {
+    const numerator = BigInt(event.numerator);
+    const denominator = BigInt(event.denominator);
+    if (numerator < 0n || denominator <= 0n || numerator > denominator) throw new Error('Invalid machine odds: ' + event.id);
+    return {event, hit: drawRational(numerator, denominator)};
+  });
 }
