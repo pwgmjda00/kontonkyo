@@ -5413,5 +5413,41 @@
     "verifiedAt": "2026-10-31",
     "currentAvailability": "unverified",
     "sourceStatus": "secondary"
+  },
+  {
+    "id": "sync-022fc587f2f37d10",
+    "machine": "スマスロ 甲鉄城のカバネリ 海門(うなと)決戦",
+    "maker": "未確認",
+    "kind": "pachislot",
+    "model": null,
+    "introduced": null,
+    "category": "ボーナス初当たり",
+    "numerator": "10",
+    "denominator": "2542",
+    "publishedProbability": "約1/254.2",
+    "approximate": true,
+    "condition": "パチスロの設定1。初当り・合算・条件付きの定義は出典を要確認。掲載値での模擬抽選。",
+    "sourceUrl": "https://tenjo-navi.com/spec/",
+    "verifiedAt": "2026-10-31",
+    "currentAvailability": "unverified",
+    "sourceStatus": "secondary"
+  },
+  {
+    "id": "sync-48a3cb6f40861ff9",
+    "machine": "スマスロ 東京リベンジャーズ",
+    "maker": "未確認",
+    "kind": "pachislot",
+    "model": null,
+    "introduced": null,
+    "category": "AT(東卍RUSH)初当たり",
+    "numerator": "10",
+    "denominator": "4822",
+    "publishedProbability": "約1/482.2",
+    "approximate": true,
+    "condition": "パチスロの設定1。初当り・合算・条件付きの定義は出典を要確認。掲載値での模擬抽選。",
+    "sourceUrl": "https://tenjo-navi.com/spec/",
+    "verifiedAt": "2026-10-31",
+    "currentAvailability": "unverified",
+    "sourceStatus": "secondary"
   }
 ]
