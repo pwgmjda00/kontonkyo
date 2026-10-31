@@ -12,6 +12,7 @@ concurrency:
 permissions:
   contents: write
   issues: read
+  pages: write
 
 jobs:
   publish:
@@ -57,7 +58,12 @@ jobs:
             fi
             git commit -m 'community: publish daily hall and playable site [skip ci]'
             if git push origin HEAD:main; then
-              echo 'Updated daily community hall'
+              curl --fail-with-body --show-error --silent --retry 3 --max-time 45 \
+                --request POST \
+                --header "Accept: application/vnd.github+json" \
+                --header "Authorization: Bearer $GITHUB_TOKEN" \
+                "https://api.github.com/repos/${GITHUB_REPOSITORY}/pages/builds"
+              echo 'Updated daily community hall and requested public Pages rebuild'
               exit 0
             fi
             sleep 3
