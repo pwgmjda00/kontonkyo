@@ -16,11 +16,6 @@ export interface MachineDrawEntry {
   currentAvailability: string;
 }
 export const MACHINE_EVENTS: readonly MachineDrawEntry[] = machineRecords as MachineDrawEntry[];
-/** Strictly rarer than 1/666 (not equal). Exact integer comparison. */
-export function isUltraRare(event: Pick<MachineDrawEntry, 'numerator' | 'denominator'>): boolean {
-  return BigInt(event.numerator) * 666n < BigInt(event.denominator);
-}
-
 /** Reaction judgment uses the contact timestamp, never the eventual release/click. */
 export function judgeContact(prompt:'go'|'stop', at:number, deadline:number):'success'|'failure' {
   if(!Number.isFinite(at)||!Number.isFinite(deadline))throw new Error('Invalid round timing');
