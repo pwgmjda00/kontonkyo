@@ -82,6 +82,53 @@ async function main(){
       assert.equal(await page.getByText('非表示テストさん').count(),0,'Hidden entries excluded');
       assert.ok(await page.getByRole('button',{name:/最新に更新/}).count(),'Manual refresh is available');
       await page.screenshot({path:path.join(capture,'iphone-'+viewport.width+'-hall.png')});
+      // Regression for iOS native share: navigator.share must be invoked while
+      // the original tap still has transient user activation (not after toBlob).
+      await page.getByRole('button',{name:'🃏 ステッカー',exact:true}).click();
+      await page.evaluate(()=>{
+        window.__dopaNativeShareActivation=null;
+        Object.defineProperty(navigator,'canShare',{configurable:true,value:()=>true});
+        Object.defineProperty(navigator,'share',{configurable:true,
+          value:async ({files})=>{
+            window.__dopaNativeShareActivation={
+              active:navigator.userActivation?.isActive??false,
+              isPng:files?.[0]?.type==='image/png'
+            };
+          }
+        });
+      });
+      await page.locator('.dopa-sticker-card.tier-2').first().getByRole('button',{name:/画像にする/}).click();
+      const nativeShare=await page.evaluate(()=>window.__dopaNativeShareActivation);
+      assert.equal(nativeShare?.active,true,'Native iPhone share must retain user activation');
+      assert.equal(nativeShare?.isPng,true,'Native share must receive PNG file');
+      await rewards.click();
+      const wallet=page.getByTestId('machine-wallet-spins');
+      assert.equal((await wallet.innerText()).replace(/[^0-9]/g,''),'0','New pachinko wallet starts empty');
+      await page.locator('.machine-money-tabs').getByRole('button',{name:/パチスロ/}).click();
+      assert.equal((await wallet.innerText()).replace(/[^0-9]/g,''),'0','Separate medal wallet starts empty');
+      await page.locator('.machine-money-tabs').getByRole('button',{name:/パチンコ/}).click();
+      // Prompt uses a 1-word random value; machine draws use 4096-word pools
+      // from genuine Web Crypto. Deterministic GO does not alter payout odds.
+      await page.evaluate(()=>{
+        const original=crypto.getRandomValues.bind(crypto);
+        Object.defineProperty(crypto,'getRandomValues',{configurable:true,
+          value:(array)=>{
+            if(array.length===1){array[0]=0;return array;}
+            return original(array);
+          }
+        });
+      });
+      await push.tap();
+      await page.waitForFunction(()=>
+        document.querySelector('[data-testid="machine-instruction"]')?.getAttribute('data-phase')==='round'
+      ,{timeout:5000});
+      await push.tap();
+      await page.waitForFunction((count)=>{
+        const text=document.querySelector('[data-testid="machine-wallet-spins"]')?.textContent??'';
+        return Number(text.replace(/[^0-9]/g,''))===count;
+      },entries.filter(e=>e.kind==='pachinko').length,{timeout:10000});
+      assert.equal(Number((await page.getByTestId('machine-score').innerText()).trim()),1,'GO tap earns one scored round');
+      assert.ok(Number((await page.getByTestId('machine-wallet-invested').innerText()).replace(/[^0-9]/g,''))>0,'Real round debits virtual balls');
       assert.deepEqual(errors,[],'No uncaught runtime errors');
       await context.close();
       console.log('PASS iPhone viewport '+viewport.width+'x'+viewport.height+' / PNG / live hall / badges');
