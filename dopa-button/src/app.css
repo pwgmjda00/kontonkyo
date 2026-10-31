@@ -81,3 +81,11 @@
 .machine-reflex .real-machine-push:disabled{opacity:.65;filter:grayscale(.35);box-shadow:0 0 0 8px #7322bc,0 0 18px #a73cff}
 @media(max-width:500px){.machine-reflex .real-machine-stats{gap:20px}.machine-reflex .real-machine-stats strong{font-size:25px}.machine-instruction{min-height:90px}.machine-catalog-top h3{font-size:17px}}
 @media(prefers-reduced-motion:reduce){.machine-reflex::before{display:none}}
+
+
+/* Rare results emphasize exact sub-1/666 chances, not guaranteed real-world luck. */
+.machine-rare-spotlight{margin:20px auto;padding:22px 17px;border-radius:20px;border:2px solid #ffd86b;background:radial-gradient(circle at top,#563c0b,#211423 68%);box-shadow:0 0 35px #f2b83e55;text-align:center}
+.machine-rare-spotlight>span{font-size:10px;font-weight:900;color:#ffd35b;letter-spacing:.2em}
+.machine-rare-spotlight h3{font-size:clamp(22px,6vw,32px);color:#fff0a8;margin:12px 0}
+.machine-rare-spotlight p{font-size:12px;line-height:1.8;color:#f6e3b8}
+.machine-rare-spotlight strong{color:white;font-size:15px}
