@@ -135,7 +135,7 @@ async function main() {
         page.waitForEvent('download',{timeout:12000}),
         page.locator('.dopa-sticker-card').first().getByRole('button',{name:/画像にする/}).click(),
       ]);
-      assert.match(download.suggestedFilename(),/\\.png$/);
+      assert.match(download.suggestedFilename(),/\.png$/);
       await page.getByRole('button',{name:/称号/}).click();
       assert.ok(await page.locator('.dopa-badge.is-earned').count()>=1);
       await page.getByRole('button',{name:/殿堂・企画/}).click();
