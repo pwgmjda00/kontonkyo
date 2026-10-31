@@ -1,5 +1,9 @@
 name: Sync Dopa machine catalog
 on:
+  push:
+    paths:
+      - 'dopa-button/tools/sync_machine_catalog.py'
+      - '.github/workflows/dopa-machine-catalog.yml'
   workflow_dispatch:
   schedule:
     - cron: '17 2 * * 1'
