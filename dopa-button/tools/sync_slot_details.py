@@ -9,6 +9,7 @@ import urllib.parse
 import urllib.request
 from html.parser import HTMLParser
 from pathlib import Path
+from sync_machine_catalog import Tables
 
 ROOT=Path(__file__).resolve().parents[1]
 TARGET=ROOT/"data"/"verified_machine_events.json"
@@ -49,8 +50,35 @@ def parse_item(item):
         match=re.search(r"設定\s*1\s*の\s*([^。\n]{1,35}?)\s*1\s*/\s*(\d+(?:\.\d+)?)",plain)
         if not match:
             match=re.search(r"(AT初当たり|ボーナス合算|BIG確率|初当たり確率|ボーナス初当たり|REG確率|初当たり)\s*1\s*/\s*(\d+(?:\.\d+)?)",plain)
+        if not match:
+            table_parser=Tables()
+            table_parser.feed(doc)
+            for table in table_parser.tables:
+                if len(table)<2:continue
+                headers=table[0]
+                wanted=("初当たり","初当り","AT初当","ボーナス合算","BIG確率","REG確率")
+                # Format A: a setting-1 row, probability as a column
+                cols=[(i,label) for i,label in enumerate(headers) if any(t in label for t in wanted)]
+                for row in table[1:]:
+                    if not row:continue
+                    if re.fullmatch(r"(?:設定\\s*)?1[◎★☆]?",row[0].strip()):
+                        for i,label in cols:
+                            if i<len(row):
+                                m=re.search(r"1\\s*/\\s*(\\d+(?:\\.\\d+)?)",row[i])
+                                if m:match=(label,m.group(1));break
+                    if match:break
+                if match:break
+                # Format B: one row named AT初当り, setting 1 in the second column
+                for row in table[1:]:
+                    if len(row)<2 or not any(t in row[0] for t in wanted):continue
+                    setting_col=next((i for i,h in enumerate(headers) if "設定1" in h or h.strip()=="1"),1)
+                    if setting_col<len(row):
+                        m=re.search(r"1\\s*/\\s*(\\d+(?:\\.\\d+)?)",row[setting_col])
+                        if m:match=(row[0],m.group(1));break
+                if match:break
         if not match:return None
-        condition,den=match.group(1).strip(),match.group(2)
+        if isinstance(match,tuple):condition,den=match
+        else:condition,den=match.group(1).strip(),match.group(2)
         if den.count("."):a,b=den.split(".");numerator=str(10**len(b));denominator=a+b
         else:numerator="1";denominator=den
         if float(den)<3 or float(den)>1_000_000:return None
