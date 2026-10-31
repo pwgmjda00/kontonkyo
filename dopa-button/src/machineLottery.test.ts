@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { MACHINE_EVENTS, isUltraRare, drawEveryMachine, judgeContact } from './machineLottery';
+import { MACHINE_EVENTS, drawEveryMachine, judgeContact } from './machineLottery';
+import { machineTrivia } from './machineTrivia';
 
 describe('Real-machine jackpot catalog', () => {
   it('judges contact at touch-down, not finger release, including deadline boundaries', () => {
@@ -22,12 +23,13 @@ describe('Real-machine jackpot catalog', () => {
       expect(a>0n&&a<=b).toBe(true);
     }
   });
-  it('marks only odds strictly rarer than 1 in 666', () => {
-    expect(isUltraRare({numerator:'1',denominator:'665'})).toBe(false);
-    expect(isUltraRare({numerator:'1',denominator:'666'})).toBe(false);
-    expect(isUltraRare({numerator:'1',denominator:'667'})).toBe(true);
-    expect(isUltraRare({numerator:'2',denominator:'1332'})).toBe(false);
-    expect(isUltraRare({numerator:'2',denominator:'1333'})).toBe(true);
+  it('explains the title, probability conditions, and source for every machine', () => {
+    for(const entry of MACHINE_EVENTS){
+      const facts=machineTrivia(entry);
+      expect(facts.theme.length).toBeGreaterThan(12);
+      expect(facts.odds).toContain(entry.category);
+      expect(facts.context).toContain(entry.publishedProbability);
+    }
   });
   it('draws each provided machine exactly once and preserves order and exact odds', () => {
     const list=MACHINE_EVENTS.slice(0,3);
