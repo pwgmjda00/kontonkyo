@@ -13,6 +13,7 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
   const [state,setState]=useState<MachineState>(INIT);
   const [best,setBest]=useState(readBest);
   const [totals,setTotals]=useState<Record<string,number>>({});
+  const [hitHistory,setHitHistory]=useState<MachineHit[]>([]);
   const [filter,setFilter]=useState<'all'|'pachinko'|'pachislot'>('all');
   const [query,setQuery]=useState('');
   const [rareOnly,setRareOnly]=useState(false);
@@ -35,13 +36,16 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
     const results=drawEveryMachine();
     const hits=results.filter(r=>r.hit);
     const score=live.current.score+1;
+    if(hits.length) setHitHistory(old=>[...hits,...old].slice(0,40));
     setTotals(prev=>{const next={...prev};for(const hit of hits)next[hit.event.id]=(next[hit.event.id]??0)+1;return next;});
-    deadline.current=now+(hits.length?950:260);
-    phase('result',{score,lastHits:hits,remaining:hits.length?950:260});
+    const duration=hits.some(hit=>isUltraRare(hit.event))?2400:hits.length?450:180;
+    deadline.current=now+duration;
+    phase('result',{score,lastHits:hits,remaining:duration});
   };
   const start=(now:number)=>{
     generation.current++;
     deadline.current=now+900;
+    setHitHistory([]);
     phase('countdown',{score:0,remaining:900,count:3,lastHits:[]});
   };
   const onPush=()=>{
@@ -103,14 +107,19 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
     <div className="real-machine-stats"><span>SCORE <strong data-testid="machine-score">{state.score}</strong></span><span>BEST <strong>{best}</strong></span><span>TIME <strong>{state.phase==='round'?(state.remaining/1000).toFixed(2):'—'}</strong></span></div>
     <div className="machine-instruction" data-testid="machine-instruction" data-prompt={state.prompt} data-phase={state.phase}>{instruction}</div>
     <div className="machine-countdown-track"><span style={{transform:`scaleX(${state.phase==='round'?Math.max(0,state.remaining/state.duration):1})`}} /></div>
+    {state.phase==='result'&&<div className={ultraRareHits.length?'machine-result-flash is-rare':'machine-result-flash'} role="status">
+      <strong>{ultraRareHits.length?'✦ 1/666突破！':result.length?'🎰 当選 '+result.length+'件':'✓ SUCCESS'}</strong>
+      {result.length>0&&<span>{result.slice(0,2).map(h=>h.event.machine).join(' ／ ')}{result.length>2?' ほか':''}</span>}
+      {ultraRareHits.length>0&&<button type="button" onClick={()=>nextRound(performance.now())}>演出を飛ばして続ける →</button>}
+    </div>}
     <button className="real-machine-push" type="button" disabled={!canPush} data-testid="machine-push" onPointerDown={()=>{lastPointerToken.current=live.current.token;}} onPointerCancel={()=>{lastPointerToken.current=null;}} onKeyDown={e=>{if(e.repeat&&(e.code==='Space'||e.code==='Enter'))e.preventDefault();}} onClick={onPush}><small>{state.phase==='ready'?'TAP TO START':state.phase==='over'?'TRY AGAIN':'ALL MACHINE DRAW'}</small><strong>PUSH</strong><span>{state.phase==='round'&&state.prompt==='stop'?'触ったら終了':'一瞬で運命が変わる'}</span></button>
     {state.phase==='over'&&<p className="machine-gameover">失敗。反射スコア {state.score} 。PUSHでもう一度。</p>}
-    {ultraRareHits.length>0&&<section className="machine-rare-spotlight" aria-label="666分の1を超える超希少な当選"><span>666 BREAK / 超希少当選</span><h3>1/666より重い確率を引いた！</h3><p>ゲームで引けた奇跡。実機での当たりを保証するものではないけど、実機が気になったら、気になる一台があったら、ホールの設置情報を探してみよう。</p>{ultraRareHits.map(hit=><p key={hit.event.id}><strong>{hit.event.machine}</strong> · {hit.event.publishedProbability}</p>)}<a href="https://www.p-world.co.jp/" target="_blank" rel="noopener noreferrer" className="machine-hall-link">設置ホールを探す ↗</a></section>}
-    <section className="real-machine-result" aria-live="polite">
-      <h3>{result.length?'🎰 今回の実機当選 '+result.length+'件':state.score?'今回の実機当選なし':'成功したら実機を一斉抽選'}</h3>
-      {result.slice(0,8).map(hit=><article key={hit.event.id}><strong>{hit.event.machine}{isUltraRare(hit.event)?' ✦ 1/666突破':''}</strong><span>{hit.event.category} · {hit.event.publishedProbability}</span><p>{hit.event.condition}</p><a href={hit.event.sourceUrl} target="_blank" rel="noopener noreferrer">データ出典 ↗</a></article>)}
-      {result.length>8&&<p>ほか {result.length-8} 件。収録一覧にも反映されています。</p>}
-    </section>
+    {ultraRareHits.length>0&&state.phase==='over'&&<section className="machine-rare-spotlight" aria-label="666分の1を超える超希少な当選"><span>666 BREAK / 超希少当選</span><h3>1/666より重い確率を引いた！</h3><p>ゲームで引けた奇跡。実機での当たりを保証するものではないけど、実機が気になったら、ホールの設置情報を探してみよう。</p>{ultraRareHits.map(hit=><p key={hit.event.id}><strong>{hit.event.machine}</strong> · {hit.event.publishedProbability}</p>)}<a href="https://www.p-world.co.jp/" target="_blank" rel="noopener noreferrer" className="machine-hall-link">設置ホールを探す ↗</a></section>}
+    {(state.phase==='over'||state.phase==='ready')&&<section className="real-machine-result" aria-live="polite">
+      <h3>{hitHistory.length?'🎰 今回のプレイで当選した実機 '+hitHistory.length+'件':result.length?'🎰 今回の実機当選 '+result.length+'件':state.score?'今回の実機当選なし':'成功したら実機を一斉抽選'}</h3>
+      {hitHistory.slice(0,12).map(hit=><article key={hit.event.id}><strong>{hit.event.machine}{isUltraRare(hit.event)?' ✦ 1/666突破':''}</strong><span>{hit.event.category} · {hit.event.publishedProbability}</span><p>{hit.event.condition}</p><a href={hit.event.sourceUrl} target="_blank" rel="noopener noreferrer">データ出典 ↗</a></article>)}
+      {hitHistory.length>12&&<p>ほか {hitHistory.length-12} 件。直近40件を保持しています。</p>}
+    </section>}
     <p className="machine-hall-note">気になる台を見つけた？ <a href="https://www.p-world.co.jp/" target="_blank" rel="noopener noreferrer">P-WORLDでホールや設置機種を探す ↗</a></p>
     <p className="real-machine-warning">模擬確率ゲームです。実機の抽選結果や未来の収支は予測しません。データは公式と二次情報を含み、設定・状態・合算の違いがあります。すべての設置機種を網羅したものではありません。</p>
     <div className="machine-catalog-top"><h3>実機データ図鑑 <span>{MACHINE_EVENTS.length}条件</span></h3><p className="machine-catalog-summary">人気シリーズを先頭に表示。エヴァ、北斗、海物語、ジャグラー、スマスロなど。</p><p>✦ 1/666より重い超希少イベント：{ultraRareCatalog.length}件。機種のスペックや演出を眺めて、次にホールで見てみたい台を探そう。</p><label>機種名検索 <input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="機種・メーカーで検索"/></label><div className="machine-filters">{(['all','pachinko','pachislot'] as const).map(value=><button key={value} type="button" aria-pressed={filter===value} onClick={()=>setFilter(value)}>{value==='all'?'全部':value==='pachinko'?'パチンコ':'パチスロ'}</button>)}</div><label className="machine-rare-toggle"><input type="checkbox" checked={rareOnly} onChange={e=>{setRareOnly(e.target.checked);setShownCount(30);}}/> ✦ 1/666より重い確率だけ見る</label></div>
