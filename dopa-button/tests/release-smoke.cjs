@@ -75,7 +75,7 @@ async function main(){
         page.locator('.dopa-sticker-card.tier-2').first().getByRole('button',{name:/画像にする/}).click(),
       ]);
       assert.ok(download.suggestedFilename().endsWith('.png'),'PNG save should work');
-      await page.getByRole('button',{name:/称号/}).click();
+      await page.getByRole('button',{name:'🏅 称号',exact:true}).click();
       assert.ok(await page.locator('.dopa-badge.is-earned').count()>0,'Badges load');
       await page.getByRole('button',{name:/殿堂・企画/}).click();
       await page.getByText('公開テストさん').waitFor({timeout:10000});
