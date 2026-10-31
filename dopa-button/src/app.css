@@ -135,3 +135,10 @@
 .machine-trivia-details p{line-height:1.7;font-size:12px;margin:9px 0;color:#e9deef}
 .machine-reflex .machine-result-flash{min-height:68px}
 @media(max-width:540px){.machine-result-flash .machine-hit-fact{max-width:280px;font-size:10px}}
+
+/* Player-facing machine facts replace provenance clutter on wins and catalogs. */
+.machine-interest{margin:11px 0 8px!important;padding:11px 12px;border-radius:12px;background:linear-gradient(120deg,#42304c,#2d2635);border-left:3px solid #ffd46d;color:#fff0d2;font-size:12px!important;line-height:1.7!important;text-align:left}
+.machine-interest b{display:block;margin-bottom:2px;color:#ffe088;font-weight:900;letter-spacing:.04em}
+.encyclopedia-card .machine-trivia-details{margin-top:10px}
+.encyclopedia-card .machine-trivia-details summary{font-size:12px}
+@media(max-width:540px){.machine-interest{padding:9px 10px;font-size:11px!important}}
