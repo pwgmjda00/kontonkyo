@@ -1,13 +1,8 @@
 name: Sync Dopa machine catalog
+# Manual-only while machine-probability labels and imported models are audited.
+# Unreviewed scraper changes must never silently alter live jackpot rates.
 on:
-  push:
-    paths:
-      - 'dopa-button/tools/sync_machine_catalog.py'
-      - 'dopa-button/tools/sync_slot_details.py'
-      - '.github/workflows/dopa-machine-catalog.yml'
   workflow_dispatch:
-  schedule:
-    - cron: '17 2 * * 1'
 permissions:
   contents: write
 concurrency:
