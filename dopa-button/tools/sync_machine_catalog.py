@@ -44,6 +44,20 @@ class Tables(HTMLParser):
         elif tag=="table":self.current=None
 def clean(value):
     return unicodedata.normalize("NFKC",value).replace(" ","").replace("　","").lower()
+# These labels refer to models already stored under a more consistent name.
+# Do not add them as independent draws, even if their probability *category*
+# is different (e.g. Tokyo Revengers AT vs bonus first-hit).
+DUPLICATE_ALIASES = {
+    clean(name) for name in (
+        "e 無職転生 ～異世界行ったら本気だす～",
+        "e結城友奈は勇者である〜極限7500〜",
+        "PA花の慶次〜傾奇一転 87ver.",
+        "e86",
+        "P新世紀エヴァンゲリオン15 未来への咆哮",
+        "スマスロ 甲鉄城のカバネリ 海門(うなと)決戦",
+        "スマスロ 東京リベンジャーズ",
+    )
+}
 def decimal_fraction(value):
     m=re.search(r"1\s*/\s*(\d+(?:\.\d+)?)",value)
     if not m:return None
@@ -89,6 +103,8 @@ def main():
             results=list(rows_for(fetch(url),kind))
             if not results:failures.append(f"No table found: {url}");continue
             for name,(numerator,denominator,display),category in results:
+                if clean(name) in DUPLICATE_ALIASES:
+                    continue
                 previous=seen.get(clean(name))
                 if previous:
                     # Prefer a currently sourced machine-list probability over an older
