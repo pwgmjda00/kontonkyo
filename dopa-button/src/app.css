@@ -132,3 +132,10 @@
   .machine-reflex .real-machine-head{font-size:9px}
   .machine-reflex .real-machine-head button{font-size:10px;padding:7px 8px}
 }
+
+
+/* Classic modes stay discoverable without competing with the main machine PUSH. */
+.machine-legacy-link{display:inline-flex;justify-content:center;align-items:center;margin:1px auto 5px;padding:6px 10px;border:0;background:transparent;color:#cdb5dd;font-size:11px;text-decoration:underline;text-decoration-color:#a47ec0;text-underline-offset:4px;cursor:pointer}
+.machine-legacy-link:hover,.machine-legacy-link:focus-visible{color:#ffe8a4}
+.machine-legacy-link:disabled{opacity:.4;cursor:default}
+@media(max-width:540px){.machine-reflex .machine-legacy-link{font-size:10px;margin:1px auto 3px;padding:5px 8px}}
