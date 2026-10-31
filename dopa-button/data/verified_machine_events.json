@@ -1,0 +1,53 @@
+[
+  {
+    "id": "sankyo-karakuri2-maou-figure",
+    "machine": "eフィーバーからくりサーカス2 魔王ver.",
+    "maker": "SANKYO",
+    "kind": "pachinko",
+    "model": "eフィーバーからくりサーカス２Ｒ",
+    "introduced": "2024-11",
+    "category": "通常時図柄揃い",
+    "numerator": "10",
+    "denominator": "3999",
+    "publishedProbability": "1/399.9",
+    "approximate": false,
+    "condition": "通常時に図柄揃いを1回抽選。大当たり合算確率1/199.9とは異なる。",
+    "sourceUrl": "https://www.sankyo-fever.jp/collection/968/",
+    "verifiedAt": "2026-10-31",
+    "currentAvailability": "unverified"
+  },
+  {
+    "id": "sankyo-karakuri2-unmei-first",
+    "machine": "Pフィーバーからくりサーカス2 運命ver.",
+    "maker": "SANKYO",
+    "kind": "pachinko",
+    "model": null,
+    "introduced": null,
+    "category": "通常時大当り",
+    "numerator": "10",
+    "denominator": "3197",
+    "publishedProbability": "1/319.7",
+    "approximate": false,
+    "condition": "通常時の大当り確率。",
+    "sourceUrl": "https://www.sankyo-fever.jp/products/machine_list/prw/spec/",
+    "verifiedAt": "2026-10-31",
+    "currentAvailability": "unverified"
+  },
+  {
+    "id": "sankyo-karakuri2-light-first",
+    "machine": "Pフィーバーからくりサーカス2 Light ver.",
+    "maker": "SANKYO",
+    "kind": "pachinko",
+    "model": null,
+    "introduced": null,
+    "category": "通常時大当り",
+    "numerator": "10",
+    "denominator": "999",
+    "publishedProbability": "約1/99.9",
+    "approximate": true,
+    "condition": "通常時の大当り確率。メーカー公表値は約1/99.9。",
+    "sourceUrl": "https://www.sankyo-fever.jp/products/machine_list/prw/spec/",
+    "verifiedAt": "2026-10-31",
+    "currentAvailability": "unverified"
+  }
+]
