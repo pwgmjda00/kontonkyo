@@ -1,3 +1,4 @@
+import './rewards.css';
 import { useMemo, useState } from 'react';
 import type { MachineDrawEntry } from './machineLottery';
 import { MACHINE_EVENTS } from './machineLottery';
@@ -68,7 +69,7 @@ export function RewardsHub({profile,onUpdate,disabled=false}:{
       <span><b>ドパ・コレクターズ</b><small>ステッカー {owned}/{MACHINE_EVENTS.length} · 称号 {badges.length}/{BADGES.length}{equipped?' · '+equipped.emoji+equipped.name:''}</small></span>
       <span aria-hidden="true">{opened?'−':'＋'}</span>
     </button>
-    {opened&&<div className="dopa-rewards-body">
+    {opened&&!disabled&&<div className="dopa-rewards-body">
       <p className="dopa-rewards-lead">当てる → 育てる → 記念カードにする → 自慢する。仮想玉やメダルの収支とは別の、無料コレクション！</p>
       <label className="dopa-rewards-alias">公開カード用の名前 <input type="text" maxLength={16} placeholder="ドパコレクター（未設定でもOK）" value={profile.alias} onChange={event=>update({alias:event.target.value})}/></label>
       <div className="dopa-rewards-tabs" role="group" aria-label="コレクションの表示">
