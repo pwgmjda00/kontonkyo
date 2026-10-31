@@ -55,7 +55,7 @@ def parse_item(item):
                 "初当たり","初当り","CZ合算確率","CZ確率")
         label_pattern="(?:"+"|".join(re.escape(label) for label in labels)+")"
         match=None
-        for m in re.finditer(r"("+label_pattern+r")\\s*(?:[:：は=]\\s*)?1\\s*/\\s*(\\d+(?:\\.\\d+)?)", plain):
+        for m in re.finditer(r"("+label_pattern+r")\s*(?:[:：は=]\s*)?1\s*/\s*(\d+(?:\.\d+)?)", plain):
             if float(m.group(2))<60:continue
             match=m
             break
@@ -69,10 +69,10 @@ def parse_item(item):
                 cols=[(i,label) for i,label in enumerate(headers) if any(label.startswith(t) for t in labels)]
                 for row in table[1:]:
                     if not row:continue
-                    if re.fullmatch(r"(?:設定\\s*)?1[◎★☆]?",row[0].strip()):
+                    if re.fullmatch(r"(?:設定\s*)?1[◎★☆]?",row[0].strip()):
                         for i,label in cols:
                             if i<len(row):
-                                m=re.search(r"1\\s*/\\s*(\\d+(?:\\.\\d+)?)",row[i])
+                                m=re.search(r"1\s*/\s*(\d+(?:\.\d+)?)",row[i])
                                 if m and float(m.group(1))>=60:
                                     match=(label,m.group(1));break
                     if match:break
@@ -81,7 +81,7 @@ def parse_item(item):
                     if len(row)<2 or not any(row[0].strip().startswith(t) for t in labels):continue
                     setting_col=next((i for i,h in enumerate(headers) if "設定1" in h or h.strip()=="1"),1)
                     if setting_col<len(row):
-                        m=re.search(r"1\\s*/\\s*(\\d+(?:\\.\\d+)?)",row[setting_col])
+                        m=re.search(r"1\s*/\s*(\d+(?:\.\d+)?)",row[setting_col])
                         if m and float(m.group(1))>=60:
                             match=(row[0],m.group(1));break
                 if match:break
