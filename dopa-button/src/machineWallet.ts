@@ -28,9 +28,11 @@ export interface VirtualWallet {
   payoutUnits: number;
   /** Only jackpot/bonus credit, excluding the normal-role baseline on slots. */
   hitPayoutUnits: number;
+  /** Virtual cash borrowed in ¥1,000 blocks; never real money. */
+  cashDepositedYen: number;
 }
 export function emptyVirtualWallet(): VirtualWallet {
-  return {spins:0,rounds:0,wins:0,wagerUnits:0,payoutUnits:0,hitPayoutUnits:0};
+  return {spins:0,rounds:0,wins:0,wagerUnits:0,payoutUnits:0,hitPayoutUnits:0,cashDepositedYen:0};
 }
 export const UNIT_RATES: Readonly<Record<VirtualKind,number>>=Object.freeze({pachinko:4,pachislot:20});
 export function validateWalletSettings(s: WalletSettings): WalletSettings {
@@ -44,9 +46,9 @@ export function validateWalletSettings(s: WalletSettings): WalletSettings {
 export function validateVirtualWallet(value: unknown): VirtualWallet {
   if(!value || typeof value!=='object')return emptyVirtualWallet();
   const found=value as Record<string,unknown>;
-  const keys: readonly (keyof VirtualWallet)[]=['spins','rounds','wins','wagerUnits','payoutUnits','hitPayoutUnits'];
+  const keys: readonly (keyof VirtualWallet)[]=['spins','rounds','wins','wagerUnits','payoutUnits','hitPayoutUnits','cashDepositedYen'];
   if(keys.some(k=>typeof found[k]!=='number'||!Number.isFinite(found[k])||(found[k] as number)<0)
-    ||!Number.isInteger(found.spins)||!Number.isInteger(found.rounds)||!Number.isInteger(found.wins)
+    ||!Number.isInteger(Number(found.spins))||!Number.isInteger(Number(found.rounds))||!Number.isInteger(Number(found.wins))
     ||(found.wins as number)>(found.spins as number))return emptyVirtualWallet();
   return found as unknown as VirtualWallet;
 }
@@ -110,16 +112,28 @@ export function applyVirtualRound(
     wagerUnits:existing.wagerUnits+wagerUnits,
     payoutUnits:existing.payoutUnits+payoutUnits,
     hitPayoutUnits:existing.hitPayoutUnits+jackpotUnits,
+    cashDepositedYen:existing.cashDepositedYen,
   };
+  const rate=UNIT_RATES[kind];
+  const borrowingUnits=1000/rate;
+  const currentBalance=existing.cashDepositedYen/rate+existing.payoutUnits-existing.wagerUnits;
+  const shortfall=Math.max(0,wagerUnits-currentBalance);
+  const purchaseBlocks=Math.ceil(Math.max(0,shortfall-1e-8)/borrowingUnits);
+  next.cashDepositedYen+=purchaseBlocks*1000;
   return {wallet:next,wagerUnits,payoutUnits,jackpotUnits,spins:events.length,wins:hits.length};
 }
 export function walletYen(wallet:VirtualWallet,kind:VirtualKind){
   const rate=UNIT_RATES[kind];
+  const balanceUnits=wallet.cashDepositedYen/rate+wallet.payoutUnits-wallet.wagerUnits;
   return {
-    investment: wallet.wagerUnits*rate,
-    recovered: wallet.payoutUnits*rate,
-    profit: (wallet.payoutUnits-wallet.wagerUnits)*rate,
+    investment:wallet.cashDepositedYen,
+    /** Redeem all virtual held units now; not gross hit payouts. */
+    recovered:Math.max(0,balanceUnits)*rate,
+    profit:(wallet.payoutUnits-wallet.wagerUnits)*rate,
     netUnits:wallet.payoutUnits-wallet.wagerUnits,
+    balanceUnits:Math.max(0,balanceUnits),
     averagePayout:wallet.wins?wallet.hitPayoutUnits/wallet.wins:0,
+    totalWagerYen:wallet.wagerUnits*rate,
+    totalPayoutYen:wallet.payoutUnits*rate,
   };
 }
