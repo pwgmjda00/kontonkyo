@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type PointerEvent, type KeyboardEvent } from 'react';
 import { MACHINE_EVENTS, drawEveryMachine, isUltraRare, type MachineHit } from './machineLottery';
 
 type Phase = 'ready' | 'countdown' | 'round' | 'result' | 'paused' | 'over';
@@ -60,11 +60,11 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
       else finish();
     }
   };
-  const onPointerDown=(event:React.PointerEvent<HTMLButtonElement>)=>{
+  const onPointerDown=(event:PointerEvent<HTMLButtonElement>)=>{
     if(event.button!==0 || !event.isPrimary)return;
     activate(performance.now());
   };
-  const onKeyboardDown=(event:React.KeyboardEvent<HTMLButtonElement>)=>{
+  const onKeyboardDown=(event:KeyboardEvent<HTMLButtonElement>)=>{
     if(event.key!==' '&&event.key!=='Enter')return;
     event.preventDefault();
     if(keyboardHeld.current||event.repeat)return;
