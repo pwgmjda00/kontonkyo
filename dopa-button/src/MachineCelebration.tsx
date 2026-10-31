@@ -14,6 +14,11 @@ export function MachineCelebration({
   const button=useRef<HTMLButtonElement>(null);
   const hit=hits[index];
   useEffect(()=>{button.current?.focus();},[hit?.event.id]);
+  useEffect(()=>{
+    const previous=document.body.style.overflow;
+    document.body.style.overflow='hidden';
+    return()=>{document.body.style.overflow=previous;};
+  },[]);
   if(!hit)return null;
   const machine=hit.event;
   const pack=machineEmojiPack(machine);
@@ -22,10 +27,10 @@ export function MachineCelebration({
     if(event.key==='Escape'){event.preventDefault();onSkip();}
   }}>
     <div className="machine-new-radiance" aria-hidden="true"/>
+    <div className="machine-emoji-rain" aria-hidden="true" key={machine.id}>
+      {emojiBurst(pack,12).map((emoji,i)=><span className={'machine-particle particle-'+i} key={machine.id+'-'+i}>{emoji}</span>)}
+    </div>
     <div className="machine-new-box">
-      <div className="machine-emoji-rain" aria-hidden="true">
-        {emojiBurst(pack,12).map((emoji,i)=><span className={'machine-particle particle-'+i} key={machine.id+'-'+i}>{emoji}</span>)}
-      </div>
       <div className="machine-new-content">
         <div className="machine-new-top"><span>🌈 NEW MACHINE UNLOCKED</span><span>{index+1} / {hits.length}</span></div>
         <div className="machine-new-hero-emoji" aria-hidden="true">{pack.icons.slice(0,5).join(' ')}</div>
