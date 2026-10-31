@@ -1,9 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { MACHINE_EVENTS, drawEveryMachine, judgeContact } from './machineLottery';
+import { MACHINE_EVENTS, drawEveryMachine, judgeContact, machineRoundStatistics } from './machineLottery';
 import { machineTrivia } from './machineTrivia';
 import { machineEmojiPack, emojiBurst, firstTimeMachineHits } from './machineEmoji';
 
 describe('Real-machine jackpot catalog', () => {
+  it('shows simultaneous probability honestly without inflating single-machine draws', () => {
+    const stats=machineRoundStatistics([{numerator:'1',denominator:'2'},{numerator:'1',denominator:'4'}]);
+    expect(stats.expectedHits).toBeCloseTo(0.75,12);
+    expect(stats.atLeastOne).toBeCloseTo(0.625,12);
+    const real=machineRoundStatistics();
+    expect(real.expectedHits).toBeGreaterThan(0);
+    expect(real.atLeastOne).toBeGreaterThan(0);
+    expect(real.atLeastOne).toBeLessThan(1);
+  });
   it('never converts common bells or CZ odds into jackpot odds', () => {
     const cases = [
       ['スマスロ 押忍！番長4',259.5,'AT初当たり'],
