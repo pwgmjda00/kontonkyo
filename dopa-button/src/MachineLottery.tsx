@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent, type KeyboardEvent } from 'react';
 import { MACHINE_EVENTS, drawEveryMachine, judgeContact, type MachineHit } from './machineLottery';
 import { machineTrivia } from './machineTrivia';
-import { machineEmojiPack } from './machineEmoji';
+import { machineEmojiPack, firstTimeMachineHits } from './machineEmoji';
 import { MachineCelebration } from './MachineCelebration';
 
 type Phase = 'ready' | 'countdown' | 'round' | 'result' | 'celebrate' | 'paused' | 'over';
@@ -54,7 +54,7 @@ export function MachineLottery({onClose}:{onClose:()=>void}) {
     setTotals(prev=>{const next={...prev};for(const hit of hits)next[hit.event.id]=(next[hit.event.id]??0)+1;return next;});
     // New machine discoveries deserve a proper celebration, without running the clock.
     // Already-unlocked machines are just short flashes. Unlocks persist across sessions.
-    const fresh=hits.filter(hit=>!discovered.current.has(hit.event.id));
+    const fresh=firstTimeMachineHits(hits,discovered.current);
     if(fresh.length){
       for(const hit of fresh)discovered.current.add(hit.event.id);
       setUnlockCount(discovered.current.size);
