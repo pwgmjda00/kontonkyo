@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Daily community showcase of opt-in, moderator-approved GitHub Issues.
+"""Daily community showcase of public opt-in GitHub Issues, no prior approval.
 
-The hall showcases approved people, not unverified browser-side score rankings.
-New approvals appear on their FIRST publication day (Japan time). Existing
-entries keep their publication date; removing a label removes the entry.
+The hall displays consenting people, not unverified browser score rankings.
+Closed issues and entries with the dopa-hall-hide label are excluded.
 """
 from __future__ import annotations
 import datetime as dt
@@ -40,7 +39,8 @@ def accepted(issue:dict)->dict|None:
     if issue.get("pull_request") or not isinstance(issue_no,int):return None
     if issue.get("html_url")!=f"{ISSUE_BASE}{issue_no}":return None
     labels=[v.get("name") for v in issue.get("labels",[]) if isinstance(v,dict)]
-    if "dopa-hall-approved" not in labels:return None
+    if issue.get("state","open")!="open" or "dopa-hall-hide" in labels:return None
+    if not str(issue.get("title","")).startswith("[ドパ殿堂応募]"):return None
     body=issue.get("body") or ""
     consent=field(body,"同意")
     if not re.search(r"-\s*\[x\]",consent,re.I):return None
@@ -50,45 +50,39 @@ def accepted(issue:dict)->dict|None:
     message=short(field(body,"ひと言"),60)
     mode=short(field(body,"好きなモード"),15)
     if not message or message=="_No response_":return None
+    if re.search(r"https?://|www[.]|[\\w.+-]+@[\\w.-]+[.][a-zA-Z]{2,}",nickname+" "+message):return None
     if mode not in ("🟠 パチンコ","🪙 パチスロ","🎭 どっちも"):mode="🎭 どっちも"
     return {"issue":issue_no,"nickname":nickname,"badge":title if title!="_No response_" else "",
-            "message":message,"mode":mode,"url":issue["html_url"]}
+            "message":message,"mode":mode,"url":issue["html_url"],"createdAt":issue.get("created_at","")}
 
 def compile_hall(approved:list[dict], prior:dict, today:dt.date)->dict:
-    """Keep first-publication day stable. A changed/withdrawn approval vanishes."""
-    old_days={}
-    for block in prior.get("days",[]):
-        day=block.get("date","")
-        try:
-            parsed=dt.date.fromisoformat(day)
-        except (ValueError,TypeError):
-            continue
-        for entry in block.get("entries",[]):
-            if isinstance(entry.get("issue"),int):
-                old_days[entry["issue"]]=parsed
-    # Old week-based records cannot prove a first-publication day: publish them today.
-    days:dict[dt.date,list[dict]]={}
+    """Group live public entries by their original JST submission day."""
+    groups:dict[dt.date,list[dict]]={}
     seen_issues=set()
-    approved=sorted(approved,key=lambda a:a["issue"])
-    by_existing=sorted(approved,key=lambda a:(a["issue"] not in old_days,old_days.get(a["issue"],today),a["issue"]))
-    for entry in by_existing:
-        issue=entry["issue"]
+    seen_names=set()
+    for item in sorted(approved,key=lambda e:e["issue"]):
+        issue=item["issue"]
         if issue in seen_issues:continue
         seen_issues.add(issue)
-        day=old_days.get(issue,today)
+        try:
+            day=japan_date(item["createdAt"])
+        except (KeyError,ValueError,TypeError):
+            continue
         if day>today:day=today
         if (today-day).days>=MAX_DAYS:continue
-        group=days.setdefault(day,[])
+        key=(day,item["nickname"].casefold())
+        if key in seen_names:continue
+        group=groups.setdefault(day,[])
         if len(group)>=MAX_PER_DAY:continue
-        if any(e["nickname"]==entry["nickname"] for e in group):continue
-        group.append(entry)
+        seen_names.add(key)
+        group.append({k:v for k,v in item.items() if k!="createdAt"})
     return {"version":2,"days":[{"date":day.isoformat(),"entries":items}
-            for day,items in sorted(days.items(),reverse=True)[:MAX_DAYS] if items]}
+            for day,items in sorted(groups.items(),reverse=True)[:MAX_DAYS] if items]}
 
 def main():
     token=os.getenv("GITHUB_TOKEN","")
     if not token:raise SystemExit("GITHUB_TOKEN is required for moderation API")
-    url=f"https://api.github.com/repos/{REPO}/issues?state=all&labels=dopa-hall-approved&per_page=100"
+    url=f"https://api.github.com/repos/{REPO}/issues?state=open&sort=created&direction=desc&per_page=100"
     issues=[]
     while url and len(issues)<1000:
         request=urllib.request.Request(url,headers={"Authorization":"Bearer "+token,
@@ -102,6 +96,6 @@ def main():
     prior=json.loads(DEST.read_text(encoding="utf8")) if DEST.exists() else {}
     updated=compile_hall(approved,prior,today_jst())
     if updated!=prior:DEST.write_text(json.dumps(updated,ensure_ascii=False,indent=2)+"\n",encoding="utf8")
-    print(f"Daily hall: {len(approved)} approved nominations, {len(updated['days'])} displayed days")
+    print(f"Daily hall: {len(approved)} public opt-in nominations, {len(updated['days'])} displayed days")
 
 if __name__=="__main__":main()
