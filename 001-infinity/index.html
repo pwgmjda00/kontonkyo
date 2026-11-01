@@ -66,7 +66,7 @@ button{touch-action:manipulation;min-height:43px}button:focus-visible,select:foc
     <div class="v65-tab-page hide" id="v65-tracks-page"><p>それぞれの6項目が100%で真の制覇。読み物・収集・探索は別の達成として数えるよ。</p><div id="v65-track-details"></div></div>
     <div class="v65-footnote">ふたつの世界を本当に制覇すると、三つ目の扉が開く。中身は、まだ秘密。</div></div>
   </details>
-</section><section id="v54hero" aria-label="メイン操作"><div class="v54-eyebrow">001 ∞ · 一人経済圏</div><div id="v57-money-caption">所持金 <span>ゲーム内の基本資産 · 美術館の✦通貨とは別</span></div><h1 id="number" style="overflow-wrap:anywhere;cursor:pointer" title="タップで表示切替">0</h1><div class="small" id="rate"></div><div class="small gold" id="buff"></div>
+</section><div id="v67-save-warning" role="alert" hidden><strong>⚠️ セーブが保存されていません</strong><span>保存容量やブラウザの制限を確認し、念のためデータを書き出してください。</span><button id="v67-save-backup" type="button">💾 バックアップを開く</button></div><section id="v54hero" aria-label="メイン操作"><div class="v54-eyebrow">001 ∞ · 一人経済圏</div><div id="v57-money-caption">所持金 <span>ゲーム内の基本資産 · 美術館の✦通貨とは別</span></div><h1 id="number" style="overflow-wrap:anywhere;cursor:pointer" title="タップで表示切替">0</h1><div class="small" id="rate"></div><div class="small gold" id="buff"></div>
   <div id="v57-work-scene" class="v57-scene" aria-live="polite"><div class="v57-kicker" id="v57-work-kind">今日の稼ぎ口</div><div class="v57-scene-title" id="v57-work-title">駅前の靴磨き</div><p id="v57-work-line">磨いた靴だけ、少し先に春が来る。</p></div>
   <div class="row v54-action-row"><button data-mode="fast" title="押すたびに新しい金策を始める">💼 稼ぐ（増やす）</button><button data-mode="rest" title="押すたびに新しい休息場所へ">☾ 休む</button></div><div class="row v54-action-row"><button id="upgrade">強化</button><button id="auto">自動運転 OFF</button></div>
   <div id="v57-upgrade-scene" class="v57-upgrade-line"><span>次の投資</span><strong id="v57-upgrade-title">昇進</strong><span id="v57-upgrade-text">名刺の肩書きが一行増えた。</span></div>
@@ -337,7 +337,20 @@ function titleForEnding(){
 }
 function renderRestPanel(){const el=document.getElementById('restPanel');if(!el)return;const remain=Math.max(0,Math.ceil((s.returnBonusUntil-Date.now())/1000));el.innerHTML='<b>🌷 おかえりボーナス</b><div class="small">2時間以上休んで戻ると、11分間だけ数字と箱が×2。休憩中の報酬も別にもらえる。連続ログインの義務なし。</div><div class="small">'+(remain?'✨ 発動中：あと '+Math.ceil(remain/60)+'分':'💤 いまは通常運転。休んでも大丈夫。')+'</div><div class="small">⏱️ タイムアタック '+clockLabel((Date.now()-s.runStartedAt)/1000)+' ／ 実操作時間 '+clockLabel(s.runActiveSeconds)+' ／ おかえり '+s.runReturns+'回</div>'}
 
-function save(){s.last=Date.now();try{localStorage.setItem(key,JSON.stringify(s))}catch(e){}}
+let v67SaveFailed=false;
+function save(){
+ s.last=Date.now();
+ try{
+  localStorage.setItem(key,JSON.stringify(s));
+  if(v67SaveFailed){v67SaveFailed=false;const box=document.getElementById('v67-save-warning');if(box)box.hidden=true;}
+ }catch(e){
+  v67SaveFailed=true;
+  const box=document.getElementById('v67-save-warning');
+  if(box){box.hidden=false;box.querySelector('strong').textContent='⚠️ セーブが保存されていません';}
+  if(!v67SaveFailedNotified){console.warn('001 infinity: saving failed; export a backup',e);v67SaveFailedNotified=true;}
+ }
+}
+let v67SaveFailedNotified=false;
 function v10Backup(force=false){try{const slot=key+'-snapshots',now=Date.now(),arr=JSON.parse(localStorage.getItem(slot)||'[]');if(!Array.isArray(arr))return false;if(!force&&arr.length&&Number.isFinite(arr[0].at)&&now-arr[0].at>=0&&now-arr[0].at<600000)return false;arr.unshift({at:now,data:JSON.stringify({...s,last:now})});localStorage.setItem(slot,JSON.stringify(arr.slice(0,3)));return true}catch(e){return false}}
 function v10Render(){const select=$('v10select'),notice=$('v10snapshots');try{const arr=JSON.parse(localStorage.getItem(key+'-snapshots')||'[]');select.innerHTML=arr.map((x,i)=>'<option value="'+i+'">'+new Date(x.at).toLocaleString('ja-JP')+' · 復旧'+(i+1)+'</option>').join('');notice.textContent=arr.length+' / 3 件保存済み';$('v10restore').disabled=!arr.length}catch(e){notice.textContent='復旧ポイントを読み取れません';$('v10restore').disabled=true}}
 function pick(){let r=Math.floor(Math.random()*1000000),a=0,t=0;for(let i=0;i<6;i++){a+=tierWeights[i];if(r<a){t=i;break}}let start=tierCounts.slice(0,t).reduce((a,b)=>a+b,0);return start+Math.floor(Math.random()*tierCounts[t])}function openOne(stats){expireTimed();if(s.boxes<1)return false;s.boxes--;let v23NewDiscovery=false;let urgent=false;if(s.timed.length){s.timed.sort((a,b)=>a-b);let remaining=s.timed[0]-Date.now();urgent=remaining>0&&remaining<=5000;s.timed.shift()}let count=1+(Math.random()<Math.min(.9,shopLv('echo')*.1)?1:0)+(god(2)?10:0);for(let j=0;j<count;j++){let i=pick();if((urgent||s.curse)&&i<42&&Math.random()<(urgent?.22:0)+s.curse*.055){i=42+Math.floor(Math.random()*48)}let newItem=!s.discoveredGear[i];if(newItem){v23NewDiscovery=true;v63Action('gear');}s.owned[i]=(s.owned[i]||0)+1;s.discoveredGear[i]=true;applySavedPreferenceOnDrop(i);if(stats){stats.r[gear[i].t]++;if(newItem)stats.new++;if(urgent)stats.urgent=(stats.urgent||0)+1}if(gear[i].t>=3)s.lastRare=gear[i].emoji+' '+gear[i].name;if(gear[i].god){msg='✨ 神の加護：'+gear[i].name+' 降臨！';s.godQueue.push(i)}}if(!v23NewDiscovery){if(s.autoRecycle){s.paper+=1+storyBonus().paper+(s.research.recycling||0)+cardSet().paper}else{s.empty++}}s.opened++;v63Action('box');if(typeof window.artOnBoxOpen==='function')window.artOnBoxOpen();
@@ -1289,7 +1302,7 @@ function v61DreamUpdate(){
  v61ShowBattleLog();
 }
 
-document.body.dataset.theme=s.theme;renderPrestige();renderThemes();renderShop();renderBossChoice();const bgLoadElapsed=Math.min(86400,Math.max(0,(Date.now()-s.last)/1000));const bgLoadBoost=bgBoost();bgReward(bgLoadElapsed,bgLoadBoost);recordReturn(bgLoadElapsed);draw();if(!s.tutorialSeen)setTimeout(()=>openTutorial(false),250);save();v10Backup();v10Render();let prev=Date.now(),lastAutoSave=Date.now();
+document.body.dataset.theme=s.theme;renderPrestige();renderThemes();renderShop();renderBossChoice();const bgLoadElapsed=Math.min(86400,Math.max(0,(Date.now()-s.last)/1000));const bgLoadBoost=bgBoost();bgReward(bgLoadElapsed,bgLoadBoost);recordReturn(bgLoadElapsed);draw();if(!s.tutorialSeen)setTimeout(()=>{if(s.dualWorld?.chosen)openTutorial(false)},250);save();v10Backup();v10Render();let prev=Date.now(),lastAutoSave=Date.now();
 // Mobile browsers suspend timers in the background. Account for elapsed wall time once on resume.
 let backgroundAt=null;
 function resumeFromBackground(){
@@ -1621,6 +1634,14 @@ function v63Ensure(){
  d.records.classic.gear=Math.max(d.records.classic.gear,Object.values(s.discoveredGear||{}).filter(Boolean).length);
  d.migrated=true;
  }
+ // v67: Protect upgraded saves against double-counting previously read chapters and stamped diary pages.
+ if(!d.v67SeenMigrated){
+  const classic=d.records.classic,dream=d.records.dream;
+  for(const k of Object.keys(s.choices||{}))if((s.choices[k]===0||s.choices[k]===1)&&Number.isInteger(+k)&&+k>=0&&+k<666)classic.seenNovels[k]=true;
+  for(const [k,val] of Object.entries(s.dreamDiary?.read||{}))if(val&&Number.isInteger(+k)&&+k>=0&&+k<777)dream.seenDiaries[k]=true;
+  for(const [k,val] of Object.entries(s.dreamDiary?.stamps||{}))if(val&&Number.isInteger(+k)&&+k>=0&&+k<777)dream.seenStamps[k]=true;
+  d.v67SeenMigrated=true;
+ }
 }
 function v63Active(){return s.dualWorld?.active==='dream'?'dream':'classic'}
 function v63MissionsDone(w){return V63_MISSIONS[w].filter(([k,goal])=>(s.dualWorld?.records?.[w]?.[k]||0)>=goal).length}
@@ -1672,7 +1693,7 @@ function v63Switch(w){
  s.theme=w==='dream'?'dream':(d.classicTheme==='dream'?'dark':d.classicTheme);
  if(s.theme==='twilight'&&!v63BothComplete())s.theme='dark';
  document.body.dataset.theme=s.theme;
- v63Close();renderThemes();v61DreamUpdate();v62Visibility();draw();v63Render();save();
+ v63Close();renderThemes();v61DreamUpdate();v62Visibility();draw();v63Render();save();if(!s.tutorialSeen)setTimeout(()=>{if(s.dualWorld?.chosen&&$('tutorialOverlay').classList.contains('hide'))openTutorial(false)},180);
 }
 function v63Open(){v63El('v63-world-overlay').classList.remove('hide');v63El('v63-world-overlay').setAttribute('aria-hidden','false');v63El('v63-world-close').hidden=!s.dualWorld.chosen;}
 function v63Close(){v63El('v63-world-overlay').classList.add('hide');v63El('v63-world-overlay').setAttribute('aria-hidden','true')}
@@ -2102,6 +2123,12 @@ v65Init();
 
 v63Render();renderThemes();
 if(!s.dualWorld.chosen)v63Open();
+document.getElementById('v67-save-backup').onclick=()=>{
+ const panel=document.getElementById('savepanel');
+ if(panel.classList.contains('hide'))document.getElementById('savetoggle').click();
+ document.getElementById('saveexport').click();
+ panel.scrollIntoView({block:'start',behavior:'smooth'});
+};
 // The initial selector is only for the first launch of v63. Subsequent visits honor the selected version.
 
 })();</script><style id="v64-two-world-balance">
@@ -2762,4 +2789,10 @@ body[data-theme=dream] #v63-world-dashboard .v63-double-reward b,body[data-theme
 @media(max-width:390px){#v65-hub{padding:11px}#v65-hub .v65-meter-track{gap:2px}#v65-hub .v65-bottom{align-items:flex-start}#v65-hub #v65-next{display:block}#v65-hub #v65-next small{display:block}}
 @media(prefers-reduced-motion:reduce){#v65-hub .v65-meter-tick span{transition:none!important}#v65-hub .v65-reveal{animation:none!important}#v65-hub.v65-flash-classic .blue .v65-meter-tick span,#v65-hub.v65-flash-dream .pink .v65-meter-tick span{animation:none!important}}
 </style>
-<style id="v65-selector-meter-style">#v65-selector-meter{width:100%;font-size:12px;font-weight:850;color:#eaf2ff;border-top:1px solid #ffffff2b;padding:10px 3px 0}.v65-reality-choice{flex-wrap:wrap}</style></body></html>
+<style id="v65-selector-meter-style">#v65-selector-meter{width:100%;font-size:12px;font-weight:850;color:#eaf2ff;border-top:1px solid #ffffff2b;padding:10px 3px 0}.v65-reality-choice{flex-wrap:wrap}</style><style id="v67-audit-fixes">
+#v67-save-warning[hidden]{display:none!important}
+#v67-save-warning{position:relative;z-index:20;display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:12px;margin:10px 0;border:2px solid #e88b35;border-radius:12px;background:#3b220e!important;color:#fff4d8!important;font:600 13px/1.5 system-ui}
+#v67-save-warning strong{display:block;color:#fff!important;width:100%}
+#v67-save-warning span{flex:1 1 180px}
+#v67-save-warning button{min-height:40px;border:1px solid #ffda91!important;background:#ffe8b8!important;color:#42230b!important}
+</style></body></html>
