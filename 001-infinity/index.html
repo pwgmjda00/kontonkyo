@@ -430,6 +430,7 @@ function v78HUDRows(){
  for(const [key,label,value]of [['rebirth','輪廻回数',s.rebirth],['gearTypes','装備所持種類',Object.keys(s.owned).filter(k=>s.owned[k]>0).length],['gearCount','装備所持合計',fmt(sum(s.owned))],['activeGear','装備ON種類',gear.filter(g=>has(g.id)).length],['cards','カード種類',Object.keys(s.cards).filter(k=>s.cards[k]>0).length+' / 111'],['research','研究レベル合計',sum(s.research)],['forge','鍛造レベル合計',sum(s.forgeLevel)],['books','読める物語',stories.filter((_,i)=>i===0||s.novels[i]).length+' / 666'],['branches','選択した物語',Object.keys(s.choices).length],['opened','箱の累計開封',s.opened],['boxGems','箱からの累計ジェム',s.boxCoinTotal||0],['museum','美術館の収蔵作品',Object.keys(s.artCollection||{}).length],['diary','読んだ日記',count(s.dreamDiary?.read)],['stamps','日記スタンプ',count(s.dreamDiary?.stamps)]])add('育成・収集',key,label,value);
  for(const [key,label,value]of [['world','現在の世界',v63Active()==='dream'?'ゆめかわ':'無窮'],['classicIntro','無窮の入門達成',v63MissionsDone('classic')+' / 6'],['dreamIntro','夢の入門達成',v63MissionsDone('dream')+' / 6'],['classicTreasure','無窮の宝物',s.dualWorld.treasures.classic.length+' / 11'],['dreamTreasure','夢の宝物',s.dualWorld.treasures.dream.length+' / 11'],['achievements','実績獲得',count(s.dualWorld.v65?.earned)],['both','ダブルコンプリート',v63BothComplete()?'達成':'進行中'],['reality','現実モードの扉',v64RealityUnlocked()?'入口解禁':'未解禁']])add('世界・進捗',key,label,value);
  for(const [key,label,value]of [['boost','生産ブースト残り',remaining(s.boostUntil)],['chaos','混沌ブースト残り',remaining(s.chaosUntil)],['return','復帰ボーナス残り',remaining(s.returnBonusUntil)],['curse','呪い',s.curse],['incomeLink','世界の生産連動',fmt(v63IncomeBonus())+'倍'],['healingLink','世界の回復連動',fmt(v63RestBonus())+'倍'],['auto','自動進行',v68AutoRuntime.running?'進行中':v68AutoRuntime.paused?'一時停止':'停止'],['speed','進行速度','×'+s.v68Auto.speed],['autoOpen','箱の自動開封',s.autoOpen?'ON':'OFF'],['autoRecycle','自動古紙回収',s.autoRecycle?'ON':'OFF'],['activeTime','操作時間 /分',fmt((s.runActiveSeconds||0)/60)],['awayTime','放置時間 /分',fmt((s.runAwaySeconds||0)/60)]])add('効果・進行',key,label,value);
+ for(const [key,label,value]of [['knowledge','恒久既読数',v80ReadCount()],['permanentProduction','恒久生産',((v80Permanent('production')-1)*100).toFixed(3)+'%'],['permanentAttack','恒久攻撃',((v80Permanent('attack')-1)*100).toFixed(3)+'%'],['permanentHP','恒久最大HP',((v80Permanent('hp')-1)*100).toFixed(3)+'%'],['permanentHealing','恒久HP回復',((v80Permanent('healing')-1)*100).toFixed(3)+'%'],['trophyCount','固有戦利品の累計',sum(s.v80Relics?.counts)],['enemyName','敵の名前',fight?v80EnemySpec().name:'待機']])add('恒久強化',key,label,value);
  return rows;
 }
 function v78HUDConfig(){return s.v78HUD&&Array.isArray(s.v78HUD.fields)?s.v78HUD:v78HUDDefaults;}
@@ -497,6 +498,96 @@ function v77RenderCombat(){
  if($('v77-tactic-effect').textContent!==summary)$('v77-tactic-effect').textContent=summary;
 }
 
+// v80: persistent reading knowledge and species-specific trophies, separate from run buildings.
+const V80_ENEMIES=[
+ {id:'ashkeeper',name:'煤の門番',drop:'煤けた門鍵',stat:'hp',chance:.08},
+ {id:'shadowscout',name:'影縫いの斥候',drop:'影縫いの羽',stat:'attack',chance:.08},
+ {id:'dreamshade',name:'夢喰いの残影',drop:'食べ残した夢',stat:'production',chance:.08},
+ {id:'boneguard',name:'白骨の衛兵',drop:'白骨の護符',stat:'hp',chance:.08},
+ {id:'mirrorthief',name:'鏡面の盗賊',drop:'割れない鏡片',stat:'attack',chance:.08},
+ {id:'nightmoth',name:'帳の夢魔',drop:'夜帳の糸',stat:'production',chance:.08},
+ {id:'voidjailer',name:'虚無の看守',drop:'無音の鉄環',stat:'hp',chance:.08},
+ {id:'starhunter',name:'星屑の狩人',drop:'星を射た矢尻',stat:'attack',chance:.08},
+ {id:'paperspirit',name:'紙魚の幻影',drop:'余白のしおり',stat:'healing',chance:.08},
+ {id:'bloodpriest',name:'血月の司祭',drop:'血月の聖杯',stat:'healing',chance:1},
+ {id:'chainking',name:'鎖獄の番王',drop:'番王の鎖章',stat:'attack',chance:1},
+ {id:'mirrorlords',name:'逆理の双王',drop:'逆理の王印',stat:'production',chance:1},
+ {id:'silverslime',name:'銀殻のスライム',drop:'銀殻の核',stat:'hp',chance:.25}
+];
+const V80_STAT_NAMES={production:'生産',attack:'攻撃',hp:'最大HP',healing:'HP回復'};
+{
+ const old=s.v80Knowledge&&typeof s.v80Knowledge==='object'?s.v80Knowledge:{};
+ const normalize=(source,max)=>Object.fromEntries(Object.entries(source&&typeof source==='object'?source:{}).filter(([k,v])=>v&&Number.isInteger(+k)&&+k>=0&&+k<max).map(([k])=>[String(+k),true]));
+ const books={...normalize(s.dualWorld?.records?.classic?.seenNovels,666),...normalize(old.books,666)};
+ for(const [k,v]of Object.entries(s.choices||{}))if((v===0||v===1)&&Number.isInteger(+k)&&+k>=0&&+k<666)books[String(+k)]=true;
+ s.v80Knowledge={...old,version:1,books,diaries:{...normalize(s.dreamDiary?.read,777),...normalize(old.diaries,777)}};
+ const relics=s.v80Relics&&typeof s.v80Relics==='object'?s.v80Relics:{};
+ const counts={};for(const spec of V80_ENEMIES){const n=Number(relics.counts?.[spec.id]);counts[spec.id]=Number.isFinite(n)?Math.max(0,Math.min(Number.MAX_SAFE_INTEGER,Math.floor(n))):0;}
+ s.v80Relics={...relics,version:1,counts};
+}
+function v80ReadCount(){return Object.values(s.v80Knowledge?.books||{}).filter(Boolean).length+Object.values(s.v80Knowledge?.diaries||{}).filter(Boolean).length;}
+function v80Permanent(stat){
+ let bonus=v80ReadCount()*(stat==='production'?.0001:stat==='hp'||stat==='attack'?.00005:0);
+ for(const spec of V80_ENEMIES)if(spec.stat===stat){const n=Math.max(0,Number(s.v80Relics?.counts?.[spec.id])||0);bonus+=.005*Math.log2(1+n);}
+ return 1+bonus;
+}
+function v80MarkRead(kind,i){if(!s.v80Knowledge)return;s.v80Knowledge[kind][i]=true;}
+function v80ReadAll(kind){
+ let changed=0;
+ if(kind==='books'){
+  for(let i=0;i<stories.length;i++)if(i===0||s.novels[i]){if(!s.v80Knowledge.books[i]){changed++;v80MarkRead('books',i);}v63Action('novel',i);}
+  renderLibrary();
+ }else if(kind==='diaries'){
+  for(let i=0;i<777;i++){s.dreamDiary.read[i]=true;if(!s.v80Knowledge.diaries[i]){changed++;v80MarkRead('diaries',i);v63Action('diary',i);}}
+  v62List();
+ }else return;
+ msg=changed?'📖 '+changed+'件を既読にしました。読書の恒久強化を獲得。':'📖 既読記録を確認し、読書進捗へ反映しました。';draw();save();
+}
+function v80EnemySpec(enemy=fight?.e){
+ if(!enemy)return V80_ENEMIES[0];
+ if(enemy.boss)return V80_ENEMIES[enemy.mech?.includes('封印')?10:enemy.mech?.includes('反転')?11:9];
+ if(enemy.metal)return V80_ENEMIES[12];
+ return V80_ENEMIES[(Math.max(1,Math.floor(Number(enemy.stage)||1))-1)%9];
+}
+function v80DropRelic(f=fight){
+ if(!f||f.active||f.hp<=0||f.ehp>0||f.v80DropResolved)return false;
+ f.v80DropResolved=true;const spec=v80EnemySpec(f.e);
+ if(spec.chance<1&&Math.random()>=spec.chance)return false;
+ const old=s.v80Relics.counts[spec.id]||0,next=Math.min(Number.MAX_SAFE_INTEGER,old+1);if(next===old)return false;
+ s.v80Relics.counts[spec.id]=next;s.v80Relics.last={id:spec.id,at:Date.now()};
+ const gain=.5*(Math.log2(1+next)-Math.log2(1+old));
+ v59Log('relic','🎁 '+spec.drop,'恒久'+V80_STAT_NAMES[spec.stat]+' ＋'+(gain<.001?gain.toPrecision(2):gain.toFixed(3))+'% / 所持 '+next+'個');
+ msg+=' · 🎁 '+spec.drop+'（恒久強化）';save();return true;
+}
+const v80RelicNodes=new Map();
+function v80RenderPermanent(){
+ const summary=$('v80-permanent-summary');if(!summary)return;
+ const read=v80ReadCount(),text='既読 '+read+'件 ｜ 恒久 生産＋'+((v80Permanent('production')-1)*100).toFixed(3)+'%・攻撃＋'+((v80Permanent('attack')-1)*100).toFixed(3)+'%・最大HP＋'+((v80Permanent('hp')-1)*100).toFixed(3)+'%・回復＋'+((v80Permanent('healing')-1)*100).toFixed(3)+'%';
+ if(summary.textContent!==text)summary.textContent=text;
+ for(const [kind,total]of [['books',666],['diaries',777]]){
+  const node=$('v80-reading-'+kind),button=$('v80-read-all-'+kind);if(!node)continue;
+  const count=Object.values(s.v80Knowledge?.[kind]||{}).filter(Boolean).length;
+  const label='既読 '+count+' / '+total+' ｜ 1件ごとに恒久 生産＋0.01%・攻撃/最大HP＋0.005%（転生後も保持）';if(node.textContent!==label)node.textContent=label;
+  const unread=kind==='books'?stories.filter((_,i)=>(i===0||s.novels[i])&&(!s.v80Knowledge?.books?.[i]||(v63Active()==='classic'&&!s.dualWorld?.records?.classic?.seenNovels?.[i]))).length:777-count;
+  button.disabled=unread===0;button.textContent=kind==='books'?'読める本をすべて既読':'日記をすべて既読（残り'+unread+'）';
+ }
+ if(fight){const spec=v80EnemySpec();$('foe').textContent=spec.name+' · 第'+fight.e.stage+'階';$('v80-enemy-drop').textContent='固有：'+spec.drop+'（'+(spec.chance*100)+'%）· 恒久'+V80_STAT_NAMES[spec.stat]+'強化';}
+ else $('v80-enemy-drop').textContent='敵ごとの固有戦利品で恒久強化。所持数と効果は「すべて → 恒久強化」で確認できます。';
+ const last=s.v80Relics?.last,spec=V80_ENEMIES.find(e=>e.id===last?.id),recent=spec&&Date.now()>=last.at&&Date.now()-last.at<8000,notice=$('v80-drop-notice');notice.hidden=!recent;if(recent)notice.textContent='🎁 '+spec.drop+'を獲得！ 恒久'+V80_STAT_NAMES[spec.stat]+'が上昇';
+ if(!v68Panes.get('permanent')?.hidden)for(const spec of V80_ENEMIES){const node=v80RelicNodes.get(spec.id),n=s.v80Relics?.counts?.[spec.id]||0;node.textContent=spec.drop+' · 所持 '+n+' / 恒久'+V80_STAT_NAMES[spec.stat]+' ＋'+(.5*Math.log2(1+n)).toFixed(3)+'%';}
+}
+function v80InitPermanent(pane){
+ pane.appendChild(v68Node('p','v80-permanent-summary'));
+ pane.appendChild(v68Node('p',null,'読書と固有戦利品の効果は転生後も残ります。戦利品は装備枠を使わず、重複でも恒久効果が緩やかに伸びます。'));
+ for(const spec of V80_ENEMIES){const card=v68Node('article');card.className='v76-building-card';card.appendChild(v68Node('h3',null,spec.name));card.appendChild(v68Node('p',null,'固有ドロップ率 '+spec.chance*100+'% / 初回 恒久'+V80_STAT_NAMES[spec.stat]+'＋0.5%'));const value=v68Node('strong');card.appendChild(value);v80RelicNodes.set(spec.id,value);pane.appendChild(card);}
+ for(const kind of ['books','diaries']){
+  const box=v68Node('section');box.className='v80-reading-tools';box.appendChild(v68Node('p','v80-reading-'+kind));
+  const button=v68Node('button','v80-read-all-'+kind);button.type='button';button.onclick=()=>v80ReadAll(kind);box.appendChild(button);
+  if(kind==='books'){box.appendChild(v68Node('small',null,'解放済みの本が対象です。分岐選択はそのまま。'));$('bookhome').prepend(box);}else $('v62-diary-panel').querySelector('.v62-diary-header').after(box);
+ }
+ const drop=v68Node('p','v80-enemy-drop');$('foe').after(drop);const notice=v68Node('p','v80-drop-notice');notice.setAttribute('role','status');notice.hidden=true;$('v77-enemy-intent').before(notice);
+}
+
 const icons=['⚙️','🗝️','🌙','👁️','🦋','🗡️','💎','🕯️','⚡','🪞','🪐','🌹','🧿','🦇','🔮','🦴','🧬','🔥','❄️','🕳️','👑','🪬','🌌','⛓️','📜','🦉','☄️','🪦','🐍','🦷','🧭','🧪','🌱','🛡️','🧲','⌛','🪙'];const first=['終焉','虚無','深淵','逆理','堕天','原罪','黄昏','永劫','断罪','忘却','禁忌','冥界','零式','因果','幽世','無貌','輪廻','神殺','蒼穹','血盟','幻影','滅却','星葬','混沌','天罰','残響','無限','漆黒','夢蝕','絶対','幽冥','失楽','境界','創世','破戒','黙示','偽神'];const second=['の観測者','の聖骸','の魔眼','の残滓','の継承者','の方舟','の断章','の執行者','の契約','の心臓','の墓標','の王冠','の鍵','の審判','の逆説','の詠唱','の器','の記憶','の刃','の胎動','の預言','の歯車','の使徒','の黙示録','の終止符','の迷宮','の原典','の翼','の残月','の聖痕','の異端者','の理','の扉','の偽典','の残火','の名残','の座標'];const flavors=['神はまだ、自分が死んだことを知らない。','祈りは届いた。ただし宛先が違った。','世界の終わりに最初の嘘だけが残る。','名を呼べば、呼んだ者の名が消える。','その剣は敵ではなく因果を斬る。','救済はいつも破滅より一秒遅い。','禁じられたのは力ではない。記憶だ。','勝者のいない戦争が今も続いている。','扉の向こうで、誰かが待っている。','天使は翼を捨てて自由を得た。','永遠は祝福ではない。終わらない刑罰だ。','未来を見た者から順に過去へ消える。','真実を知った瞬間、世界は偽物になる。','契約書の最後には空白の署名がある。','一度だけ鳴る鐘が百年を奪った。','心臓の代わりに小さな宇宙が脈打つ。','最も深い闇は光の形をしている。','その王国では敗北こそが戴冠だった。','眠る星の夢に我々は住んでいる。','記録されなかった英雄だけが神話になった。','最後のページにはまだ生まれぬ君の名。','零を数え終えたとき無限が始まった。','願いは叶う。代償は願った後に決まる。','誰も覚えていない罪だけが赦されない。','神託は正しかった。解釈が間違っていた。','壊れた時計は終末の時刻だけを指す。','この世に存在しない色で血が流れた。','鍵穴の形をした傷が胸に残っている。','死者の手紙は明日の日付で届いた。','その影は持ち主より先に生まれた。','運命に逆らった者が運命そのものになった。','世界を救うには世界の定義を変えよ。','誰にも見られぬ月は何色に輝くのか。','神々が沈黙した夜、機械だけが祈った。','忘れられるために彼は永遠を選んだ。','王は玉座を捨て玉座だけが王を名乗った。','これが最後の奇跡なら誰にも渡さない。'];const rar=['普通','上質','希少','伝説','神話','神の加護'],color=['#40475b','#146450','#25599a','#713c9c','#ae7922','#8a165f'];const tierCounts=[42,29,19,12,5,11],tierWeights=[749800,195000,45000,9000,900,300];const GOD_IDS=Array.from({length:11},(_,i)=>107+i);const gear=Array.from({length:118},(_,i)=>{let t=0,k=i;while(k>=tierCounts[t])k-=tierCounts[t++];let god=i>=107;return{id:i,t,emoji:god?['🌌','👁️','🪽','👑','🧿','🪐','🔱','🦋','🕳️','🪞','☀️'][i-107]:icons[i%37],name:god?['全能神の零冠','因果律の簒奪者','無限増殖の熾天使','世界再起動の玉座','確率を喰らう眼','星間航路の羅針盤','三叉の勝利宣言','蝶の逆説','虚無の採掘者','鏡像世界の主','暁の最後の祈り'][i-107]:first[i%37]+second[(i*7)%37],effect:god?['生産×2・戦闘HP×3','戦闘攻撃×3・ボスジェム×2','箱獲得×3・開封追加＋10','生産×3・攻撃無効化90%','生産×1.25','箱獲得＋3','生産×1.25','生産×1.2','生産×1.2','生産×1.2・HP×2','箱獲得＋5'][i-107]:['生産','HP回復','被ダメージ軽減','箱発見','イベント時間'][i%5]+' +'+(5*(t+1))+'%',god}});const cards=Array.from({length:111},(_,i)=>({emoji:icons[i%37],name:first[i%37]+second[(i*7+Math.floor(i/37)*11)%37],flavor:flavors[(i*17+Math.floor(i/37)*7)%37],rar:Math.min(5,Math.floor(i/19))}));const shop=[['power','永久生産 +25%',2],['vital','永久生命 +30%',2],['ward','攻撃無効 +12%',3],['echo','追加装備 +10%',4],['loot','箱獲得 +12%',3],['mondrian','🟥 コンポジション風テーマ',8],['ukiyo','🌊 浮世絵風テーマ',8],['rinpa','🟡 琳派風テーマ',8],['icon','✨ 聖像画風テーマ',8],['rococo','🌸 ロココ風テーマ',8]];let msg='',opening=false,filter=false,fight=null,spawnAt=Date.now()+5000,eventEnd=0,eventType='',eventVisible=false;const lvCost=()=>Math.min(Number.MAX_VALUE,Math.floor(12*1.43**Math.min(1000,s.lv-1))),shopLv=id=>s.shop[id]||0,has=id=>!!s.owned[id]&&!s.disabled[id],god=id=>has(107+id),cost=(id,base)=>Math.ceil(base*1.8**shopLv(id));// v74: retain owned counts; derived strength grows with diminishing returns.
 function v74Copies(value){const n=Number(value);return !Number.isFinite(n)||n<=0?0:n<=1?n:1+Math.log2(n);}
 function v74Rebirth(){const n=Number(s.rebirth);return 1+.5*Math.log2(1+(Number.isFinite(n)?Math.max(0,n):0));}
@@ -505,8 +596,8 @@ function v74CombatStats(){
  const level=Math.max(0,Number(s.lv)-1),trade=gearTrade();
  const rebirth=1+.3*(v74Rebirth()-1);
  const baseHP=24*(1+.18*level)**1.35;
- return {hp:baseHP*Math.sqrt(trade.hp*(1+.3*shopLv('vital'))*(1+.08*(s.research.balance||0)))*(god(0)?3:1)*(god(9)?2:1)*rebirth*v79BuildingHP(),
- attack:5*(1+.16*level)**1.3*Math.sqrt(trade.attack*(1+storyBonus().attack)*(1+cardSet().attack))*(god(1)?3:1)*rebirth*v78BuildingAttack(),healing:baseHP*.03*Math.sqrt(trade.healing*(1+bonuses()[1]/100))*rebirth*v78BuildingHealing()};
+ return {hp:baseHP*Math.sqrt(trade.hp*(1+.3*shopLv('vital'))*(1+.08*(s.research.balance||0)))*(god(0)?3:1)*(god(9)?2:1)*rebirth*v79BuildingHP()*v80Permanent('hp'),
+ attack:5*(1+.16*level)**1.3*Math.sqrt(trade.attack*(1+storyBonus().attack)*(1+cardSet().attack))*(god(1)?3:1)*rebirth*v78BuildingAttack()*v80Permanent('attack'),healing:baseHP*.03*Math.sqrt(trade.healing*(1+bonuses()[1]/100))*rebirth*v78BuildingHealing()*v80Permanent('healing')};
 }
 function bonuses(){let b=[0,0,0,0,0];for(let i=0;i<107;i++)if(has(i))b[i%5]+=5*(gear[i].t+1)*v74Copies(s.owned[i]);return b}// v14: 尖った装備。各系統は強い代わりに代償を持つ。OFFで効果も代償も停止。
 const gearTraits=[
@@ -529,7 +620,7 @@ function synergyBonus(){let b={production:1,hp:1,attack:1,boxes:0,healing:1};for
 function renderSynergy(){let root=$('synergyStatus');if(!root)return;let list=synergyState().effects.filter(e=>e.stacks);root.innerHTML=list.length?'<div class="synergy-heading">✧ 共鳴発動 '+list.length+'系統</div>'+list.map(e=>'<span class="synergy-pill" style="--res-color:'+e.color+';border-color:'+e.color+'88;background:'+e.color+'18">'+e.name+' <b>×'+e.stacks+'</b> <small>'+e.desc+'</small></span>').join(''):'<span class="small">✧ 異なる系統の装備をONにすると共鳴。2系統それぞれ2ポイントで発動。所持数は維持され、重複と共鳴の効果は段階が上がるほど緩やかに伸びます。</span>'}
 function gearTrade(){let b={production:1,hp:1,attack:1,boxes:0,drain:1,healing:1};for(let i=0;i<107;i++){if(!has(i))continue;let g=gear[i],n=Math.min(12,Number(s.owned[i])||0),strength=Math.min(2.5,(g.t+1)*.045*n);switch(i%5){case 0:b.production+=strength*1.8;b.drain+=strength*.8;break;case 1:b.hp+=strength*2.5;b.production*=1/(1+strength*.25);break;case 2:b.attack+=strength*2.2;b.drain+=strength*.65;break;case 3:b.boxes+=strength*.35;b.production*=1/(1+strength*.3);break;case 4:b.healing+=strength*1.5;b.attack*=1/(1+strength*.28);break}}let sy=synergyBonus();b.production*=sy.production;b.hp*=sy.hp;b.attack*=sy.attack;b.boxes+=sy.boxes;b.healing*=sy.healing*v63RestBonus();return b}
 function returnMultiplier(){return Date.now()<s.returnBonusUntil?2:1}
-function income(){let b=bonuses(),trade=gearTrade(),m=2.7;let st=storyBonus();return v76BuildingMoney()*trade.production*v74Rebirth()*worldBonus().production*1.24**Math.min(1000,s.lv-1)*1.65**Math.floor(Math.min(1000,s.lv-1)/5)*(1+b[0]/100)*(1+.25*shopLv('power'))*(1+st.production)*(st.endingA?5:1)*(1+forgePower())*(1+.12*(s.research.opening||0)+.06*(s.research.balance||0))*(1+cardSet().production)*v74DivineProduction()*m*returnMultiplier()*Math.max(.6,1-s.curse*.08)*v63IncomeBonus()*(Date.now()<s.boostUntil?s.boost:1)*(Date.now()<s.chaosUntil?s.chaos:1)}// v29: cumulative offline efficiency. 11min=100%, 2h=44%, 12h=11%.
+function income(){let b=bonuses(),trade=gearTrade(),m=2.7;let st=storyBonus();return v80Permanent('production')*v76BuildingMoney()*trade.production*v74Rebirth()*worldBonus().production*1.24**Math.min(1000,s.lv-1)*1.65**Math.floor(Math.min(1000,s.lv-1)/5)*(1+b[0]/100)*(1+.25*shopLv('power'))*(1+st.production)*(st.endingA?5:1)*(1+forgePower())*(1+.12*(s.research.opening||0)+.06*(s.research.balance||0))*(1+cardSet().production)*v74DivineProduction()*m*returnMultiplier()*Math.max(.6,1-s.curse*.08)*v63IncomeBonus()*(Date.now()<s.boostUntil?s.boost:1)*(Date.now()<s.chaosUntil?s.chaos:1)}// v29: cumulative offline efficiency. 11min=100%, 2h=44%, 12h=11%.
 function bgInstant(min,boost=false){const floor=boost?.22:.11;if(min<=11)return 1;if(min<=120)return 1-.56*(min-11)/109;if(min<=720)return .44-(.44-floor)*(min-120)/600;return floor}
 function bgEffectiveSeconds(seconds,boost=false){let m=Math.min(1440,Math.max(0,seconds/60)),v=0;const seg=(a,b,fa,fb)=>Math.max(0,b-a)*(fa+fb)/2;if(m<=11)return m*60;v=11;if(m<=120)return (v+seg(11,m,1,bgInstant(m,boost)))*60;v+=109*(1+.44)/2;if(m<=720)return (v+seg(120,m,.44,bgInstant(m,boost)))*60;v+=600*(.44+(boost?.22:.11))/2;return (v+(m-720)*(boost?.22:.11))*60}
 function bgBoost(){return !!(s.owned&&s.owned[112]>0&&!s.disabled[112])}
@@ -654,7 +745,7 @@ return true}function boxGain(){let n=1+(Math.random()<Math.min(.9,shopLv('loot')
    if(e.boss){let coin=(3+Math.ceil(e.stage/5))*(god(1)?2:1)+v79BuildingGems();s.coins+=coin;s.bosses[e.stage]=true;s.relics[Math.ceil(e.stage/5)]=true;s.pendingBossReward=e.stage;renderBossChoice();msg='🐉 ボス撃破 ✦+'+coin+' 🎁'+amount+' · 追加報酬を選ぼう';v59Log('boss','🐉 BOSS CLEAR ・ 第'+e.stage+'戦',note+' / ✦+'+coin+' / 追加報酬を選択');v59Flash('boss','ボスを倒した！ 戦利品を選ぼう');}
    else if(e.metal){msg='🩶 メタル撃破 🎁'+amount+' '+yin()+' '+double();v59Log('win','🩶 METAL CLEAR ・ 第'+e.stage+'戦',note+' / ボーナス発生');v59Flash('win','メタル撃破！ 特殊ボーナス獲得');}
    else{msg='⚔️ 勝利 🎁'+amount;v59Log('win','🏆 VICTORY ・ 第'+e.stage+'戦',note+' / 次の戦いが解放');v59Flash('win','勝利！ 箱と資産を獲得');}
-   v57BattleResult(true);break;
+   v80DropRelic();v57BattleResult(true);break;
   }
   let blocked=Math.random()<Math.min(.9,shopLv('ward')*.12+(god(3)?.9:0));
   let received=blocked?0:fight.e.atk*intent.power*tactic.damage*(1-Math.min(.25,Math.sqrt(bonuses()[2])*.01))*(fight.e.mech?.includes('反転')&&s.mode==='fast'?2:1);
@@ -1376,8 +1467,8 @@ function emptyAllBoxes(){
 }
 function recycle(n){n=Math.min(n,s.empty);if(!n)return;s.empty-=n;let got=n*(1+storyBonus().paper+(s.research.recycling||0)+cardSet().paper);s.paper+=got;msg='📜 古紙回収 ＋'+got+'紙片';renderLibrary();draw();save()}
 let libraryPage=0,alternatePage=0;const BOOKS_PER_PAGE=18;
-function renderLibrary(){expireTimed();$('timedcount').textContent=s.timed.length;$('timerem').textContent=s.timed.length?'⏳ 最短残り '+Math.max(0,Math.ceil((s.timed.reduce((a,b)=>Math.min(a,b),Infinity)-Date.now())/1000))+'秒 · 消滅すると空き箱になる':'⏳ 時限箱は戦闘報酬で出現（基本30秒）';$('emptycount').textContent=s.empty;$('papercount').textContent=s.paper;$('recycle1').disabled=!s.empty;$('recycleall').disabled=!s.empty;$('autorecycle').textContent='♻️ 自動回収 '+(s.autoRecycle?'ON':'OFF');$('emptyAllBoxes').disabled=opening||s.boxes<1;renderResearch();$('novellist').previousElementSibling?.classList?.add('book-heading');$('novellist').innerHTML=stories.slice(libraryPage*BOOKS_PER_PAGE,(libraryPage+1)*BOOKS_PER_PAGE).map((v,offset)=>{const i=libraryPage*BOOKS_PER_PAGE+offset;return '<div class="chapter"><span><b>'+v.title+'</b><div class="small">'+(i===0||s.novels[i]?'解放済':'📜 '+v.cost+'枚')+(s.choices[i]!==undefined?' · 分岐済':'')+'</div></span><button data-novel="'+i+'">'+(i===0||s.novels[i]?'読む':'解放')+'</button></div>'}).join('');$('novellist').insertAdjacentHTML('beforeend','<div class="row"><button id="bookprev" '+(libraryPage===0?'disabled':'')+'>◀ 前</button><span>小説 '+(libraryPage+1)+' / '+Math.ceil(stories.length/BOOKS_PER_PAGE)+' ページ</span><button id="booknext" '+((libraryPage+1)*BOOKS_PER_PAGE>=stories.length?'disabled':'')+'>次 ▶</button></div>');$('bookprev').onclick=()=>{libraryPage--;renderLibrary()};$('booknext').onclick=()=>{libraryPage++;renderLibrary()};document.querySelectorAll('[data-novel]').forEach(b=>b.onclick=()=>{let i=+b.dataset.novel;if(i&&!s.novels[i]){if(s.paper<stories[i].cost){msg='📜 紙片不足';draw();return}s.paper-=stories[i].cost;s.novels[i]=true}readChapter(i);save()});renderAlternates();$('choicehistory').textContent=Object.keys(s.choices).length?Object.entries(s.choices).slice(-12).map(([i,v])=>'第'+(+i+1)+'巻 '+stories[i].choices[v][0]).join(' / '):'まだ選択されていない'}
-let chapter=0;function readChapter(i){if(i<0||i>=stories.length||i&&!s.novels[i])return;chapter=i;v63Action('novel',i);$('bookhome').classList.add('hide');$('reader').classList.remove('hide');$('chaptertitle').textContent=stories[i].title;let selected=s.choices[i];const novel=stories[i];let branchText='';if(selected!==undefined&&Array.isArray(novel.aftermath)){branchText='\n\n──── 選んだ結末「'+novel.choices[selected][0]+'」 ────\n'+novel.aftermath[selected];if(s.choiceArchive[i]){const other=1-selected;branchText+='\n\n──── もうひとつの結末「'+novel.choices[other][0]+'」 ────\n'+novel.aftermath[other];}}$('chapterbody').textContent=novel.text+branchText;$('chapterchoices').innerHTML=selected!==undefined?'<p>🗝️ '+stories[i].choices[selected][0]+' / '+stories[i].choices[selected][1]+(s.choiceArchive[i]?' · 両分岐解放済':'')+'</p>':stories[i].choices.map((c,j)=>'<button class="choice" data-choice="'+j+'">'+c[0]+'<br><small>'+c[1]+'</small></button>').join('');document.querySelectorAll('[data-choice]').forEach(b=>b.onclick=()=>{s.choices[i]=+b.dataset.choice;msg='📖 永久能力を獲得';readChapter(i);draw();save()});$('prevchapter').disabled=i===0;$('nextchapter').disabled=i===stories.length-1||!s.novels[i+1]}
+function renderLibrary(){expireTimed();$('timedcount').textContent=s.timed.length;$('timerem').textContent=s.timed.length?'⏳ 最短残り '+Math.max(0,Math.ceil((s.timed.reduce((a,b)=>Math.min(a,b),Infinity)-Date.now())/1000))+'秒 · 消滅すると空き箱になる':'⏳ 時限箱は戦闘報酬で出現（基本30秒）';$('emptycount').textContent=s.empty;$('papercount').textContent=s.paper;$('recycle1').disabled=!s.empty;$('recycleall').disabled=!s.empty;$('autorecycle').textContent='♻️ 自動回収 '+(s.autoRecycle?'ON':'OFF');$('emptyAllBoxes').disabled=opening||s.boxes<1;renderResearch();$('novellist').previousElementSibling?.classList?.add('book-heading');$('novellist').innerHTML=stories.slice(libraryPage*BOOKS_PER_PAGE,(libraryPage+1)*BOOKS_PER_PAGE).map((v,offset)=>{const i=libraryPage*BOOKS_PER_PAGE+offset;return '<div class="chapter"><span><b>'+v.title+'</b><div class="small">'+(i===0||s.novels[i]?'解放済'+(s.v80Knowledge?.books?.[i]?' · 既読':''):'📜 '+v.cost+'枚')+(s.choices[i]!==undefined?' · 分岐済':'')+'</div></span><button data-novel="'+i+'">'+(i===0||s.novels[i]?'読む':'解放')+'</button></div>'}).join('');$('novellist').insertAdjacentHTML('beforeend','<div class="row"><button id="bookprev" '+(libraryPage===0?'disabled':'')+'>◀ 前</button><span>小説 '+(libraryPage+1)+' / '+Math.ceil(stories.length/BOOKS_PER_PAGE)+' ページ</span><button id="booknext" '+((libraryPage+1)*BOOKS_PER_PAGE>=stories.length?'disabled':'')+'>次 ▶</button></div>');$('bookprev').onclick=()=>{libraryPage--;renderLibrary()};$('booknext').onclick=()=>{libraryPage++;renderLibrary()};document.querySelectorAll('[data-novel]').forEach(b=>b.onclick=()=>{let i=+b.dataset.novel;if(i&&!s.novels[i]){if(s.paper<stories[i].cost){msg='📜 紙片不足';draw();return}s.paper-=stories[i].cost;s.novels[i]=true}readChapter(i);save()});renderAlternates();$('choicehistory').textContent=Object.keys(s.choices).length?Object.entries(s.choices).slice(-12).map(([i,v])=>'第'+(+i+1)+'巻 '+stories[i].choices[v][0]).join(' / '):'まだ選択されていない'}
+let chapter=0;function readChapter(i){if(i<0||i>=stories.length||i&&!s.novels[i])return;chapter=i;v63Action('novel',i);v80MarkRead('books',i);$('bookhome').classList.add('hide');$('reader').classList.remove('hide');$('chaptertitle').textContent=stories[i].title;let selected=s.choices[i];const novel=stories[i];let branchText='';if(selected!==undefined&&Array.isArray(novel.aftermath)){branchText='\n\n──── 選んだ結末「'+novel.choices[selected][0]+'」 ────\n'+novel.aftermath[selected];if(s.choiceArchive[i]){const other=1-selected;branchText+='\n\n──── もうひとつの結末「'+novel.choices[other][0]+'」 ────\n'+novel.aftermath[other];}}$('chapterbody').textContent=novel.text+branchText;$('chapterchoices').innerHTML=selected!==undefined?'<p>🗝️ '+stories[i].choices[selected][0]+' / '+stories[i].choices[selected][1]+(s.choiceArchive[i]?' · 両分岐解放済':'')+'</p>':stories[i].choices.map((c,j)=>'<button class="choice" data-choice="'+j+'">'+c[0]+'<br><small>'+c[1]+'</small></button>').join('');document.querySelectorAll('[data-choice]').forEach(b=>b.onclick=()=>{s.choices[i]=+b.dataset.choice;msg='📖 永久能力を獲得';readChapter(i);draw();save()});$('prevchapter').disabled=i===0;$('nextchapter').disabled=i===stories.length-1||!s.novels[i+1];draw();save()}
 $('v23unlock').onclick=archiveAllAffordable;$('v23choose').onclick=archiveChooseUnread;$('v23branches').onclick=archiveAllBranches;$('books').onclick=()=>{toggle('bookpanel');renderLibrary()};$('recycle1').onclick=()=>recycle(1);$('recycleall').onclick=()=>recycle(s.empty);$('emptyAllBoxes').onclick=emptyAllBoxes;$('autorecycle').onclick=()=>{s.autoRecycle=!s.autoRecycle;if(s.autoRecycle)recycle(s.empty);draw();save()};$('backbooks').onclick=()=>{$('reader').classList.add('hide');$('bookhome').classList.remove('hide');renderLibrary()};$('prevchapter').onclick=()=>readChapter(chapter-1);$('nextchapter').onclick=()=>readChapter(chapter+1);window.addEventListener('pagehide',save);
 
 
@@ -1867,8 +1958,8 @@ function v62List(){v62Stats();const matches=v62Matches();const pages=Math.max(1,
  v62By('v62-diary-grid').innerHTML=subset.length?subset.map(e=>'<article class="v62-diary-item '+(s.dreamDiary.read[e.idx]?'v62-read':'')+'"><small>'+v62DiaryArcs[e.arc].icon+' DAY '+String(e.day).padStart(3,'0')+(s.dreamDiary.stamps[e.idx]?' '+s.dreamDiary.stamps[e.idx]:'')+(s.dreamDiary.read[e.idx]?' ✓':'')+'</small><strong>'+v62Esc(e.title)+'</strong><p>'+v62Esc(e.body.replace(/\n/g,' ').slice(0,45))+'…</p><button type="button" data-v62-read="'+e.idx+'">'+(s.dreamDiary.read[e.idx]?'もういっかい📖':'よむ〜💗')+'</button></article>').join(''):'<p>みつからなかった…🥺 べつのことばでさがしてね。</p>';
  v62By('v62-diary-page').textContent=(v62Page+1)+' / '+pages+'　('+matches.length+'篇)';v62By('v62-diary-prev').disabled=v62Page===0;v62By('v62-diary-next').disabled=v62Page>=pages-1;
  v62By('v62-diary-arcs').innerHTML=[{title:'すべて777日',icon:'📔'},...v62DiaryArcs].map((a,i)=>'<button type="button" aria-pressed="'+(v62Arc===i-1)+'" data-v62-arc="'+(i-1)+'">'+a.icon+' '+v62Esc(a.title)+'</button>').join('');}
-function v62Read(i){if(i<0||i>=777)return;v62Current=i;const e=v62DiaryEntries[i];s.dreamDiary.read[i]=true;v63Action('diary',i);v62By('v62-diary-day').textContent=v62DiaryArcs[e.arc].icon+' DAY '+String(i+1).padStart(3,'0')+' / 777';v62By('v62-diary-title').textContent=e.title;v62By('v62-diary-body').textContent=e.body;v62By('v62-diary-reader').classList.remove('hide');v62By('v62-diary-grid').classList.add('hide');v62By('v62-diary-prev').parentElement.classList.add('hide');v62By('v62-diary-reader-prev').disabled=i===0;v62By('v62-diary-reader-next').disabled=i===776;
- document.querySelectorAll('[data-v62-stamp]').forEach(b=>b.setAttribute('aria-pressed',String(s.dreamDiary.stamps[i]===b.dataset.v62Stamp)));v62Stats();save();v62By('v62-diary-reader').scrollIntoView({behavior:'smooth',block:'start'});}
+function v62Read(i){if(i<0||i>=777)return;v62Current=i;const e=v62DiaryEntries[i];s.dreamDiary.read[i]=true;v80MarkRead('diaries',i);v63Action('diary',i);v62By('v62-diary-day').textContent=v62DiaryArcs[e.arc].icon+' DAY '+String(i+1).padStart(3,'0')+' / 777';v62By('v62-diary-title').textContent=e.title;v62By('v62-diary-body').textContent=e.body;v62By('v62-diary-reader').classList.remove('hide');v62By('v62-diary-grid').classList.add('hide');v62By('v62-diary-prev').parentElement.classList.add('hide');v62By('v62-diary-reader-prev').disabled=i===0;v62By('v62-diary-reader-next').disabled=i===776;
+ document.querySelectorAll('[data-v62-stamp]').forEach(b=>b.setAttribute('aria-pressed',String(s.dreamDiary.stamps[i]===b.dataset.v62Stamp)));v62Stats();draw();save();v62By('v62-diary-reader').scrollIntoView({behavior:'smooth',block:'start'});}
 function v62Back(){v62Current=-1;v62By('v62-diary-reader').classList.add('hide');v62By('v62-diary-grid').classList.remove('hide');v62By('v62-diary-prev').parentElement.classList.remove('hide');v62List()}
 function v62Toggle(open){if(s.theme!=='dream'){v62By('v62-diary-panel').classList.add('hide');return;}if(open){v62By('v62-diary-panel').classList.remove('hide');v62By('v62-diary-access').classList.add('hide');v62Back();v62By('v62-diary-panel').scrollIntoView({behavior:'smooth',block:'start'});}else{v62By('v62-diary-panel').classList.add('hide');v62By('v62-diary-access').classList.remove('hide')}}
 function v62Visibility(){if(s.theme==='dream'){if(v62By('v62-diary-panel').classList.contains('hide'))v62By('v62-diary-access').classList.remove('hide')}else{v62By('v62-diary-panel').classList.add('hide');v62By('v62-diary-access').classList.add('hide')}}
@@ -2689,6 +2780,7 @@ function v68OpenPanel(key='menu'){
  if(key==='rebirth')renderPrestige();
  if(key==='dreamjournal')v77RenderDreamExtras();
  if(key==='hud')v78RenderHUD(true);
+ if(key==='permanent')v80RenderPermanent();
  if(key==='settings')$('v54Guide').open=true;
  if(!dialog.open)dialog.showModal();
  $('v68-library-body').scrollTop=0;
@@ -2703,7 +2795,7 @@ function v68InitUI(){
  const main=document.querySelector('main');if(!main)return;
  const originalChildren=Array.from(main.children);
  document.body.classList.add('v68-ui');
- document.querySelector('.v32brand').title='街づくり版 v79：世界別名称の10施設・上限なし強化・転生でリセット';
+ document.querySelector('.v32brand').title='恒久強化版 v80：読書の成長・名前付きの敵と固有戦利品';
  const wallet=v68Node('section','v69-wallet');wallet.setAttribute('aria-label','所持金と毎秒収入');
  wallet.innerHTML='<span id="v69-wallet-label">所持金</span><span id="v69-wallet-coins" title="永久商店・美術館で使う別のジェム"></span>';
  const stats=v68Node('div','v68-stats');stats.setAttribute('aria-label','現在の冒険の状態');
@@ -2714,7 +2806,7 @@ function v68InitUI(){
  auto.innerHTML='<div class="v68-auto-row"><button type="button" id="v68-auto-main">▶ 進行開始</button><button type="button" id="v68-auto-pause">一時停止</button><button type="button" id="v68-auto-manual">手動に戻る</button></div><div class="v68-auto-sub"><span id="v68-auto-status" role="status" aria-live="polite">世界を選ぶと自動で進みます</span><label for="v68-auto-speed">速度</label><select id="v68-auto-speed" aria-label="AUTO速度"><option value="1">×1</option><option value="2">×2</option><option value="4">×4</option></select></div>';
  bottom.appendChild(auto);
  const shortcuts=v68Node('nav','v68-shortcuts');shortcuts.setAttribute('aria-label','主要ショートカット');
- shortcuts.innerHTML='<button id="v78-hud-toggle" type="button" aria-pressed="false">HUD OFF</button><button id="v76-shortcut-buildings" type="button">建物</button><button id="v68-shortcut-gear" type="button">装備</button><button id="v68-shortcut-books" type="button">書庫</button><button id="v68-shortcut-progress" type="button">進捗</button><button id="v68-shortcut-menu" type="button">すべて</button>';
+ shortcuts.innerHTML='<button id="v78-hud-toggle" type="button" aria-pressed="false">HUD OFF</button><button id="v68-shortcut-gear" type="button">箱・<span class="v80-gear-word">装備</span></button><button id="v68-shortcut-books" type="button">書庫</button><button id="v68-shortcut-progress" type="button">進捗</button><button id="v68-shortcut-menu" type="button">すべて</button>';
  bottom.appendChild(shortcuts);
  const dialog=v68Node('dialog','v68-library');dialog.setAttribute('aria-labelledby','v68-library-title');
  dialog.innerHTML='<header class="v68-library-head"><button type="button" id="v68-library-back">← 一覧</button><h2 id="v68-library-title">すべての機能</h2><button type="button" id="v68-library-close" aria-label="詳細画面を閉じる">閉じる ×</button></header><div id="v68-library-body"></div>';
@@ -2725,7 +2817,7 @@ function v68InitUI(){
  const menuHint=v68Node('p',null,'冒険を止めて、装備・物語・記録をゆっくり確認できます。');menuHint.className='small';menu.append(menuHint);
  v68Move('v54nav',menu);v68Move('v62-diary-access',menu);
  const menuLinks=v68Node('div','v68-menu-links');menuLinks.className='v68-menu-grid';
- const links=[['hud','📊 ステータス表示設定'],['buildings','🏘 建物・生産'],['dreamjournal','📒 夢の旅の記録'],['progress','🌗 実績・世界進捗'],['save','💾 セーブ・バックアップ'],['settings','⚙️ 遊び方・音・設定'],['rebirth','🌌 輪廻・再構築'],['logs','📜 戦況・世界の時刻'],['dopa','🎰 ドパチャレンジ'],['extras','✦ その他の操作']];
+ const links=[['permanent','✧ 恒久強化・固有戦利品'],['hud','📊 ステータス表示設定'],['buildings','🏘 建物・生産'],['dreamjournal','📒 夢の旅の記録'],['progress','🌗 実績・世界進捗'],['save','💾 セーブ・バックアップ'],['settings','⚙️ 遊び方・音・設定'],['rebirth','🌌 輪廻・再構築'],['logs','📜 戦況・世界の時刻'],['dopa','🎰 ドパチャレンジ'],['extras','✦ その他の操作']];
  for(const [key,label]of links){const b=v68Node('button','v68-menu-'+key,label);b.type='button';b.onclick=()=>v68OpenPanel(key);menuLinks.appendChild(b);}
  menu.appendChild(menuLinks);
  const oldSave=$('savetoggle');if(oldSave)menu.appendChild(oldSave);
@@ -2749,6 +2841,7 @@ function v68InitUI(){
  const savePane=pane('save','セーブ・バックアップ');v68Move('savepanel',savePane);
  const town=v68Node('details','v78-town');town.open=innerHeight>=700;
  const townTitle=v68Node('summary',null,'🏘 街づくり · 10種');townTitle.tabIndex=0;town.appendChild(townTitle);v76InitBuildings(town);
+ const permanent=pane('permanent','恒久強化・固有戦利品');v80InitPermanent(permanent);
  const hudSettings=pane('hud','ステータス表示設定');
  const journal=pane('dreamjournal','夢の旅の記録');journal.appendChild(v68Node('div','v77-dream-journal'));
  const rebirth=pane('rebirth','輪廻・世界再構築');v68Move('prestigepanel',rebirth);
@@ -2787,7 +2880,6 @@ function v68InitUI(){
  $('v68-shortcut-books').onclick=()=>$(v63Active()==='dream'?'v62-open-diary':'books').click();
  $('v68-shortcut-progress').onclick=()=>v68OpenPanel('progress');
  $('v68-shortcut-menu').onclick=()=>v68OpenPanel('menu');
- $('v76-shortcut-buildings').onclick=()=>v68OpenPanel('buildings');
  const route=v68Node('p','v77-dream-route');$('v64-exp-event').before(route);
  const journalButton=v68Node('button','v77-dream-journal-open','📒 旅の記録');journalButton.type='button';journalButton.onclick=()=>v68OpenPanel('dreamjournal');$('v64-exp-result').after(journalButton);
  $('v77-tactic').onfocus=()=>{v77TacticEditing=true;if(v68AutoRuntime.running)v68AutoPause('戦い方を選んでいます',true);};
@@ -2826,7 +2918,7 @@ function v68InitUI(){
 }
 function v68RenderUI(){
  if(!v68UIReady)return;
- v76RenderBuildings();v77RenderCombat();v77RenderDreamExtras();v78RenderHUD();
+ v76RenderBuildings();v77RenderCombat();v77RenderDreamExtras();v78RenderHUD();v80RenderPermanent();
  const boxCount='🎁 ルートボックス　所持 '+prettyNum(Math.floor(s.boxes))+'個';
  const boxHeading=$('boxpanel').querySelector('h3');if(boxHeading.textContent!==boxCount)boxHeading.textContent=boxCount;
  const gearTitle='装備・ルートボックス（'+prettyNum(Math.floor(s.boxes))+'個）';v68Panes.get('gear').dataset.title=gearTitle;
@@ -3785,4 +3877,13 @@ body.v68-ui #v78-hud-toggle[aria-pressed="true"]{border-width:2px;font-weight:80
 #v68-pane-hud input[type="checkbox"]{width:20px;height:20px;flex-shrink:0}
 #v78-hud-position{min-height:44px;font-size:16px}
 body.v68-ui #v79-building-batch{min-height:44px;font-size:16px;margin:0 0 6px 5px}
+body.v68-ui #v68-shortcuts{grid-template-columns:repeat(5,minmax(0,1fr))}
+body.v68-ui .v80-gear-word{display:inline-block;white-space:nowrap}
+body.v68-ui .v80-reading-tools{padding:9px;border:1px solid var(--border);border-radius:9px;margin:7px 0;color:var(--fg);background:var(--panel)}
+body.v68-ui .v80-reading-tools p{font-size:14px;line-height:1.6;margin:0 0 6px}
+body.v68-ui .v80-reading-tools button{min-height:44px;font-size:14px;width:100%}
+body.v68-ui .v80-reading-tools small{font-size:14px}
+body.v68-ui #v80-enemy-drop,body.v68-ui #v80-drop-notice{font-size:14px;line-height:1.6;overflow-wrap:anywhere;color:var(--fg);margin:5px 0}
+body.v68-ui #v80-drop-notice{border:2px solid var(--border);padding:7px;border-radius:8px;background:var(--panel)}
+body.v68-ui #v80-drop-notice[hidden]{display:none}
 </style></body></html>
