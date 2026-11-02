@@ -272,8 +272,36 @@ body[data-theme="dream"] #v62-diary-panel:not(.hide){display:block!important}
 const kanjiUnits=['','万','億','兆','京','垓','秭','穣','溝','澗','正','載','極','恒河沙','阿僧祇','那由他','不可思議','無量大数'];
 function prettyNum(x){x=Number(x);if(!Number.isFinite(x))return '∞';if(x===0)return '0';let sign=x<0?'−':'';x=Math.abs(x);let f=s.numFormat||'kanji';if(f==='digits')return sign+x.toLocaleString('ja-JP',{maximumFractionDigits:x<100?2:0});if(f==='science')return sign+x.toExponential(2).replace('e+','e+');if(f==='engineering'){let e=Math.floor(Math.log10(x)/3)*3,m=x/10**e;return sign+m.toFixed(m<10?2:1).replace(/\.?0+$/,'')+' ×10'+superscript(e)}if(f==='short'){let u=['','K','M','B','T','Qa','Qi','Sx','Sp','Oc','No'];let e=Math.max(0,Math.floor(Math.log10(x)/3));if(e>=u.length)return sign+x.toExponential(2);return sign+(x/1000**e).toFixed(e?2:0).replace(/\.?0+$/,'')+u[e]}if(x<10000)return sign+x.toLocaleString('ja-JP',{maximumFractionDigits:x<100?2:0});let parts=[],v=Math.floor(x),i=0;while(v>=1&&i<kanjiUnits.length){let part=v%10000;if(part)parts.unshift(String(part)+kanjiUnits[i]);v=Math.floor(v/10000);i++}return sign+(v>=1?x.toExponential(2):parts.join(''))}
 function superscript(n){return String(n).replace(/[0-9-]/g,c=>({'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻'}[c]))}
-const $=id=>document.getElementById(id),key='observer-001-stable-v17';var v64Ready=false;let s={n:0,h:100,lv:1,mode:'fast',auto:false,boxes:2,autoOpen:false,owned:{},discoveredGear:{},pendingBossReward:0,savedBuilds:[],activeSavedBuild:null,disabled:{},cards:{},wins:0,coins:0,shop:{},relics:{},bosses:{},theme:'dark',boostUntil:0,boost:1,shieldUntil:0,chaosUntil:0,chaos:1,last:Date.now(),timed:[],empty:0,paper:0,novels:{},choices:{},expired:0,curse:0,opened:0,lastRare:"",autoRecycle:false,forgeLevel:{},forgeDust:0,readingPath:"balanced",research:{opening:0,recycling:0,balance:0},godQueue:[],rebirth:0,carryBook:0,choiceArchive:{},worldEpoch:Date.now(),tutorialSeen:false,tutorialStep:0};try{let x=JSON.parse(localStorage.getItem(key)||localStorage.getItem('observer-001-stable-v16')||localStorage.getItem('observer-divine-v10')||'null');if(x)s={...s,...x}}catch(e){}s.savedBuilds=Array.isArray(s.savedBuilds)?s.savedBuilds.slice(0,3):[];s.activeSavedBuild=Number.isInteger(s.activeSavedBuild)&&s.activeSavedBuild>=0&&s.activeSavedBuild<3?s.activeSavedBuild:null;s.discoveredGear=s.discoveredGear||{};for(const id of Object.keys(s.owned||{})){if(s.owned[id]>0)s.discoveredGear[id]=true;}s.pendingBossReward=Number(s.pendingBossReward)||0;s.timed=Array.isArray(s.timed)?s.timed:[];s.novels=s.novels||{};s.choices=s.choices||{};s.empty=s.empty||0;s.paper=s.paper||0;s.expired=s.expired||0;if(s.mode==='normal')s.mode='fast';s.curse=Math.max(0,Math.min(5,Number(s.curse)||0));s.opened=s.opened||0;s.forgeLevel=s.forgeLevel||{};s.forgeDust=s.forgeDust||0;s.autoRecycle=!!s.autoRecycle;s.research={opening:0,recycling:0,balance:0,...(s.research||{})};s.godQueue=s.godQueue||[];s.dopaCardPending=Math.max(0,Math.min(1000000,Math.floor(Number(s.dopaCardPending)||0)));s.dopaGodPending=Math.max(0,Math.min(1000000,Math.floor(Number(s.dopaGodPending)||0)));s.dopaCardWins=Number(s.dopaCardWins)||0;s.dopaGodWins=Number(s.dopaGodWins)||0;s.v59BattleLog=Array.isArray(s.v59BattleLog)?s.v59BattleLog.slice(0,12).filter(x=>x&&typeof x.title==='string'&&typeof x.note==='string'):[];s.tutorialSeen=!!s.tutorialSeen;s.tutorialStep=Math.max(0,Number(s.tutorialStep)||0);
-s.shop=s.shop||{};
+// v68: A fresh start must be confirmed; unreadable saves are never overwritten.
+let v68FreshStart=false,v68SourceRaw=null,v68SourceKey=null,v68SaveBlocked='',v68MigrationBackupPending=false;
+const $=id=>document.getElementById(id),key='observer-001-stable-v17';var v64Ready=false;let s={n:0,h:100,lv:1,mode:'fast',auto:false,boxes:2,autoOpen:false,owned:{},discoveredGear:{},pendingBossReward:0,savedBuilds:[],activeSavedBuild:null,disabled:{},cards:{},wins:0,coins:0,shop:{},relics:{},bosses:{},theme:'dark',boostUntil:0,boost:1,shieldUntil:0,chaosUntil:0,chaos:1,last:Date.now(),timed:[],empty:0,paper:0,novels:{},choices:{},expired:0,curse:0,opened:0,lastRare:"",autoRecycle:false,forgeLevel:{},forgeDust:0,readingPath:"balanced",research:{opening:0,recycling:0,balance:0},godQueue:[],rebirth:0,carryBook:0,choiceArchive:{},worldEpoch:Date.now(),tutorialSeen:false,tutorialStep:0};try{
+ for(const candidate of [key,'observer-001-stable-v16','observer-divine-v10']){
+  const raw=localStorage.getItem(candidate);
+  if(raw!==null){v68SourceRaw=raw;v68SourceKey=candidate;break;}
+ }
+ if(v68SourceRaw===null)v68FreshStart=true;
+ else{
+  const x=JSON.parse(v68SourceRaw);
+  if(!x||typeof x!=='object'||Array.isArray(x))throw new Error('セーブ形式を確認できません');
+  // Validate only present fields that the existing engine dereferences directly.
+  for(const name of ['n','h','lv','boxes','wins','coins']){
+   if(name in x&&(typeof x[name]!=='number'||!Number.isFinite(x[name])||x[name]<(name==='lv'?1:0)||(name==='h'&&x[name]>100)))throw new Error('セーブ内の数値を確認できません');
+  }
+  for(const name of ['owned','disabled','cards','bosses','relics']){
+   if(name in x&&(!x[name]||typeof x[name]!=='object'))throw new Error('セーブ内の所持データを確認できません');
+  }
+  s={...s,...x};
+  v68MigrationBackupPending=x.v68Migration!==1;
+ }
+}catch(e){
+ v68SaveBlocked=v68SourceRaw===null?'保存領域を読み取れません。元の記録を確認するまで自動保存を止めています。':'保存データを読み取れません。元の記録と復旧ポイントを上書きせず保護しています。';
+}
+s.savedBuilds=Array.isArray(s.savedBuilds)?s.savedBuilds.slice(0,3):[];s.activeSavedBuild=Number.isInteger(s.activeSavedBuild)&&s.activeSavedBuild>=0&&s.activeSavedBuild<3?s.activeSavedBuild:null;s.discoveredGear=s.discoveredGear||{};for(const id of Object.keys(s.owned||{})){if(s.owned[id]>0)s.discoveredGear[id]=true;}s.pendingBossReward=Number(s.pendingBossReward)||0;s.timed=Array.isArray(s.timed)?s.timed:[];s.novels=s.novels||{};s.choices=s.choices||{};s.empty=s.empty||0;s.paper=s.paper||0;s.expired=s.expired||0;if(s.mode==='normal')s.mode='fast';s.curse=Math.max(0,Math.min(5,Number(s.curse)||0));s.opened=s.opened||0;s.forgeLevel=s.forgeLevel||{};s.forgeDust=s.forgeDust||0;s.autoRecycle=!!s.autoRecycle;s.research={opening:0,recycling:0,balance:0,...(s.research||{})};s.godQueue=s.godQueue||[];s.dopaCardPending=Math.max(0,Math.min(1000000,Math.floor(Number(s.dopaCardPending)||0)));s.dopaGodPending=Math.max(0,Math.min(1000000,Math.floor(Number(s.dopaGodPending)||0)));s.dopaCardWins=Number(s.dopaCardWins)||0;s.dopaGodWins=Number(s.dopaGodWins)||0;s.v59BattleLog=Array.isArray(s.v59BattleLog)?s.v59BattleLog.slice(0,12).filter(x=>x&&typeof x.title==='string'&&typeof x.note==='string'):[];s.tutorialSeen=!!s.tutorialSeen;s.tutorialStep=Math.max(0,Number(s.tutorialStep)||0);
+s.shop=s.shop&&typeof s.shop==='object'&&!Array.isArray(s.shop)?s.shop:{};
+// Composition is a shared cosmetic theme, not combat equipment or a discovered item.
+if(!(Number(s.shop.mondrian)>0))s.shop.mondrian=1;
+if(v68FreshStart)s.theme='mondrian';
+s.v68Migration=1;
 for(const [oldId,newId] of [['celestial','mondrian'],['abyss','icon'],['aurora','ukiyo']]){if((Number(s.shop[oldId])||0)>0&&!(Number(s.shop[newId])||0))s.shop[newId]=1;}
 if(['celestial','abyss','aurora'].includes(s.theme)){s.theme={celestial:'mondrian',abyss:'icon',aurora:'ukiyo'}[s.theme]||'dark';}
 if(!['dark','ivory','slate','navy','pine','wine','sand','plum','dream','twilight','mondrian','ukiyo','rinpa','icon','rococo'].includes(s.theme))s.theme='dark';if(s.readingPath==='opening')s.research.opening=Math.max(1,s.research.opening||0);if(s.readingPath==='recycling')s.research.recycling=Math.max(1,s.research.recycling||0);s.readingPath='balanced';s.rebirth=Number(s.rebirth)||0;s.carryBook=Number(s.carryBook)||0;s.choiceArchive=s.choiceArchive||{};s.worldEpoch=s.worldEpoch||Date.now();
@@ -337,21 +365,66 @@ function titleForEnding(){
 }
 function renderRestPanel(){const el=document.getElementById('restPanel');if(!el)return;const remain=Math.max(0,Math.ceil((s.returnBonusUntil-Date.now())/1000));el.innerHTML='<b>🌷 おかえりボーナス</b><div class="small">2時間以上休んで戻ると、11分間だけ数字と箱が×2。休憩中の報酬も別にもらえる。連続ログインの義務なし。</div><div class="small">'+(remain?'✨ 発動中：あと '+Math.ceil(remain/60)+'分':'💤 いまは通常運転。休んでも大丈夫。')+'</div><div class="small">⏱️ タイムアタック '+clockLabel((Date.now()-s.runStartedAt)/1000)+' ／ 実操作時間 '+clockLabel(s.runActiveSeconds)+' ／ おかえり '+s.runReturns+'回</div>'}
 
+function v68OriginalExport(raw){
+ try{
+  const original=JSON.parse(raw);
+  if(original&&typeof original==='object'&&!Array.isArray(original))return JSON.stringify({game:'001-infinity',version:7,exportedAt:new Date().toISOString(),state:original});
+ }catch(e){}
+ // Damaged source bytes remain downloadable for repair, without fabricating a save.
+ return raw;
+}
+function v68SaveProtectionNotice(message){
+ const box=document.getElementById('v67-save-warning');
+ if(!box)return;
+ box.hidden=false;
+ box.dataset.v68Protection='true';
+ box.querySelector('strong').textContent='⚠️ 元のセーブを保護しています';
+ box.querySelector('span').textContent=message+' この画面では一時的に遊べます。元データの保存・復旧後に再読み込みしてください。現在のプレイもバックアップから書き出せます。';
+ if(v68SourceRaw!==null&&!document.getElementById('v68-source-backup')){
+  const button=document.createElement('button');
+  button.id='v68-source-backup';button.type='button';button.textContent='元の保存データをダウンロード';
+  button.onclick=()=>{
+   const url=URL.createObjectURL(new Blob([v68OriginalExport(v68SourceRaw)],{type:'application/json'}));
+   const link=document.createElement('a');link.href=url;link.download='001-infinity-original-save.json';
+   document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);
+  };
+  box.append(button);
+ }
+}
+function v68PrepareSave(){
+ if(v68SaveBlocked){v68SaveProtectionNotice(v68SaveBlocked);return false;}
+ if(!v68MigrationBackupPending)return true;
+ try{
+  const backupKey=key+'-pre-v68',existing=localStorage.getItem(backupKey);
+  // Never replace a different recovery copy merely to complete a migration.
+  if(existing!==null&&existing!==v68SourceRaw)throw new Error('別の移行前バックアップが既にあります');
+  if(existing===null)localStorage.setItem(backupKey,v68SourceRaw);
+  if(localStorage.getItem(backupKey)!==v68SourceRaw)throw new Error('移行前バックアップを確認できません');
+  v68MigrationBackupPending=false;
+  return true;
+ }catch(e){
+  v68SaveProtectionNotice('移行前バックアップを保存できないため、自動保存を止めています。保存容量と既存バックアップを確認してください。');
+  return false;
+ }
+}
 let v67SaveFailed=false;
 function save(){
+ if(!v68PrepareSave())return;
  s.last=Date.now();
  try{
   localStorage.setItem(key,JSON.stringify(s));
+  const protectedNotice=document.getElementById('v67-save-warning');
+  if(protectedNotice?.dataset.v68Protection){delete protectedNotice.dataset.v68Protection;protectedNotice.hidden=true;}
   if(v67SaveFailed){v67SaveFailed=false;const box=document.getElementById('v67-save-warning');if(box)box.hidden=true;}
  }catch(e){
   v67SaveFailed=true;
   const box=document.getElementById('v67-save-warning');
-  if(box){box.hidden=false;box.querySelector('strong').textContent='⚠️ セーブが保存されていません';}
+  if(box){box.hidden=false;box.querySelector('strong').textContent='⚠️ セーブが保存されていません';box.querySelector('span').textContent='保存容量やブラウザの制限を確認し、念のためデータを書き出してください。';}
   if(!v67SaveFailedNotified){console.warn('001 infinity: saving failed; export a backup',e);v67SaveFailedNotified=true;}
  }
 }
 let v67SaveFailedNotified=false;
-function v10Backup(force=false){try{const slot=key+'-snapshots',now=Date.now(),arr=JSON.parse(localStorage.getItem(slot)||'[]');if(!Array.isArray(arr))return false;if(!force&&arr.length&&Number.isFinite(arr[0].at)&&now-arr[0].at>=0&&now-arr[0].at<600000)return false;arr.unshift({at:now,data:JSON.stringify({...s,last:now})});localStorage.setItem(slot,JSON.stringify(arr.slice(0,3)));return true}catch(e){return false}}
+function v10Backup(force=false){if(v68SaveBlocked||v68MigrationBackupPending)return false;try{const slot=key+'-snapshots',now=Date.now(),arr=JSON.parse(localStorage.getItem(slot)||'[]');if(!Array.isArray(arr))return false;if(!force&&arr.length&&Number.isFinite(arr[0].at)&&now-arr[0].at>=0&&now-arr[0].at<600000)return false;arr.unshift({at:now,data:JSON.stringify({...s,last:now})});localStorage.setItem(slot,JSON.stringify(arr.slice(0,3)));return true}catch(e){return false}}
 function v10Render(){const select=$('v10select'),notice=$('v10snapshots');try{const arr=JSON.parse(localStorage.getItem(key+'-snapshots')||'[]');select.innerHTML=arr.map((x,i)=>'<option value="'+i+'">'+new Date(x.at).toLocaleString('ja-JP')+' · 復旧'+(i+1)+'</option>').join('');notice.textContent=arr.length+' / 3 件保存済み';$('v10restore').disabled=!arr.length}catch(e){notice.textContent='復旧ポイントを読み取れません';$('v10restore').disabled=true}}
 function pick(){let r=Math.floor(Math.random()*1000000),a=0,t=0;for(let i=0;i<6;i++){a+=tierWeights[i];if(r<a){t=i;break}}let start=tierCounts.slice(0,t).reduce((a,b)=>a+b,0);return start+Math.floor(Math.random()*tierCounts[t])}function openOne(stats){expireTimed();if(s.boxes<1)return false;s.boxes--;let v23NewDiscovery=false;let urgent=false;if(s.timed.length){s.timed.sort((a,b)=>a-b);let remaining=s.timed[0]-Date.now();urgent=remaining>0&&remaining<=5000;s.timed.shift()}let count=1+(Math.random()<Math.min(.9,shopLv('echo')*.1)?1:0)+(god(2)?10:0);for(let j=0;j<count;j++){let i=pick();if((urgent||s.curse)&&i<42&&Math.random()<(urgent?.22:0)+s.curse*.055){i=42+Math.floor(Math.random()*48)}let newItem=!s.discoveredGear[i];if(newItem){v23NewDiscovery=true;v63Action('gear');}s.owned[i]=(s.owned[i]||0)+1;s.discoveredGear[i]=true;applySavedPreferenceOnDrop(i);if(stats){stats.r[gear[i].t]++;if(newItem)stats.new++;if(urgent)stats.urgent=(stats.urgent||0)+1}if(gear[i].t>=3)s.lastRare=gear[i].emoji+' '+gear[i].name;if(gear[i].god){msg='✨ 神の加護：'+gear[i].name+' 降臨！';s.godQueue.push(i)}}if(!v23NewDiscovery){if(s.autoRecycle){s.paper+=1+storyBonus().paper+(s.research.recycling||0)+cardSet().paper}else{s.empty++}}s.opened++;v63Action('box');if(typeof window.artOnBoxOpen==='function')window.artOnBoxOpen();
 // v25: milestone opportunities are 1/2 challenges, never guaranteed drops.
@@ -517,7 +590,7 @@ function renderThemes(){
  $('themes-basic').innerHTML=basicThemes.map(themeButton).join('');
  $('themes-fun').innerHTML=funThemes.map(themeButton).join('');
  $('themes-unlock').innerHTML=unlockThemes.map(themeButton).join('');
- document.querySelectorAll('[data-theme]').forEach(b=>b.onclick=()=>{let id=b.dataset.theme;if(!themeUnlocked(id)){$('themehint').textContent=id==='twilight'?'無窮も夢かわも制覇すると手に入る。':'この装いは未解放。下の「商店で解放する」から手に入る。';return}s.theme=id;document.body.dataset.theme=id;v63ThemePicked(id);renderThemes();v61DreamUpdate();save()});
+ document.querySelectorAll('#themepanel button[data-theme]').forEach(b=>b.onclick=()=>{let id=b.dataset.theme;if(!themeUnlocked(id)){$('themehint').textContent=id==='twilight'?'無窮も夢かわも制覇すると手に入る。':'この装いは未解放。下の「商店で解放する」から手に入る。';return}s.theme=id;document.body.dataset.theme=id;v63ThemePicked(id);renderThemes();v61DreamUpdate();save()});
  $('themehint').textContent=(allThemes.find(x=>x.id===s.theme)?.desc)||'最初は黒地と白文字。好きな色にいつでも着替えられる。';
 }
 function toggle(id){$(id).classList.toggle('hide');if(id==='boxpanel'){if(s.v57Current.gear===null)v57Roll('gear');renderGear()}if(id==='cardpanel')renderCards();if(id==='shoppanel')renderShop()}
@@ -1090,7 +1163,9 @@ function worldPhase(){return Math.floor(((Date.now()-s.worldEpoch)%300000+300000
 function worldBonus(){let p=worldPhase();return [{production:1.2,extraBox:.08,timedChance:.3},{production:1,extraBox:.04,timedChance:.65},{production:1.5,extraBox:.2,timedChance:.55}][p]}
 function worldLabel(){let p=worldPhase(),left=100-Math.floor(((Date.now()-s.worldEpoch)%100000+100000)%100000/1000);return ['☀️ 昼：生産×1.2','🌙 夜：時限箱が増加','🌆 黄昏：生産×1.5・箱発見UP'][p]+' · 次まで'+left+'秒'}
 function renderAlternates(){let out='';for(let i=alternatePage*BOOKS_PER_PAGE;i<Math.min(stories.length,(alternatePage+1)*BOOKS_PER_PAGE);i++){if(s.choices[i]===undefined)continue;let done=!!s.choiceArchive[i],price=Math.min(35,3+i*2),other=1-s.choices[i];out+='<div class="item"><span>第'+(i+1)+'巻 '+(done?'✅ 両分岐収集':'未選択：'+stories[i].choices[other][0])+'</span><button data-alt="'+i+'" '+(done||s.paper<price?'disabled':'')+'>'+(done?'完了':'📜'+price)+'</button></div>'}$('alternatechoices').innerHTML=(out||'<p class="small">このページには選択済みの巻がありません。</p>')+'<div class="row"><button id="altprev" '+(alternatePage===0?'disabled':'')+'>◀ 前</button><span>'+(alternatePage+1)+' / '+Math.ceil(stories.length/BOOKS_PER_PAGE)+'</span><button id="altnext" '+((alternatePage+1)*BOOKS_PER_PAGE>=stories.length?'disabled':'')+'>次 ▶</button></div>';$('altprev').onclick=()=>{alternatePage--;renderAlternates()};$('altnext').onclick=()=>{alternatePage++;renderAlternates()};document.querySelectorAll('[data-alt]').forEach(b=>b.onclick=()=>{let i=+b.dataset.alt,c=Math.min(35,3+i*2);if(s.paper<c||s.choiceArchive[i])return;s.paper-=c;s.choiceArchive[i]=true;msg='📖 第'+(i+1)+'巻の両分岐を獲得';renderLibrary();draw();save()})}
-function renderPrestige(){let books=stories.map((v,i)=>i===0||s.novels[i]?'<option value="'+i+'" '+(s.carryBook===i?'selected':'')+'>'+(i+1)+'巻 '+v.title.slice(0,32)+'</option>':'').join('');$('carrybooks').innerHTML='<div class="small">次の世界へ持ち越す一冊（効果2倍）</div><select id="carrySelect" style="max-width:100%;width:100%;padding:10px;background:#262d45;color:white">'+books+'</select>';$('carrySelect').onchange=e=>{s.carryBook=+e.target.value;save()};$('prestigestatus').textContent='転生 '+s.rebirth+'回 · 永久倍率 ×'+prettyNum(2**Math.min(40,s.rebirth))+' · Lv.'+s.lv+'/25';$('prestige').disabled=s.lv<25}
+// v68: Keep the carry-book selector stable between ticks (including keyboard focus).
+let v68CarryMarkup=null;
+function renderPrestige(){let books=stories.map((v,i)=>i===0||s.novels[i]?'<option value="'+i+'" '+'>'+(i+1)+'巻 '+v.title.slice(0,32)+'</option>':'').join('');const markup='<div class="small">次の世界へ持ち越す一冊（効果2倍）</div><select id="carrySelect" style="max-width:100%;width:100%;padding:10px;background:#262d45;color:white">'+books+'</select>';if(v68CarryMarkup!==markup){v68CarryMarkup=markup;$('carrybooks').innerHTML=markup;$('carrySelect').onchange=e=>{s.carryBook=+e.target.value;save()};}const select=$('carrySelect'),selected=String(s.carryBook);if(select.value!==selected&&Array.from(select.options).some(option=>option.value===selected))select.value=selected;$('prestigestatus').textContent='転生 '+s.rebirth+'回 · 永久倍率 ×'+prettyNum(2**Math.min(40,s.rebirth))+' · Lv.'+s.lv+'/25';$('prestige').disabled=s.lv<25}
 $('prestige').onclick=()=>{if(s.lv<25)return;if(!confirm('世界を再構築しますか？ 数字・レベル・装備・箱・戦闘階層は初期化されます。図鑑・書庫・研究・紙片などは残ります。'))return;v10Backup(true);s.rebirth++;s.n=0;s.h=100;s.lv=1;s.mode='fast';s.boxes=2;s.timed=[];s.empty=0;s.owned={};s.disabled={};s.activeSavedBuild=null;s.wins=0;s.bosses={};s.curse=0;s.boostUntil=0;s.chaosUntil=0;s.shieldUntil=0;s.worldEpoch=Date.now();fight=null;s.pendingBossReward=0;renderBossChoice();msg='🌌 第'+(s.rebirth+1)+'世界が始まった';renderGear();renderCustomBuilds();renderPrestige();draw();save()};
 
 // v6: manual backup and restore, no network dependency
@@ -1317,7 +1392,7 @@ document.addEventListener('visibilitychange',()=>{
 });
 window.addEventListener('pageshow',()=>resumeFromBackground());
 window.addEventListener('pagehide',()=>{if(backgroundAt===null)backgroundAt=Date.now();save()});
-setInterval(()=>{if(document.hidden)return;let t=Date.now();if(backgroundAt!==null)resumeFromBackground();t=Date.now();const activeDelta=Math.min(10,Math.max(0,(t-prev)/1000));s.runActiveSeconds+=activeDelta;step(activeDelta);prev=t;expireTimed();expeditionAutoOpen();fightTick(t);if(eventVisible&&t>eventEnd){eventVisible=false;$('event').classList.add('hide');spawnAt=t+12000+Math.random()*13000}if(!eventVisible&&t>spawnAt){eventVisible=true;eventEnd=t+7000;let v=Math.random();eventType=v<.83?'yin':v<.9?'double':v<.96?'gift':'dagger';$('event').textContent={yin:'☯',double:'‡',gift:'🎁',dagger:'†'}[eventType];$('event').classList.remove('hide')}if(!$('bookpanel').classList.contains('hide'))renderLibrary();renderPrestige();draw();if(t-lastAutoSave>=5000){save();v10Backup();renderRestPanel();lastAutoSave=t}},500);
+setInterval(()=>{if(document.hidden)return;let t=Date.now();if(backgroundAt!==null)resumeFromBackground();t=Date.now();const activeDelta=Math.min(10,Math.max(0,(t-prev)/1000));s.runActiveSeconds+=activeDelta;step(activeDelta);prev=t;expireTimed();expeditionAutoOpen();v68AutoTick(t,activeDelta);v68FightTick(t,activeDelta);if(eventVisible&&t>eventEnd){eventVisible=false;$('event').classList.add('hide');spawnAt=t+12000+Math.random()*13000}if(!eventVisible&&t>spawnAt){eventVisible=true;eventEnd=t+7000;let v=Math.random();eventType=v<.83?'yin':v<.9?'double':v<.96?'gift':'dagger';$('event').textContent={yin:'☯',double:'‡',gift:'🎁',dagger:'†'}[eventType];$('event').classList.remove('hide')}if(!$('bookpanel').classList.contains('hide'))renderLibrary();renderPrestige();draw();if(t-lastAutoSave>=5000){save();v10Backup();renderRestPanel();lastAutoSave=t}},500);
 
 renderRestPanel();
 // v21 secret ending, accessible only after every collection and both final branches.
@@ -2121,6 +2196,352 @@ const v65OriginalSwitch=v63Switch;
 v63Switch=function(world){v65OriginalSwitch(world);if(v65Ready){s.dualWorld.v65.visited[world]=true;v65Render();save();}};
 v65Init();
 
+// v68: one controller on the existing game clock; all actions use the original rules.
+const v68AutoDefaults={explore:false,combat:false,boss:false,reward:false,speed:1,theater:true};
+const v68SavedAuto=s.v68Auto&&typeof s.v68Auto==='object'?s.v68Auto:{};
+s.v68Auto={...v68AutoDefaults};
+for(const option of ['explore','combat','boss','reward','theater'])if(typeof v68SavedAuto[option]==='boolean')s.v68Auto[option]=v68SavedAuto[option];
+if([1,2,4].includes(v68SavedAuto.speed))s.v68Auto.speed=v68SavedAuto.speed;
+const v68AutoRuntime={running:false,paused:false,reason:'設定を選んでAUTO開始',internal:false,bound:false,credit:0,lastProgress:0,signature:'',lastDefeat:null,lastExpedition:null,resting:false,gearDirty:false,lastGearRender:0};
+function v68AutoStatus(message){v68AutoRuntime.reason=message;}
+function v68AutoRender(){
+ const a=v68AutoRuntime,c=s.v68Auto,main=$('v68-auto-main');if(!main)return;
+ main.textContent=a.running?'■ AUTO停止':a.paused?'▶ AUTO再開':'▶ AUTO開始';
+ main.setAttribute('aria-pressed',String(a.running));
+ const pause=$('v68-auto-pause');if(pause){pause.textContent=a.paused?'▶ 再開':'Ⅱ 一時停止';pause.disabled=!a.running&&!a.paused;}
+ const status=$('v68-auto-status');if(status){const text=(a.running?'AUTO · ':a.paused?'一時停止 · ':'手動 · ')+a.reason;if(status.textContent!==text)status.textContent=text;}
+ for(const option of ['explore','combat','boss','reward','theater']){const el=$('v68-auto-'+option);if(el)el.checked=c[option];}
+ if($('v68-auto-speed'))$('v68-auto-speed').value=String(c.speed);
+ document.body.dataset.autoState=a.running?'running':a.paused?'paused':'manual';
+ document.body.classList.toggle('v68-theater',a.running&&c.theater);
+ if(typeof v68RenderUI==='function')v68RenderUI();
+}
+function v68AutoPause(reason='手動操作で一時停止'){
+ const a=v68AutoRuntime;if(a.running||a.paused){a.running=false;a.paused=true;a.credit=0;v68AutoStatus(reason);}
+ if(fight?.active)fight.last=Date.now();
+ v68AutoRender();
+}
+function v68AutoStop(){
+ const a=v68AutoRuntime;a.running=false;a.paused=false;a.credit=0;v68AutoStatus('AUTO停止。再開するまで自動操作しません');
+ if(fight?.active)fight.last=Date.now();v68AutoRender();
+}
+function v68AutoManual(){
+ v68AutoStop();
+ // Existing manual combat already resolves itself. Return ownership to that original loop.
+ if(fight){fight.v68AutoOwned=false;fight.last=Date.now();}
+ v68AutoStatus('手動操作に戻りました');
+ const manual=$('v68-manual-controls');if(manual)manual.open=true;
+ v68AutoRender();
+}
+function v68AutoModal(){
+ if($('v68-library')?.open)return true;
+ return ['v63-world-overlay','tutorialOverlay','secretEndingOverlay','godreveal'].some(id=>{
+  const el=$(id);return el&&!el.classList.contains('hide')&&getComputedStyle(el).display!=='none'&&el.getBoundingClientRect().width>0;
+ });
+}
+function v68AutoStart(){
+ const a=v68AutoRuntime,c=s.v68Auto;
+ if(!c.explore&&!c.combat){a.running=false;a.paused=true;v68AutoStatus('自動探索か自動戦闘をONにしてください');v68AutoRender();return;}
+ if(v63Active()==='dream'&&!c.explore){a.running=false;a.paused=true;v68AutoStatus('ゆめかわ世界は戦わない冒険です。自動探索をONにしてください');v68AutoRender();return;}
+ if(document.hidden||!s.dualWorld?.chosen||v68AutoModal()){a.running=false;a.paused=true;v68AutoStatus('ダイアログを閉じ、画面を表示してから再開してください');v68AutoRender();return;}
+ a.running=true;a.paused=false;a.credit=0;a.lastProgress=Date.now();a.signature='';
+ // A deliberate restart may retry an already-failed battle/expedition once.
+ a.lastDefeat=fight&&!fight.active?fight:null;a.lastExpedition=v64Expedition();
+ if(fight?.active&&c.combat&&v63Active()==='classic'){
+  if(fight.e.boss&&!c.boss){v68AutoPause('ボス戦AUTOはOFFです。手動復帰か設定変更を選んでください');return;}
+  fight.v68AutoOwned=true;fight.v68AutoCredit=0;fight.last=Date.now();
+ }
+ const manual=$('v68-manual-controls');if(manual&&c.theater)manual.open=false;
+ v68AutoStatus('開始。いつでも停止・手動復帰できます');v68AutoRender();
+}
+function v68AutoInvoke(action){
+ const a=v68AutoRuntime,old=a.internal;a.internal=true;
+ try{return action();}finally{a.internal=old;}
+}
+function v68AutoMode(mode){
+ if(s.mode===mode)return false;
+ // Same mode and scene transition as the manual buttons; retain the legacy -11% auto setting.
+ s.mode=mode;v57Roll(mode==='rest'?'rest':'work');draw();save();return true;
+}
+function v68AutoSignature(){
+ const e=v64Expedition(),c=s.v68Auto;
+ const combat=c.combat?[s.wins,s.pendingBossReward,fight?.e?.stage,fight?.ehp,fight?.hp]:[];
+ const exploration=!c.explore?[]:v63Active()==='dream'?[e?.active,e?.site,e?.step,e?.energy,e?.sparkle]:[s.opened,s.boxes];
+ return [v63Active(),...combat,...exploration].join('|');
+}
+function v68StartAutoBattle(now){
+ if(v63Active()!=='classic'||fight?.active||!s.v68Auto.combat||!v68AutoRuntime.running)return;
+ const boss=s.wins>0&&s.wins%5===0&&!s.bosses[s.wins];
+ if(boss&&!s.v68Auto.boss){v68AutoPause('次はボス戦です（ボス戦AUTOはOFF）');return;}
+ v68AutoInvoke(startFight);
+ if(fight?.active){fight.v68AutoOwned=true;fight.v68AutoCredit=0;fight.v68AutoStartedAt=now;fight.last=now;v68AutoStatus(boss?'既存のボス戦を進行中':'既存の通常戦闘を進行中');}
+}
+function v68AutoDecision(now){
+ const a=v68AutoRuntime,c=s.v68Auto;
+ if(!a.running)return;
+ if(!c.explore&&!c.combat){v68AutoPause('自動探索・戦闘がどちらもOFFです');return;}
+ if(v63Active()==='dream'&&!c.explore){v68AutoPause('ゆめかわ世界は戦わない冒険です。自動探索をONにしてください');return;}
+ if(v68AutoModal()){v68AutoPause('ダイアログを閉じて再開してください');return;}
+ if(!Number.isFinite(s.h)||s.h<0||!Number.isFinite(s.boxes)||s.boxes<0||!Number.isFinite(s.wins)||s.wins<0){v68AutoPause('状態を確認してください。データは変更しません');return;}
+ if(fight&&!fight.active&&fight.hp<=0&&fight!==a.lastDefeat){a.lastDefeat=fight;v68AutoPause('敗北しました。装備・調子を確認して再開してください');return;}
+ if(s.pendingBossReward&&v63Active()==='classic'){
+  if(!c.reward){v68AutoPause('ボスの報酬を選んでください（報酬自動選択OFF）');return;}
+  const button=document.querySelector('[data-bossreward="'+(s.boxes<2?'boxes':'coins')+'"]');
+  if(!button){v68AutoPause('報酬の操作が見つかりません');return;}
+  v68AutoInvoke(()=>button.click());v68AutoStatus('既存の追加報酬を1つ選びました');return;
+ }
+ if(fight?.active){
+  if(c.combat&&fight.v68AutoOwned&&v63Active()==='classic'){
+   const mech=fight.e.mech||'';
+   if((mech.includes('封印')||mech.includes('反転'))&&s.mode!=='rest'){
+    a.resting=true;v68AutoMode('rest');v68AutoStatus('既存の休息でボスの仕掛けに対応');
+   }
+   if(s.h<=32&&s.mode!=='rest'){a.resting=true;v68AutoMode('rest');v68AutoStatus('調子が低いため既存の休息に切替');}
+  }
+  if(!c.explore||v63Active()!=='dream')return;
+ }
+ if(s.h<=32){a.resting=true;v68AutoMode('rest');v68AutoStatus('調子を回復中（既存の休息）');return;}
+ if(a.resting&&!fight?.active){
+  if(s.h<90){v68AutoStatus('休息中。調子90%で再開');return;}
+  a.resting=false;v68AutoMode('fast');
+ }
+ if(c.explore&&v63Active()==='dream'){
+  const e=v64Expedition();
+  if(e?.active){
+   if(!Array.isArray(e.history)||e.energy<=0||e.step>=7){v68AutoPause('探検の状態を確認してください');return;}
+   const remaining=7-e.step;
+   // Each rest is a real step. Keep enough energy for every remaining safe step.
+   const choice=e.rests<2&&e.energy<=remaining+1?2:e.energy>=remaining+3&&remaining>1?1:0;
+   v68AutoInvoke(()=>v64Choose(choice));v68AutoStatus(['ゆっくり進む道を選択','きらめきを探す道を選択','既存の休憩で元気を回復'][choice]);
+   if(!e.active&&e.success===false){a.lastExpedition=e;v68AutoPause('探検はここまで。行き先を確認して再開してください');}return;
+  }
+  if(e?.finished&&!e.success&&e!==a.lastExpedition){a.lastExpedition=e;v68AutoPause('探検はここまで。行き先を確認して再開してください');return;}
+  const select=$('v64-exp-select');if(!select||select.options.length!==V64_SITES.length){v68AutoPause('探検先を確認してください');return;}
+  const unseen=V64_SITES.findIndex((_,i)=>!s.dualWorld.v64.sites[i]);
+  select.value=String(unseen>=0?unseen:((e?.site??-1)+1)%V64_SITES.length);
+  v68AutoInvoke(v64Start);v68AutoStatus('既存の行き先へ出発');return;
+ }
+ if(c.explore){
+  if(eventVisible&&['yin','double','gift'].includes(eventType)){v68AutoInvoke(()=>$('event').click());v68AutoStatus('探索中の安全なイベントを回収');return;}
+  if(s.boxes>=1&&!opening){
+   const stats={r:[0,0,0,0,0,0],new:0,urgent:0};
+   v68AutoInvoke(()=>openOne(stats));
+   if(stats.r.some(n=>n))a.gearDirty=true;
+   if(stats.r[5])showGod();
+   const rare=stats.r.slice(3).some(n=>n);if(rare)msg='✨ '+s.lastRare;
+   v68AutoStatus(rare?'レア発見 · '+s.lastRare:'時間経過で得た箱を既存の抽選で開封');
+   // Combat is independent: one opening must not starve the next battle forever.
+   if(!c.combat)return;
+  }
+ }
+ if(c.combat){
+  v68StartAutoBattle(now);
+  return;
+ }
+ if(v63Active()==='classic')v68AutoStatus('無窮の探索は時間経過で箱を発見。ドロップ率は通常どおり');
+}
+function v68AutoTick(now,delta){
+ const a=v68AutoRuntime;if(!a.running)return;
+ if(document.hidden){v68AutoPause('画面が非表示になりました');return;}
+ if(v68AutoModal()){v68AutoPause('ダイアログを閉じて再開してください');return;}
+ if(a.gearDirty&&now-a.lastGearRender>=1500){const panel=$('boxpanel');if(panel&&!panel.classList.contains('hide')&&panel.getClientRects().length){renderGear();a.gearDirty=false;a.lastGearRender=now;}}
+ const sig=v68AutoSignature();if(sig!==a.signature){a.signature=sig;a.lastProgress=now;}
+ if(now-a.lastProgress>60000){v68AutoPause('進行が止まりました。状態を確認して再開してください');return;}
+ a.credit=Math.min(2,a.credit+Math.max(0,Math.min(1,Number(delta)||0))*s.v68Auto.speed);
+ let budget=2;while(a.running&&a.credit>=1&&budget--){a.credit-=1;v68AutoDecision(now);}
+ v68AutoRender();
+}
+function v68FightTick(now,delta){
+ if(!fight?.active)return;
+ // Dream is the existing noncombat world. Retain a classic fight until its view returns.
+ if(v63Active()!=='classic'){fight.last=now;return;}
+ if(!fight.v68AutoOwned){fightTick(now);return;}
+ const a=v68AutoRuntime,c=s.v68Auto;
+ if(!a.running||!c.combat||document.hidden||v63Active()!=='classic'){fight.last=now;return;}
+ if(![fight.hp,fight.max,fight.ehp,fight.e?.hp,fight.e?.atk,fight.e?.stage].every(Number.isFinite)||fight.hp<=0||fight.max<=0||fight.ehp<=0||fight.e.hp<=0||fight.e.atk<0||fight.e.stage<1){fight.last=now;v68AutoPause('戦闘の数値を確認してください。データは変更しません');return;}
+ if(fight.e.boss&&!c.boss){fight.last=now;v68AutoPause('ボス戦AUTOはOFFです');return;}
+ if(fight.v68AutoStartedAt===now){fight.last=now;return;}
+ fight.v68AutoCredit=Math.min(4,(fight.v68AutoCredit||0)+Math.max(0,Math.min(1,Number(delta)||0))*c.speed);
+ let budget=4;
+ while(fight.active&&fight.v68AutoCredit>=1&&budget--){fight.v68AutoCredit-=1;fightTick(fight.last+1000);}
+ fight.last=now;
+ if(!fight.active&&fight.hp<=0){a.lastDefeat=fight;v68AutoPause('敗北しました。装備・調子を確認して再開してください');}
+}
+function v68AutoInit(){
+ const a=v68AutoRuntime;if(a.bound||!$('v68-auto-main'))return;a.bound=true;
+ $('v68-auto-main').onclick=()=>a.running?v68AutoStop():v68AutoStart();
+ if($('v68-auto-pause'))$('v68-auto-pause').onclick=()=>a.running?v68AutoPause('一時停止しました'):v68AutoStart();
+ if($('v68-auto-manual'))$('v68-auto-manual').onclick=v68AutoManual;
+ for(const option of ['explore','combat','boss','reward','theater']){
+  const el=$('v68-auto-'+option);if(el)el.onchange=()=>{s.v68Auto[option]=el.checked;if(option==='combat'&&!el.checked&&fight?.v68AutoOwned)v68AutoPause('自動戦闘をOFFにしました');v68AutoRender();save();};
+ }
+ if($('v68-auto-speed'))$('v68-auto-speed').onchange=e=>{const speed=Number(e.target.value);s.v68Auto.speed=[1,2,4].includes(speed)?speed:1;v68AutoRender();save();};
+ const manual=$('v68-manual-controls');if(manual)manual.addEventListener('toggle',()=>{if(manual.open&&a.running)v68AutoPause('手動操作を開いたため一時停止');});
+ const intervene=e=>{
+  if(a.internal||!a.running||!e.target.closest)return;
+  const control=e.target.closest('button,a,input,select,textarea,summary');if(!control)return;
+  if(control.id?.startsWith('v68-auto-')||control.closest('#v68-auto-settings'))return;
+  if(e.type==='keydown'&&!['Enter',' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))return;
+  v68AutoPause('手動操作で一時停止。再開または手動復帰できます');
+ };
+ document.addEventListener('pointerdown',intervene,true);document.addEventListener('click',intervene,true);document.addEventListener('keydown',intervene,true);
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)v68AutoPause('画面が非表示になりました');if(fight?.active)fight.last=Date.now();});
+ window.addEventListener('pagehide',()=>v68AutoPause('画面を離れました'));
+ const switchWorld=v63Switch;v63Switch=function(world){v68AutoPause('世界を切り替えました');return switchWorld(world);};
+ const pickTheme=v63ThemePicked;v63ThemePicked=function(theme){v68AutoPause('着せ替えを変更しました');return pickTheme(theme);};
+ v68AutoRender();
+}
+
+// v68: preserve the original live nodes and game handlers inside a compact shell.
+let v68UIReady=false,v68UIWaiting=false,v68DialogKey='menu',v68PreviousTheater=false,v68PreviousWorld=null;
+const v68Panes=new Map();
+function v68Node(tag,id,text){const el=document.createElement(tag);if(id)el.id=id;if(text!==undefined)el.textContent=text;return el;}
+function v68Move(id,host){const node=$(id);if(node)host.appendChild(node);return node;}
+function v68PauseForUI(reason){if(typeof v68AutoPause==='function')v68AutoPause(reason);}
+function v68ClosePanel(){const dialog=$('v68-library');if(dialog?.open)dialog.close();}
+function v68SyncProgressControls(){
+ document.querySelectorAll('[data-v65-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v65Tab===v65Tab)));
+ document.querySelectorAll('[data-v65-filter]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v65Filter===v65Filter)));
+}
+function v68OpenPanel(key='menu'){
+ if(!v68UIReady||!v68Panes.has(key))return;
+ if(key==='diary'&&v63Active()!=='dream')key='menu';
+ v68PauseForUI('詳細画面を開いています');
+ v68DialogKey=key;
+ for(const [name,pane] of v68Panes)pane.hidden=name!==key;
+ const pane=v68Panes.get(key),dialog=$('v68-library');
+ $('v68-library-title').textContent=pane.dataset.title;
+ $('v68-library-back').hidden=key==='menu';
+ if(key==='progress'){$('v65-details').open=true;v65Render();v68SyncProgressControls();}
+ if(key==='gear'){$('boxpanel').classList.remove('hide');renderGear();renderCustomBuilds();}
+ if(key==='shop'){$('shoppanel').classList.remove('hide');renderShop();}
+ if(key==='cards'){$('cardpanel').classList.remove('hide');renderCards();}
+ if(key==='books'){$('bookpanel').classList.remove('hide');renderLibrary();}
+ if(key==='save'){$('savepanel').classList.remove('hide');$('savetoggle').setAttribute('aria-expanded','true');}
+ if(key==='rebirth')renderPrestige();
+ if(key==='settings')$('v54Guide').open=true;
+ if(!dialog.open)dialog.showModal();
+ $('v68-library-body').scrollTop=0;
+ $('v68-library-close').focus({preventScroll:true});
+}
+function v68InitUI(){
+ if(v68UIReady)return;
+ if(document.readyState==='loading'){
+  if(!v68UIWaiting){v68UIWaiting=true;document.addEventListener('DOMContentLoaded',v68InitUI,{once:true});}
+  return;
+ }
+ const main=document.querySelector('main');if(!main)return;
+ const originalChildren=Array.from(main.children);
+ document.body.classList.add('v68-ui');
+ const stats=v68Node('div','v68-stats');stats.setAttribute('aria-label','現在の冒険の状態');
+ const play=v68Node('div','v68-play');play.setAttribute('aria-label','探索と戦闘');
+ const bottom=v68Node('footer','v68-bottom');
+ const auto=v68Node('section','v68-auto-controls');auto.setAttribute('aria-label','AUTO操作');
+ auto.innerHTML='<div class="v68-auto-row"><button type="button" id="v68-auto-main">▶ AUTO開始</button><button type="button" id="v68-auto-pause">一時停止</button><button type="button" id="v68-auto-manual">手動に戻る</button></div><div class="v68-auto-sub"><span id="v68-auto-status" role="status" aria-live="polite">手動で開始できます</span><label for="v68-auto-speed">速度</label><select id="v68-auto-speed" aria-label="AUTO速度"><option value="1">×1</option><option value="2">×2</option><option value="4">×4</option></select><button type="button" id="v68-auto-settings-open">AUTO設定</button></div>';
+ bottom.appendChild(auto);
+ const shortcuts=v68Node('nav','v68-shortcuts');shortcuts.setAttribute('aria-label','主要ショートカット');
+ shortcuts.innerHTML='<button id="v68-shortcut-gear" type="button">🎁 装備</button><button id="v68-shortcut-books" type="button">📚 書庫</button><button id="v68-shortcut-progress" type="button">🌗 進捗</button><button id="v68-shortcut-menu" type="button">☰ すべて</button>';
+ bottom.appendChild(shortcuts);
+ const dialog=v68Node('dialog','v68-library');dialog.setAttribute('aria-labelledby','v68-library-title');
+ dialog.innerHTML='<header class="v68-library-head"><button type="button" id="v68-library-back">← 一覧</button><h2 id="v68-library-title">すべての機能</h2><button type="button" id="v68-library-close" aria-label="詳細画面を閉じる">閉じる ×</button></header><div id="v68-library-body"></div>';
+ document.body.appendChild(dialog);
+ const libraryBody=$('v68-library-body');
+ function pane(key,title){const p=v68Node('section','v68-pane-'+key);p.dataset.title=title;p.hidden=true;libraryBody.appendChild(p);v68Panes.set(key,p);return p;}
+ const menu=pane('menu','すべての機能');
+ const menuHint=v68Node('p',null,'冒険を止めて、装備・物語・記録をゆっくり確認できます。');menuHint.className='small';menu.append(menuHint);
+ v68Move('v54nav',menu);v68Move('v62-diary-access',menu);
+ const menuLinks=v68Node('div','v68-menu-links');menuLinks.className='v68-menu-grid';
+ const links=[['progress','🌗 実績・世界進捗'],['save','💾 セーブ・バックアップ'],['settings','⚙️ 遊び方・音・設定'],['auto','▶ AUTO設定'],['rebirth','🌌 輪廻・再構築'],['logs','📜 戦況・世界の時刻'],['dopa','🎰 ドパチャレンジ'],['extras','✦ その他の操作']];
+ for(const [key,label]of links){const b=v68Node('button','v68-menu-'+key,label);b.type='button';b.onclick=()=>v68OpenPanel(key);menuLinks.appendChild(b);}
+ menu.appendChild(menuLinks);
+ const oldSave=$('savetoggle');if(oldSave)menu.appendChild(oldSave);
+ const gearPane=pane('gear','装備・ルートボックス');v68Move('boxpanel',gearPane);
+ const shopPane=pane('shop','永久商店');v68Move('shoppanel',shopPane);
+ const cardsPane=pane('cards','禁書目録・図鑑');v68Move('cardpanel',cardsPane);
+ const booksPane=pane('books','古紙回収・研究・書庫');v68Move('bookpanel',booksPane);
+ const museumPane=pane('museum','私設美術館');v68Move('artMuseumPanel',museumPane);
+ const diaryPane=pane('diary','整然ちゃんの日記');v68Move('v62-diary-panel',diaryPane);
+ const progress=pane('progress','実績・ふたつの世界の進捗');
+ const hub=$('v65-hub');
+ for(const selector of ['.v65-head','.v65-bottom','#v65-details']){const n=hub.querySelector(selector);if(n)progress.appendChild(n);}
+ v68Move('v63-world-dashboard',progress);v68Move('v64-clear-tracks',progress);
+ $('v65-details').addEventListener('click',()=>v68SyncProgressControls());
+ const progressOpen=v68Node('button','v68-progress-open');progressOpen.type='button';progressOpen.setAttribute('aria-label','無窮とゆめかわの進捗の詳細を開く');progressOpen.setAttribute('aria-haspopup','dialog');progressOpen.onclick=()=>{v68OpenPanel('progress');v65ChangeTab('tracks');v68SyncProgressControls();};hub.appendChild(progressOpen);
+ const settings=pane('settings','遊び方・音・設定');v68Move('v54Guide',settings);v68Move('v9panel',settings);v68Move('v35audio',settings);
+ const savePane=pane('save','セーブ・バックアップ');v68Move('savepanel',savePane);
+ const rebirth=pane('rebirth','輪廻・世界再構築');v68Move('prestigepanel',rebirth);
+ const logs=pane('logs','戦況ログ・世界の時刻');const history=document.querySelector('.v59-battle-history');if(history)logs.appendChild(history);v68Move('worldclock',logs);
+ const dopa=pane('dopa','ドパ1/2チャレンジ');dopa.appendChild(v68Node('p','v68-dopa-locked','挑戦権は箱の開封で獲得します。獲得条件と抽選はこれまでどおりです。'));v68Move('dopaChallenge',dopa);
+ const autoPane=pane('auto','AUTO設定');autoPane.dataset.autoSettings='true';
+ autoPane.innerHTML='<div id="v68-auto-settings"><p>既存の行動で進めます。ボス戦と報酬の選択は、初期状態では手動です。</p><div class="v68-auto-options"><label><input type="checkbox" id="v68-auto-explore"> 自動探索</label><label><input type="checkbox" id="v68-auto-combat"> 自動戦闘</label><label><input type="checkbox" id="v68-auto-boss"> ボス戦AUTO</label><label><input type="checkbox" id="v68-auto-reward"> 報酬を自動選択</label><label><input type="checkbox" id="v68-auto-theater"> AUTOシアター</label></div><p class="small">手動操作・詳細画面・非表示タブではAUTOを一時停止します。手動に戻る操作は画面下に常にあります。</p></div>';
+ const extras=pane('extras','その他の操作');
+ const manual=v68Node('details','v68-manual-controls');manual.open=true;manual.appendChild(v68Node('summary',null,'手動操作を開く・閉じる'));
+ const hero=$('v54hero');
+ const actionRows=Array.from(hero.querySelectorAll('.v54-action-row'));for(const row of actionRows)manual.appendChild(row);hero.appendChild(manual);
+ const heroNotes=v68Node('details','v68-hero-details');heroNotes.appendChild(v68Node('summary',null,'所持金・生産と最近の人生'));
+ for(const selector of ['.v54-eyebrow','#v57-money-caption','#number','#rate','#buff','#v57-work-scene','#v57-upgrade-scene','.v54-hero-foot']){const n=hero.querySelector(selector);if(n)heroNotes.appendChild(n);}
+ hero.prepend(heroNotes);
+ const dock=hero.querySelector('.v59-battle-dock');if(dock)extras.appendChild(dock);
+ // Existing overlays must remain outside the constrained play scroller.
+ for(const id of ['godreveal','themepanel','v54Scrim','tutorialOverlay','artDiscoveryToast'])v68Move(id,document.body);
+ for(const id of ['v54hero','v64-dream-expedition','battlepanel','log','event'])v68Move(id,play);
+ v68Move('v63-live-announcement',document.body);
+ main.append(stats,play,bottom);
+ for(const child of originalChildren){if(child.parentElement===main&&!['v32header','v65-hub','v67-save-warning'].includes(child.id))extras.appendChild(child);}
+ // The header and meter keep their original nodes and rendering IDs.
+ main.prepend($('v32header'));$('v32header').after(hub);hub.after(stats);stats.after($('v67-save-warning'));$('v67-save-warning').after(play);play.after(bottom);
+ const targetButtons={boxes:'gear',shop:'shop',cards:'cards',books:'books',artMuseumBtn:'museum','v62-open-diary':'diary',savetoggle:'save',themeGoShop:'shop','artToastOpen':'museum','v67-save-backup':'save'};
+ for(const [id,key]of Object.entries(targetButtons)){const b=$(id);if(!b)continue;const original=b.onclick;b.onclick=function(event){if(original)original.call(this,event);v68OpenPanel(key);};}
+ for(const id of ['artMuseumClose','v62-close-diary']){const b=$(id);if(!b)continue;const original=b.onclick;b.onclick=function(event){if(original)original.call(this,event);v68ClosePanel();};}
+ const progressDoor=$('v65-door'),oldDoor=progressDoor.onclick;progressDoor.onclick=function(event){if(oldDoor)oldDoor.call(this,event);if(!v64RealityUnlocked())v68OpenPanel('progress');};
+ $('v68-shortcut-gear').onclick=()=>$('boxes').click();
+ $('v68-shortcut-books').onclick=()=>$(v63Active()==='dream'?'v62-open-diary':'books').click();
+ $('v68-shortcut-progress').onclick=()=>v68OpenPanel('progress');
+ $('v68-shortcut-menu').onclick=()=>v68OpenPanel('menu');
+ $('v68-auto-settings-open').onclick=()=>v68OpenPanel('auto');
+ $('v68-library-close').onclick=v68ClosePanel;$('v68-library-back').onclick=()=>v68OpenPanel('menu');
+ dialog.addEventListener('click',event=>{if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)v68ClosePanel();}});
+ dialog.addEventListener('close',()=>{
+  if(dialog.open)return;
+  for(const [key,p]of v68Panes)p.hidden=true;
+  for(const id of ['boxpanel','shoppanel','cardpanel','bookpanel','artMuseumPanel','v62-diary-panel','savepanel'])$(id).classList.add('hide');
+  $('artMuseumBtn').setAttribute('aria-expanded','false');$('savetoggle').setAttribute('aria-expanded','false');v62Visibility();
+ });
+ // Preserve original special overlays even when a reward is found inside the drawer.
+ const overlayObserver=new MutationObserver(()=>{
+  if(document.body.classList.contains('theme-modal')||!$('godreveal').classList.contains('hide')||$('secretEndingOverlay').classList.contains('visible')||!$('tutorialOverlay').classList.contains('hide')||!$('v63-world-overlay').classList.contains('hide'))v68ClosePanel();
+ });
+ for(const id of ['godreveal','secretEndingOverlay','tutorialOverlay','v63-world-overlay'])overlayObserver.observe($(id),{attributes:true,attributeFilter:['class']});
+ overlayObserver.observe(document.body,{attributes:true,attributeFilter:['class']});
+ // Progress notices may cover scenery briefly, but never the persistent HP/status header.
+ const positionNotices=()=>{document.body.style.setProperty('--v68-toast-top',Math.ceil(play.getBoundingClientRect().top+5)+'px');};
+ if(typeof ResizeObserver==='function'){const sizeObserver=new ResizeObserver(positionNotices);sizeObserver.observe(play);}
+ positionNotices();
+ v68UIReady=true;
+ if(typeof v68AutoInit==='function')v68AutoInit();
+ v68RenderUI();
+}
+function v68RenderUI(){
+ if(!v68UIReady)return;
+ const dream=v63Active()==='dream',exp=s.dualWorld?.v64?.explore;
+ const world=dream?'dream':'classic';
+ if(world!==v68PreviousWorld){$('v68-manual-controls').open=!dream&&!document.body.classList.contains('v68-theater');v68PreviousWorld=world;}
+ $('v64-dream-expedition').dataset.expeditionState=exp?.active?'active':'ready';
+ const stage=fight?.e?.stage||s.wins+1;
+ const lines=dream?['Lv.'+s.lv,'元気 '+(exp?.active?exp.energy:8)+'/10','旅 '+(exp?.active?exp.step:0)+'/7','✨ '+(exp?.active?exp.sparkle:0)]:['Lv.'+s.lv,'調子 '+Math.round(s.h)+'%','第'+stage+'階',fight?'HP '+Math.max(0,Math.ceil(fight.hp))+'/'+Math.ceil(fight.max):'HP 戦闘開始時に決定'];
+ lines.push('次の強化 '+prettyNum(Math.max(0,Math.ceil(lvCost()-s.n)))+'必要');
+ const root=$('v68-stats'),text=lines.join(' · ');if(root.textContent!==text)root.textContent=text;
+ const shortcut=$('v68-shortcut-books'),label=dream?'📔 日記':'📚 書庫';if(shortcut.textContent!==label)shortcut.textContent=label;
+ const locked=$('v68-dopa-locked');locked.hidden=!$('dopaChallenge').classList.contains('hide');
+ const theater=document.body.classList.contains('v68-theater');
+ if(theater!==v68PreviousTheater){$('v68-manual-controls').open=!theater;v68PreviousTheater=theater;}
+ v68SyncProgressControls();
+}
+const v68PreviousDraw=draw;
+draw=function(){v68PreviousDraw();v68RenderUI();};
+
+v68InitUI();
+
 v63Render();renderThemes();
 if(!s.dualWorld.chosen)v63Open();
 document.getElementById('v67-save-backup').onclick=()=>{
@@ -2128,6 +2549,19 @@ document.getElementById('v67-save-backup').onclick=()=>{
  if(panel.classList.contains('hide'))document.getElementById('savetoggle').click();
  document.getElementById('saveexport').click();
  panel.scrollIntoView({block:'start',behavior:'smooth'});
+};
+// The recovery copy is exportable through the existing import/download format.
+const v68ExportBeforeUpgrade=document.createElement('button');
+v68ExportBeforeUpgrade.id='v68-export-preupgrade';v68ExportBeforeUpgrade.type='button';
+v68ExportBeforeUpgrade.textContent='移行前のセーブを書き出す';
+savepanel.appendChild(v68ExportBeforeUpgrade);
+v68ExportBeforeUpgrade.onclick=()=>{
+ try{
+  const raw=localStorage.getItem(key+'-pre-v68');
+  if(raw===null){savestatus.textContent='移行前の記録はありません。新規ゲームでは通常の書き出しをご利用ください。';return;}
+  savedata.value=v68OriginalExport(raw);
+  savestatus.textContent='移行前の記録を書き出しました。「JSON保存」で保存し、必要なときは既存の読み込みから復旧できます。';
+ }catch(e){savestatus.textContent='移行前の記録を読み取れません。保存領域へのアクセスを確認してください。';}
 };
 // The initial selector is only for the first launch of v63. Subsequent visits honor the selected version.
 
@@ -2795,4 +3229,151 @@ body[data-theme=dream] #v63-world-dashboard .v63-double-reward b,body[data-theme
 #v67-save-warning strong{display:block;color:#fff!important;width:100%}
 #v67-save-warning span{flex:1 1 180px}
 #v67-save-warning button{min-height:40px;border:1px solid #ffda91!important;background:#ffe8b8!important;color:#42230b!important}
+</style><style id="v68-compact-ux">
+/* v68 compact viewport shell; original content and themes remain intact. */
+body.v68-ui{height:100dvh;overflow:hidden;padding:0!important}
+body.v68-ui main{box-sizing:border-box;height:100dvh;max-width:760px!important;padding:6px 8px max(6px,env(safe-area-inset-bottom))!important;display:flex;flex-direction:column;gap:5px;min-width:0}
+body.v68-ui main>*{flex-shrink:0;min-width:0}
+body.v68-ui #v32header{margin:0!important;grid-template-columns:minmax(0,1fr) auto auto!important;gap:5px!important;min-height:44px}
+body.v68-ui #v32header .v32brand{font-size:22px!important}
+body.v68-ui #v32header .v32sub{display:none!important}
+body.v68-ui #v63-world-switch,body.v68-ui #v54Theme{min-height:44px!important;font-size:11px!important;padding:6px!important}
+body.v68-ui #v65-hub{height:44px;min-height:44px;margin:0!important;padding:3px 8px!important;border-radius:8px;overflow:visible;box-shadow:none}
+body.v68-ui #v65-hub .v65-color-labels{font-size:10px;margin:0 0 1px;line-height:15px}
+body.v68-ui #v65-hub .v65-color-labels b{font-size:10px}
+body.v68-ui #v65-hub .v65-memo-meter{padding:0;gap:6px;height:9px}
+body.v68-ui #v65-hub .v65-meter-track{height:7px;gap:1px}
+body.v68-ui #v65-hub .v65-meter-tick{height:6px;border:0;border-radius:0;transform:none}
+body.v68-ui #v65-hub .v65-center-mark{font-size:10px}
+body.v68-ui #v68-progress-open{position:absolute;inset:0;width:100%;height:100%;min-height:44px!important;background:transparent!important;border:0!important;border-radius:8px!important;z-index:2}
+body.v68-ui #v65-reveal{position:fixed;z-index:200;top:var(--v68-toast-top,170px);left:50%;transform:translateX(-50%);width:min(90vw,500px);box-sizing:border-box;box-shadow:0 6px 24px #0008;pointer-events:none}
+body.v68-ui #v68-stats{font-size:12px;font-weight:750;line-height:1.5;min-height:25px;padding:3px 5px;overflow-wrap:anywhere;background:var(--panel);border-radius:5px;font-variant-numeric:tabular-nums}
+body.v68-ui #v68-play{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;display:flex;flex-direction:column;gap:5px;padding:0 1px 3px}
+body.v68-ui #v68-play>*{flex-shrink:0;min-width:0}
+body.v68-ui #v54hero{margin:0!important;padding:5px 7px!important;border-radius:9px!important;box-shadow:none!important}
+body.v68-ui #v54hero::before{display:none!important}
+body.v68-ui #v54hero>#status,body.v68-ui #v54hero>.bar{display:none!important}
+body.v68-ui #v68-hero-details>summary,body.v68-ui #v68-manual-controls>summary{cursor:pointer;display:flex;align-items:center;min-height:44px;font-size:12px;font-weight:750;line-height:1.4}
+body.v68-ui #v68-hero-details>summary::after,body.v68-ui #v68-manual-controls>summary::after{content:'⌄';margin-left:auto;font-size:16px}
+body.v68-ui #v68-hero-details[open]>summary::after,body.v68-ui #v68-manual-controls[open]>summary::after{content:'⌃'}
+body.v68-ui #v68-hero-details #number{font-size:32px!important;margin:0!important}
+body.v68-ui #v68-hero-details #rate{font-size:12px!important}
+body.v68-ui #v68-hero-details .v57-scene{margin:4px 0!important;padding:6px 8px!important}
+body.v68-ui #v68-hero-details .v57-scene-title{font-size:14px!important;line-height:1.4!important}
+body.v68-ui #v68-manual-controls .v54-action-row{margin:4px 0!important;gap:5px!important}
+body.v68-ui #v68-manual-controls .v54-action-row button{font-size:12px!important;min-height:44px!important;padding:6px 4px!important}
+body.v68-ui #v57-receipt{margin:0;font-size:11px;line-height:1.4}
+body.v68-ui #battlepanel.v59-battle{margin:0!important;border-radius:9px!important;box-shadow:none!important}
+body.v68-ui #battlepanel .v59-battle-header{padding:5px 8px;min-height:34px}
+body.v68-ui .v59-overline{display:none!important}
+body.v68-ui .v59-battle-header h2{font-size:14px;margin:0}
+body.v68-ui #v59-battle-status{font-size:11px;padding:3px 7px}
+body.v68-ui .v59-arena{padding:7px 8px!important}
+body.v68-ui #v57-battle-scene{padding:6px 8px!important;margin:0 0 6px!important}
+body.v68-ui #v57-battle-scene .v57-kicker{font-size:9px}
+body.v68-ui #v57-battle-scene .v57-scene-title{font-size:15px!important;line-height:1.35!important}
+body.v68-ui #v57-battle-scene p{font-size:11px!important;line-height:1.45!important;margin:3px 0 0}
+body.v68-ui .v59-opponents{margin:3px 0 5px;gap:4px}
+body.v68-ui #battlepanel #foe{font-size:12px}
+body.v68-ui .v59-hp-grid{gap:3px}
+body.v68-ui .v59-hp-label{font-size:11px;line-height:1.3}
+body.v68-ui .v59-hp-rail{height:7px;margin-bottom:3px}
+body.v68-ui .v59-actions{flex-direction:row;align-items:center;margin-top:5px;gap:7px}
+body.v68-ui #battlepanel #attack{min-height:44px!important;font-size:13px!important;width:100%;padding:6px!important}
+body.v68-ui #v59-fight-hint{font-size:11px;text-align:left;line-height:1.45;flex:0 0 32%;min-width:82px}
+body.v68-ui #battlepanel #attack{flex:1 1 0;min-width:0!important;width:auto!important}
+body.v68-ui .v59-mechanic:not(:empty){font-size:11px!important;padding:4px 6px;margin:4px 0}
+body.v68-ui .v59-finale{padding:6px;margin:6px 0 0;font-size:11px}
+body.v68-ui .v59-finale b{font-size:15px}
+body.v68-ui .v59-boss-reward{padding:6px;margin-top:6px}
+body.v68-ui .v59-boss-reward .row{grid-template-columns:repeat(3,minmax(0,1fr));margin:5px 0}
+body.v68-ui .v59-boss-reward button{min-height:44px!important}
+body.v68-ui #log{font-size:11px;line-height:1.5;min-height:17px;padding:3px 6px;background:var(--panel);border-radius:5px;overflow-wrap:anywhere}
+body.v68-ui #v64-dream-expedition{margin:0!important;padding:8px!important;border-radius:10px!important;box-shadow:none}
+body.v68-ui #v64-dream-expedition .v64-heading{gap:3px}
+body.v68-ui #v64-dream-expedition .v64-heading small,body.v68-ui #v64-dream-expedition .v64-heading p,body.v68-ui #v64-dream-expedition .v64-exp-note{display:none}
+body.v68-ui #v64-dream-expedition .v64-heading h2{font-size:15px;margin:0}
+body.v68-ui #v64-exp-count{font-size:10px;padding:3px 6px}
+body.v68-ui .v64-stats{margin:4px 0;gap:4px}
+body.v68-ui .v64-stats span{font-size:10px;padding:3px 5px}
+body.v68-ui .v64-route-label{font-size:11px;margin:3px 0}
+body.v68-ui #v64-exp-select{font-size:12px;min-height:44px;padding:5px 8px}
+body.v68-ui .v64-event{padding:7px;margin:5px 0;min-height:0}
+body.v68-ui .v64-event strong{font-size:14px}
+body.v68-ui .v64-event p{font-size:12px;margin:4px 0;line-height:1.4}
+body.v68-ui .v64-event small{font-size:10px}
+body.v68-ui #v64-dream-expedition[data-expedition-state="active"] .v64-route-label,body.v68-ui #v64-dream-expedition[data-expedition-state="active"] #v64-exp-select,body.v68-ui #v64-dream-expedition[data-expedition-state="active"] #v64-exp-status{display:none}
+body.v68-ui .v64-exp-choices{gap:5px}
+body.v68-ui .v64-exp-choices button{min-height:44px!important;padding:6px 8px!important}
+body.v68-ui .v64-exp-choices button strong{font-size:12px}
+body.v68-ui .v64-exp-choices button small{font-size:10px;margin-top:2px}
+body.v68-ui .v64-exp-result{font-size:11px;line-height:1.45;margin:4px 0;min-height:0}
+body.v68-ui .v64-exp-actions{flex-direction:row}
+body.v68-ui .v64-exp-actions button{min-height:44px!important;font-size:12px;padding:5px}
+body.v68-ui #v68-bottom{background:var(--bg);padding-top:3px;border-top:1px solid var(--border)}
+body.v68-ui .v68-auto-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px}
+body.v68-ui #v68-bottom button,body.v68-ui #v68-bottom select{min-height:44px!important;box-sizing:border-box;border-radius:7px!important;font-size:11px!important;padding:5px!important;line-height:1.3}
+body.v68-ui #v68-auto-main{font-weight:850;background:var(--accent)!important;color:var(--accentText)!important}
+body.v68-ui .v68-auto-sub{display:flex;align-items:center;gap:4px;margin:4px 0}
+body.v68-ui #v68-auto-status{font-size:10px;line-height:1.35;flex:1;min-width:0;overflow-wrap:anywhere}
+body.v68-ui .v68-auto-sub>label{font-size:10px}
+body.v68-ui #v68-auto-speed{width:54px;font-size:14px!important}
+body.v68-ui #v68-auto-settings-open{max-width:68px}
+body.v68-ui #v68-shortcuts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+body.v68-ui #v68-shortcuts button{font-size:11px!important}
+body.v68-ui #v68-library{box-sizing:border-box;width:min(720px,calc(100vw - 12px));max-width:none;height:min(92dvh,920px);max-height:calc(100dvh - 12px);padding:0;border:1px solid var(--border);border-radius:13px;background:var(--panel);color:var(--fg);overflow:hidden}
+body.v68-ui #v68-library[open]{display:flex;flex-direction:column}
+body.v68-ui #v68-library::backdrop{background:#050713cf;backdrop-filter:blur(4px)}
+body.v68-ui .v68-library-head{display:flex;align-items:center;gap:7px;padding:6px 8px;border-bottom:1px solid var(--border);flex:0 0 auto}
+body.v68-ui .v68-library-head h2{font-size:14px!important;line-height:1.3;margin:0;flex:1;overflow-wrap:anywhere}
+body.v68-ui .v68-library-head button{min-height:44px!important;font-size:11px!important;padding:5px 8px!important;white-space:nowrap}
+body.v68-ui #v68-library-body{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;padding:9px;scrollbar-width:thin}
+body.v68-ui #v68-library [hidden]{display:none!important}
+body.v68-ui #v68-library .panel{margin:0 0 9px!important;box-sizing:border-box;max-width:100%;overflow-wrap:anywhere}
+body.v68-ui #v68-library #v54nav{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+body.v68-ui #v68-library #v54nav button{min-height:48px!important;font-size:12px!important}
+body.v68-ui #v68-library button,body.v68-ui #v68-library select{min-height:44px!important}
+body.v68-ui .v68-menu-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:9px 0}
+body.v68-ui .v68-menu-grid button{font-size:12px!important;padding:8px!important;text-align:left}
+body.v68-ui #v68-library #v9panel,body.v68-ui #v68-library #bgHelp,body.v68-ui #v68-library #v63-world-dashboard,body.v68-ui #v68-library #v64-clear-tracks{display:block!important}
+body.v68-ui #v68-pane-progress .v65-head,body.v68-ui #v68-pane-progress .v65-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:6px 0}
+body.v68-ui #v68-pane-progress .v65-head h2{font-size:17px;margin:3px 0}
+body.v68-ui #v68-pane-progress .v65-overline{font-size:9px;color:var(--muted)}
+body.v68-ui #v68-pane-progress .v65-bottom{font-size:12px;align-items:flex-start}
+body.v68-ui #v68-pane-progress #v65-next{display:flex;flex-direction:column;gap:3px}
+body.v68-ui #v68-pane-progress #v65-door{font-size:11px;min-width:86px;padding:6px}
+body.v68-ui #v68-pane-progress #v65-details{border:1px solid var(--border);padding:8px;border-radius:9px}
+body.v68-ui #v68-pane-progress #v65-details>summary{min-height:44px;font-size:12px;cursor:pointer}
+body.v68-ui #v68-pane-progress .v65-tabs,body.v68-ui #v68-pane-progress .v65-filters{display:flex;gap:5px;flex-wrap:wrap;margin:7px 0}
+body.v68-ui #v68-pane-progress .v65-tabs button,body.v68-ui #v68-pane-progress .v65-filters button{font-size:11px!important;padding:5px 8px!important}
+body.v68-ui #v68-pane-progress .v65-tabs button[aria-pressed=true],body.v68-ui #v68-pane-progress .v65-filters button[aria-pressed=true]{background:var(--accent)!important;color:var(--accentText)!important}
+body.v68-ui #v68-pane-progress .v65-badge{display:grid;grid-template-columns:27px minmax(0,1fr) auto;gap:6px;padding:8px 0;border-bottom:1px solid var(--border);font-size:11px}
+body.v68-ui #v68-pane-progress .v65-badge strong,body.v68-ui #v68-pane-progress .v65-badge small{display:block}
+body.v68-ui #v68-pane-progress .v65-badge small{font-size:10px;color:var(--muted)}
+body.v68-ui #v68-pane-progress .v65-badge .symbol{font-size:20px}
+body.v68-ui #v68-pane-progress .v65-badge .progress{font-size:10px;white-space:nowrap}
+body.v68-ui #v68-pane-progress .v65-task{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 5px;margin:7px 0;font-size:12px}
+body.v68-ui #v68-pane-progress .v65-task .track{grid-column:1/-1;height:4px;background:var(--border)}
+body.v68-ui #v68-pane-progress .v65-task i{display:block;height:100%;background:#5bbfff}
+body.v68-ui #v68-pane-progress .v65-track-side.dream .v65-task i{background:#ff84cf}
+body.v68-ui #v68-pane-progress .v65-footnote{font-size:11px;margin:10px 0}
+body.v68-ui #v68-pane-progress .v65-focus-slot{margin-top:7px}
+body.v68-ui .v68-auto-options{display:grid;gap:7px}
+body.v68-ui .v68-auto-options label{min-height:44px;display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:8px;padding:0 10px;font-size:14px}
+body.v68-ui .v68-auto-options input{width:21px;height:21px;flex-shrink:0;accent-color:var(--accent)}
+body.v68-ui #v67-save-warning{font-size:11px;margin:0;padding:5px 7px;max-height:115px;overflow:auto;gap:4px}
+body.v68-ui #v67-save-warning strong{width:auto}
+body.v68-ui #v63-live-announcement{position:fixed;left:50%;transform:translateX(-50%);width:min(90vw,550px);box-sizing:border-box;top:var(--v68-toast-top,170px);margin:0;font-size:12px;z-index:180}
+body.v68-ui #artDiscoveryToast{bottom:calc(152px + env(safe-area-inset-bottom))}
+body.v68-theater #v68-play{gap:7px}
+body.v68-theater #v68-manual-controls .v54-action-row,body.v68-theater .v59-actions{display:none!important}
+body.v68-theater #v68-hero-details{display:none}
+body.v68-theater #battlepanel.v59-battle{flex:1 0 auto;min-height:235px}
+body.v68-theater #v57-battle-scene{min-height:70px!important;display:flex;flex-direction:column;justify-content:center}
+body.v68-theater #v57-battle-scene .v57-scene-title{font-size:clamp(18px,5vw,25px)!important}
+body.v68-theater #v64-dream-expedition .v64-event{min-height:110px;display:flex;flex-direction:column;justify-content:center}
+@media(max-width:340px){body.v68-ui #v32header .v32brand{font-size:19px!important}body.v68-ui #v63-world-switch,body.v68-ui #v54Theme{font-size:10px!important;padding:4px!important}body.v68-ui #v68-stats{font-size:11px}body.v68-ui #v68-auto-status{font-size:9px}body.v68-ui #v68-library-body{padding:7px}body.v68-ui #v68-library .v68-menu-grid{grid-template-columns:1fr}}
+@media(max-height:620px){body.v68-ui main{gap:3px}body.v68-ui #v68-stats{font-size:11px;min-height:20px;padding:1px 4px}body.v68-ui #v68-bottom{padding-top:2px}body.v68-ui .v68-auto-sub{margin:2px 0}}
+@media(prefers-reduced-motion:reduce){body.v68-ui *,body.v68-ui *::before,body.v68-ui *::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
 </style></body></html>
