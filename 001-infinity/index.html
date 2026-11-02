@@ -68,7 +68,7 @@ button{touch-action:manipulation;min-height:43px}button:focus-visible,select:foc
   </details>
 </section><div id="v67-save-warning" role="alert" hidden><strong>⚠️ セーブが保存されていません</strong><span>保存容量やブラウザの制限を確認し、念のためデータを書き出してください。</span><button id="v67-save-backup" type="button">💾 バックアップを開く</button></div><section id="v54hero" aria-label="メイン操作"><div class="v54-eyebrow">001 ∞ · 一人経済圏</div><div id="v57-money-caption">所持金 <span>ゲーム内の基本資産 · 美術館の✦通貨とは別</span></div><h1 id="number" style="overflow-wrap:anywhere;cursor:pointer" title="タップで表示切替">0</h1><div class="small" id="rate"></div><div class="small gold" id="buff"></div>
   <div id="v57-work-scene" class="v57-scene" aria-live="polite"><div class="v57-kicker" id="v57-work-kind">今日の稼ぎ口</div><div class="v57-scene-title" id="v57-work-title">駅前の靴磨き</div><p id="v57-work-line">磨いた靴だけ、少し先に春が来る。</p></div>
-  <div class="row v54-action-row"><button data-mode="fast" title="押すたびに新しい金策を始める">💼 稼ぐ（増やす）</button><button data-mode="rest" title="押すたびに新しい休息場所へ">☾ 休む</button></div><div class="row v54-action-row"><button id="upgrade">強化</button><button id="auto">自動運転 OFF</button></div>
+  <div class="row v54-action-row"><button data-mode="fast" title="押すたびに新しい金策を始める">💼 稼ぐ（増やす）</button></div><div class="row v54-action-row"><button id="upgrade">強化</button></div>
   <div id="v57-upgrade-scene" class="v57-upgrade-line"><span>次の投資</span><strong id="v57-upgrade-title">昇進</strong><span id="v57-upgrade-text">名刺の肩書きが一行増えた。</span></div>
   <div class="v59-battle-dock" aria-label="クイック戦闘"><span><b>⚔️ 戦闘</b><small id="v59-dock-status">次の敵を待機中</small></span><button id="v59-quick-fight" type="button">出撃する ↗</button></div><div class="v57-receipt" id="v57-receipt" aria-live="polite"></div><div class="small" id="status"></div><div class="bar"><i id="health"></i></div><p class="v54-hero-foot">稼いで、休んで、また妙な商売を始める。無理に張り付かなくていい。</p></section><section class="panel v59-battle" id="battlepanel" aria-label="戦闘" data-battle-state="ready">
  <header class="v59-battle-header"><div><div class="v59-overline">COMBAT / 001 ∞</div><h2>⚔️ 戦闘司令室</h2></div><span id="v59-battle-status" role="status" aria-live="polite">待機中</span></header>
@@ -296,7 +296,7 @@ const $=id=>document.getElementById(id),key='observer-001-stable-v17';var v64Rea
 }catch(e){
  v68SaveBlocked=v68SourceRaw===null?'保存領域を読み取れません。元の記録を確認するまで自動保存を止めています。':'保存データを読み取れません。元の記録と復旧ポイントを上書きせず保護しています。';
 }
-s.savedBuilds=Array.isArray(s.savedBuilds)?s.savedBuilds.slice(0,3):[];s.activeSavedBuild=Number.isInteger(s.activeSavedBuild)&&s.activeSavedBuild>=0&&s.activeSavedBuild<3?s.activeSavedBuild:null;s.discoveredGear=s.discoveredGear||{};for(const id of Object.keys(s.owned||{})){if(s.owned[id]>0)s.discoveredGear[id]=true;}s.pendingBossReward=Number(s.pendingBossReward)||0;s.timed=Array.isArray(s.timed)?s.timed:[];s.novels=s.novels||{};s.choices=s.choices||{};s.empty=s.empty||0;s.paper=s.paper||0;s.expired=s.expired||0;if(s.mode==='normal')s.mode='fast';s.curse=Math.max(0,Math.min(5,Number(s.curse)||0));s.opened=s.opened||0;s.forgeLevel=s.forgeLevel||{};s.forgeDust=s.forgeDust||0;s.autoRecycle=!!s.autoRecycle;s.research={opening:0,recycling:0,balance:0,...(s.research||{})};s.godQueue=s.godQueue||[];s.dopaCardPending=Math.max(0,Math.min(1000000,Math.floor(Number(s.dopaCardPending)||0)));s.dopaGodPending=Math.max(0,Math.min(1000000,Math.floor(Number(s.dopaGodPending)||0)));s.dopaCardWins=Number(s.dopaCardWins)||0;s.dopaGodWins=Number(s.dopaGodWins)||0;s.v59BattleLog=Array.isArray(s.v59BattleLog)?s.v59BattleLog.slice(0,12).filter(x=>x&&typeof x.title==='string'&&typeof x.note==='string'):[];s.tutorialSeen=!!s.tutorialSeen;s.tutorialStep=Math.max(0,Number(s.tutorialStep)||0);
+s.savedBuilds=Array.isArray(s.savedBuilds)?s.savedBuilds.slice(0,3):[];s.activeSavedBuild=Number.isInteger(s.activeSavedBuild)&&s.activeSavedBuild>=0&&s.activeSavedBuild<3?s.activeSavedBuild:null;s.discoveredGear=s.discoveredGear||{};for(const id of Object.keys(s.owned||{})){if(s.owned[id]>0)s.discoveredGear[id]=true;}s.pendingBossReward=Number(s.pendingBossReward)||0;s.timed=Array.isArray(s.timed)?s.timed:[];s.novels=s.novels||{};s.choices=s.choices||{};s.empty=s.empty||0;s.paper=s.paper||0;s.expired=s.expired||0;if(s.mode==='normal')s.mode='fast';s.curse=Math.max(0,Math.min(5,Number(s.curse)||0));s.opened=s.opened||0;s.forgeLevel=s.forgeLevel||{};s.forgeDust=s.forgeDust||0;s.auto=false;s.autoRecycle=!!s.autoRecycle;s.research={opening:0,recycling:0,balance:0,...(s.research||{})};s.godQueue=s.godQueue||[];s.dopaCardPending=Math.max(0,Math.min(1000000,Math.floor(Number(s.dopaCardPending)||0)));s.dopaGodPending=Math.max(0,Math.min(1000000,Math.floor(Number(s.dopaGodPending)||0)));s.dopaCardWins=Number(s.dopaCardWins)||0;s.dopaGodWins=Number(s.dopaGodWins)||0;s.v59BattleLog=Array.isArray(s.v59BattleLog)?s.v59BattleLog.slice(0,12).filter(x=>x&&typeof x.title==='string'&&typeof x.note==='string'):[];s.tutorialSeen=!!s.tutorialSeen;s.tutorialStep=Math.max(0,Number(s.tutorialStep)||0);
 s.shop=s.shop&&typeof s.shop==='object'&&!Array.isArray(s.shop)?s.shop:{};
 // Composition is a shared cosmetic theme, not combat equipment or a discovered item.
 if(!(Number(s.shop.mondrian)>0))s.shop.mondrian=1;
@@ -347,7 +347,7 @@ function synergyBonus(){let b={production:1,hp:1,attack:1,boxes:0,healing:1};for
 function renderSynergy(){let root=$('synergyStatus');if(!root)return;let list=synergyState().effects.filter(e=>e.stacks);root.innerHTML=list.length?'<div class="synergy-heading">✧ 共鳴発動 '+list.length+'系統</div>'+list.map(e=>'<span class="synergy-pill" style="--res-color:'+e.color+';border-color:'+e.color+'88;background:'+e.color+'18">'+e.name+' <b>×'+e.stacks+'</b> <small>'+e.desc+'</small></span>').join(''):'<span class="small">✧ 異なる系統の装備をONにすると共鳴。2系統それぞれ2ポイントで発動。所持数は維持され、重複と共鳴の効果は段階が上がるほど緩やかに伸びます。</span>'}
 function gearTrade(){let b={production:1,hp:1,attack:1,boxes:0,drain:1,healing:1};for(let i=0;i<107;i++){if(!has(i))continue;let g=gear[i],n=Math.min(12,Number(s.owned[i])||0),strength=Math.min(2.5,(g.t+1)*.045*n);switch(i%5){case 0:b.production+=strength*1.8;b.drain+=strength*.8;break;case 1:b.hp+=strength*2.5;b.production*=1/(1+strength*.25);break;case 2:b.attack+=strength*2.2;b.drain+=strength*.65;break;case 3:b.boxes+=strength*.35;b.production*=1/(1+strength*.3);break;case 4:b.healing+=strength*1.5;b.attack*=1/(1+strength*.28);break}}let sy=synergyBonus();b.production*=sy.production;b.hp*=sy.hp;b.attack*=sy.attack;b.boxes+=sy.boxes;b.healing*=sy.healing*v63RestBonus();return b}
 function returnMultiplier(){return Date.now()<s.returnBonusUntil?2:1}
-function income(){let b=bonuses(),trade=gearTrade(),m={fast:2.7,rest:.28}[s.mode];let st=storyBonus();return trade.production*v74Rebirth()*worldBonus().production*1.24**Math.min(1000,s.lv-1)*1.65**Math.floor(Math.min(1000,s.lv-1)/5)*(1+b[0]/100)*(1+.25*shopLv('power'))*(1+st.production)*(st.endingA?5:1)*(1+forgePower())*(1+.12*(s.research.opening||0)+.06*(s.research.balance||0))*(1+cardSet().production)*v74DivineProduction()*m*returnMultiplier()*(.33+.67*s.h/100)*(s.auto?.89:1)*Math.max(.6,1-s.curse*.08)*v63IncomeBonus()*(Date.now()<s.boostUntil?s.boost:1)*(Date.now()<s.chaosUntil?s.chaos:1)}// v29: cumulative offline efficiency. 11min=100%, 2h=44%, 12h=11%.
+function income(){let b=bonuses(),trade=gearTrade(),m={fast:2.7,rest:.28}[s.mode];let st=storyBonus();return trade.production*v74Rebirth()*worldBonus().production*1.24**Math.min(1000,s.lv-1)*1.65**Math.floor(Math.min(1000,s.lv-1)/5)*(1+b[0]/100)*(1+.25*shopLv('power'))*(1+st.production)*(st.endingA?5:1)*(1+forgePower())*(1+.12*(s.research.opening||0)+.06*(s.research.balance||0))*(1+cardSet().production)*v74DivineProduction()*m*returnMultiplier()*(.33+.67*s.h/100)*Math.max(.6,1-s.curse*.08)*v63IncomeBonus()*(Date.now()<s.boostUntil?s.boost:1)*(Date.now()<s.chaosUntil?s.chaos:1)}// v29: cumulative offline efficiency. 11min=100%, 2h=44%, 12h=11%.
 function bgInstant(min,boost=false){const floor=boost?.22:.11;if(min<=11)return 1;if(min<=120)return 1-.56*(min-11)/109;if(min<=720)return .44-(.44-floor)*(min-120)/600;return floor}
 function bgEffectiveSeconds(seconds,boost=false){let m=Math.min(1440,Math.max(0,seconds/60)),v=0;const seg=(a,b,fa,fb)=>Math.max(0,b-a)*(fa+fb)/2;if(m<=11)return m*60;v=11;if(m<=120)return (v+seg(11,m,1,bgInstant(m,boost)))*60;v+=109*(1+.44)/2;if(m<=720)return (v+seg(120,m,.44,bgInstant(m,boost)))*60;v+=600*(.44+(boost?.22:.11))/2;return (v+(m-720)*(boost?.22:.11))*60}
 function bgBoost(){return !!(s.owned&&s.owned[112]>0&&!s.disabled[112])}
@@ -594,7 +594,7 @@ $('v59-quick-fight').onclick=()=>{
 $('v59-clear-log').onclick=()=>{s.v59BattleLog=[];v59LogCache='';v59RenderLog();save()};
 
 
-function draw(){v57SyncHero();let t=Date.now(),r=income();expireTimed();$('number').textContent=prettyNum(Math.floor(s.n));$('rate').textContent='+'+prettyNum(r)+' /秒';$('worldclock').textContent=worldLabel();$('buff').textContent=[['☯ ×'+s.boost,s.boostUntil],['‡ ×'+s.chaos,s.chaosUntil],['🛡',s.shieldUntil]].filter(x=>x[1]>t).map(x=>x[0]+' '+Math.ceil((x[1]-t)/1000)+'秒').join(' · ');$('upgrade').textContent='強化・'+(v57Get('upgrade')?.title||'昇進')+' '+prettyNum(lvCost());$('upgrade').disabled=s.n<lvCost();$('auto').textContent='自動運転 '+(s.auto?'ON':'OFF')+' (−11%)';$('status').textContent='Lv.'+s.lv+' · 調子 '+Math.round(s.h)+'% · '+({fast:'−1%/秒',rest:'＋5%/秒'}[s.mode])+' · '+s.wins+'勝';$('health').style.width=s.h+'%';$('boxes').textContent='🎁 '+prettyNum(s.boxes);$('autobox').textContent='🎁 自動開封 '+(s.autoOpen?'ON':'OFF');$('open').disabled=opening||s.boxes<1;$('openall').disabled=opening||s.boxes<1;$('open10').disabled=opening||s.boxes<1;$('open100').disabled=opening||s.boxes<1;$('boxstatus').textContent='⏳ 時限 '+s.timed.length+'箱'+(s.timed.length?' / 最短残り'+Math.max(0,Math.ceil((s.timed.reduce((a,b)=>Math.min(a,b),Infinity)-t)/1000))+'秒':'')+' · 🩸 呪い'+s.curse+'/5 · 累計'+s.opened+'箱';$('purify').disabled=s.curse===0||s.coins<2;$('curse').disabled=s.curse>=5;$('log').textContent=msg;$('coins').textContent='✦ '+s.coins;$('pack').disabled=s.coins<3;document.querySelectorAll('[data-mode]').forEach(b=>{b.style.background=s.mode===b.dataset.mode?'#32765e':'#262d45';b.setAttribute('aria-pressed',String(s.mode===b.dataset.mode));});if(fight){$('foe').textContent=(fight.e.boss?'🐉 ボス':fight.e.metal?'🩶 メタルスライム':'👾 通常敵')+' '+fight.e.stage+'階';$('bossmechanic').textContent=fight.e.mech?(fight.e.mech+' · '+(fight.e.mech.includes('回復')?'自然回復無効。耐久戦より火力で突破':fight.e.mech.includes('封印')?'増やす中は攻撃60%減。休むと封印解除':'増やす中は攻撃減・被ダメ2倍。休むと解除')):'';$('battleinfo').textContent='敵 '+prettyNum(Math.ceil(Math.max(0,fight.ehp)))+'/'+prettyNum(fight.e.hp)+' · 自分 '+prettyNum(Math.ceil(fight.hp))+'/'+prettyNum(Math.ceil(fight.max));$('attack').disabled=fight.active;$('attack').textContent=fight.active?'戦闘中':'次の敵へ'}v59RenderBattle();v61DreamUpdate()}function renderBossChoice(){let panel=$('bosschoice');if(!panel)return;let stage=s.pendingBossReward||0;panel.classList.toggle('hide',!stage);if(stage){let level=Math.ceil(stage/5);$('bossrewardhint').textContent='追加報酬：箱 '+(2+level)+'個 / 通貨 ✦'+(1+level)+' / 生産×2・90秒（既存のボス報酬に上乗せ）';$('battlepanel').classList.remove('hide')}}
+function draw(){v57SyncHero();let t=Date.now(),r=income();expireTimed();$('number').textContent=prettyNum(Math.floor(s.n));$('rate').textContent='+'+prettyNum(r)+' /秒';$('worldclock').textContent=worldLabel();$('buff').textContent=[['☯ ×'+s.boost,s.boostUntil],['‡ ×'+s.chaos,s.chaosUntil],['🛡',s.shieldUntil]].filter(x=>x[1]>t).map(x=>x[0]+' '+Math.ceil((x[1]-t)/1000)+'秒').join(' · ');$('upgrade').textContent='強化・'+(v57Get('upgrade')?.title||'昇進')+' '+prettyNum(lvCost());$('upgrade').disabled=s.n<lvCost();$('status').textContent='Lv.'+s.lv+' · 調子 '+Math.round(s.h)+'% · '+({fast:'−1%/秒',rest:'＋5%/秒'}[s.mode])+' · '+s.wins+'勝';$('health').style.width=s.h+'%';$('boxes').textContent='🎁 '+prettyNum(s.boxes);$('autobox').textContent='🎁 自動開封 '+(s.autoOpen?'ON':'OFF');$('open').disabled=opening||s.boxes<1;$('openall').disabled=opening||s.boxes<1;$('open10').disabled=opening||s.boxes<1;$('open100').disabled=opening||s.boxes<1;$('boxstatus').textContent='⏳ 時限 '+s.timed.length+'箱'+(s.timed.length?' / 最短残り'+Math.max(0,Math.ceil((s.timed.reduce((a,b)=>Math.min(a,b),Infinity)-t)/1000))+'秒':'')+' · 🩸 呪い'+s.curse+'/5 · 累計'+s.opened+'箱';$('purify').disabled=s.curse===0||s.coins<2;$('curse').disabled=s.curse>=5;$('log').textContent=msg;$('coins').textContent='✦ '+s.coins;$('pack').disabled=s.coins<3;document.querySelectorAll('[data-mode]').forEach(b=>{b.style.background=s.mode===b.dataset.mode?'#32765e':'#262d45';b.setAttribute('aria-pressed',String(s.mode===b.dataset.mode));});if(fight){$('foe').textContent=(fight.e.boss?'🐉 ボス':fight.e.metal?'🩶 メタルスライム':'👾 通常敵')+' '+fight.e.stage+'階';$('bossmechanic').textContent=fight.e.mech?(fight.e.mech+' · '+(fight.e.mech.includes('回復')?'自然回復無効。耐久戦より火力で突破':fight.e.mech.includes('封印')?'増やす中は攻撃60%減。休むと封印解除':'増やす中は攻撃減・被ダメ2倍。休むと解除')):'';$('battleinfo').textContent='敵 '+prettyNum(Math.ceil(Math.max(0,fight.ehp)))+'/'+prettyNum(fight.e.hp)+' · 自分 '+prettyNum(Math.ceil(fight.hp))+'/'+prettyNum(Math.ceil(fight.max));$('attack').disabled=fight.active;$('attack').textContent=fight.active?'戦闘中':'次の敵へ'}v59RenderBattle();v61DreamUpdate()}function renderBossChoice(){let panel=$('bosschoice');if(!panel)return;let stage=s.pendingBossReward||0;panel.classList.toggle('hide',!stage);if(stage){let level=Math.ceil(stage/5);$('bossrewardhint').textContent='追加報酬：箱 '+(2+level)+'個 / 通貨 ✦'+(1+level)+' / 生産×2・90秒（既存のボス報酬に上乗せ）';$('battlepanel').classList.remove('hide')}}
 document.querySelectorAll('[data-bossreward]').forEach(btn=>btn.onclick=()=>{let stage=s.pendingBossReward;if(!stage)return;let level=Math.ceil(stage/5),choice=btn.dataset.bossreward;if(choice==='boxes'){s.boxes+=2+level;msg='🎁 戦利品：箱 '+(2+level)+'個'}else if(choice==='coins'){s.coins+=1+level;msg='✦ 戦利品：通貨 '+(1+level)}else{let now=Date.now();s.boost=Math.max(2,s.boost||1);s.boostUntil=Math.max(now,s.boostUntil||0)+90000;msg='⚡ 戦利品：生産×2以上・90秒'}v59Log('reward','🎖️ 追加報酬を獲得',msg);s.pendingBossReward=0;renderBossChoice();draw();save()});
 const basicThemes=[
 {id:'dark',name:'⚫ 黒',group:'basic'},
@@ -627,7 +627,7 @@ function renderThemes(){
 }
 function toggle(id){$(id).classList.toggle('hide');if(id==='boxpanel'){if(s.v57Current.gear===null)v57Roll('gear');renderGear()}if(id==='cardpanel')renderCards();if(id==='shoppanel')renderShop()}
 $('odds').innerHTML=rar.map((name,i)=>'<div class="item"><span>'+name+'</span><b>'+(tierWeights[i]/10000).toFixed(i===5?2:2)+'%'+(i===5?'（約1/3,333）':'')+'</b></div>').join('')+'<p>神の加護は合計300/1,000,000（約1/3,333）。全11種は各約1/36,667。箱ごとに独立抽選。</p>';
-document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{s.mode=b.dataset.mode;s.auto=false;v57Roll(s.mode==='rest'?'rest':'work');draw();save()});$('upgrade').onclick=()=>{let c=lvCost();if(s.n<c)return;const used=v57Get('upgrade');s.n-=c;s.lv++;v63Action('upgrade');$('v57-receipt').textContent='✓ '+(used?.title||'強化')+'完了。'+(used?.line||'');v57Roll('upgrade');draw();save()};$('auto').onclick=()=>{s.auto=!s.auto;draw();save()};$('boxes').onclick=()=>toggle('boxpanel');$('fight').onclick=()=>{document.getElementById('battlepanel').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});};$('shop').onclick=()=>toggle('shoppanel');$('cards').onclick=()=>toggle('cardpanel');$('autobox').onclick=()=>{s.autoOpen=!s.autoOpen;draw();save()};$('open').onclick=()=>{let stats={r:[0,0,0,0,0,0],new:0,urgent:0};openOne(stats);$('boxresult').textContent='開封：'+rar.map((n,i)=>stats.r[i]?n+' '+stats.r[i]:'').filter(Boolean).join(' / ')+' · 新規'+stats.new+(stats.urgent?' · ⏳残り5秒ボーナス':'')+' · ✦通貨＋'+(stats.coins||0);renderGear();draw();save()};$('openall').onclick=allOpen;$('open10').onclick=()=>openBatch(10);$('open100').onclick=()=>openBatch(100);$('curse').onclick=()=>{s.curse=Math.min(5,s.curse+1);msg='🩸 呪い '+s.curse+'/5：高レア補正UP、生産低下';draw();save()};$('purify').onclick=()=>{if(s.coins<2||!s.curse)return;s.coins-=2;s.curse=0;msg='🕯️ 呪いを浄化した';draw();save()};$('filter').onclick=()=>{filter=!filter;$('filter').textContent=filter?'全111種表示':'入手済みのみ';renderGear()};// v17: One-tap recommendations are deterministic and reversible. Manual gear toggles remain available.
+document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{s.mode=b.dataset.mode;s.auto=false;v57Roll(s.mode==='rest'?'rest':'work');draw();save()});$('upgrade').onclick=()=>{let c=lvCost();if(s.n<c)return;const used=v57Get('upgrade');s.n-=c;s.lv++;v63Action('upgrade');$('v57-receipt').textContent='✓ '+(used?.title||'強化')+'完了。'+(used?.line||'');v57Roll('upgrade');draw();save()};$('boxes').onclick=()=>toggle('boxpanel');$('fight').onclick=()=>{document.getElementById('battlepanel').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});};$('shop').onclick=()=>toggle('shoppanel');$('cards').onclick=()=>toggle('cardpanel');$('autobox').onclick=()=>{s.autoOpen=!s.autoOpen;draw();save()};$('open').onclick=()=>{let stats={r:[0,0,0,0,0,0],new:0,urgent:0};openOne(stats);$('boxresult').textContent='開封：'+rar.map((n,i)=>stats.r[i]?n+' '+stats.r[i]:'').filter(Boolean).join(' / ')+' · 新規'+stats.new+(stats.urgent?' · ⏳残り5秒ボーナス':'')+' · ✦通貨＋'+(stats.coins||0);renderGear();draw();save()};$('openall').onclick=allOpen;$('open10').onclick=()=>openBatch(10);$('open100').onclick=()=>openBatch(100);$('curse').onclick=()=>{s.curse=Math.min(5,s.curse+1);msg='🩸 呪い '+s.curse+'/5：高レア補正UP、生産低下';draw();save()};$('purify').onclick=()=>{if(s.coins<2||!s.curse)return;s.coins-=2;s.curse=0;msg='🕯️ 呪いを浄化した';draw();save()};$('filter').onclick=()=>{filter=!filter;$('filter').textContent=filter?'全111種表示':'入手済みのみ';renderGear()};// v17: One-tap recommendations are deterministic and reversible. Manual gear toggles remain available.
 // v18: Persistent build presets store explicit enabled/disabled IDs, including temporarily unowned equipment.
 function savedBuildAt(i){const b=s.savedBuilds[i];return b&&Array.isArray(b.enabled)&&Array.isArray(b.disabled)?b:null}
 function renderCustomBuilds(){const host=$('customBuilds');if(!host)return;host.innerHTML=Array.from({length:3},(_,i)=>{const b=savedBuildAt(i),active=s.activeSavedBuild===i;return '<div class="custom-build-row '+(active?'active':'')+'"><span>'+(active?'✦ ':'')+'枠'+(i+1)+' · '+(b?('保存済 '+b.enabled.length+'種ON'):'未保存')+'</span><button data-custom-save="'+i+'">保存</button><button data-custom-load="'+i+'" '+(!b?'disabled':'')+'>呼出</button><button data-custom-delete="'+i+'" '+(!b?'disabled':'')+'>削除</button></div>'}).join('');host.querySelectorAll('[data-custom-save]').forEach(b=>b.onclick=()=>{const i=+b.dataset.customSave,old=savedBuildAt(i);if(old&&!confirm('枠'+(i+1)+'のビルドを上書きしますか？'))return;const enabled=[],disabled=[];for(const g of gear){if(!(s.owned[g.id]>0))continue;(s.disabled[g.id]?disabled:enabled).push(g.id)}s.savedBuilds[i]={enabled,disabled};s.activeSavedBuild=i;$('customBuildHint').textContent='枠'+(i+1)+'を保存 · ON '+enabled.length+'種 / OFF '+disabled.length+'種。転生後も保持。';renderCustomBuilds();save()});host.querySelectorAll('[data-custom-load]').forEach(b=>b.onclick=()=>loadCustomBuild(+b.dataset.customLoad));host.querySelectorAll('[data-custom-delete]').forEach(b=>b.onclick=()=>{const i=+b.dataset.customDelete;if(!confirm('枠'+(i+1)+'の保存を削除しますか？'))return;s.savedBuilds[i]=null;if(s.activeSavedBuild===i)s.activeSavedBuild=null;$('customBuildHint').textContent='枠'+(i+1)+'を削除した。';renderCustomBuilds();save()})}
@@ -659,7 +659,7 @@ function applyRecommendedBuild(mode){
 }
 document.querySelectorAll('[data-build]').forEach(b=>b.onclick=()=>applyRecommendedBuild(b.dataset.build));
 $('buildUndo').onclick=()=>{if(previousGearSelection===null)return;s.disabled={...previousGearSelection};s.activeSavedBuild=null;renderCustomBuilds();previousGearSelection=null;$('buildUndo').disabled=true;$('buildHint').textContent='直前の装備ON/OFFに戻した。';renderGear();draw();save()};
-renderCustomBuilds();$('allOn').onclick=()=>{v57Roll('gear');previousGearSelection={...s.disabled};s.disabled={};s.activeSavedBuild=null;renderCustomBuilds();$('buildUndo').disabled=false;$('buildHint').textContent='全装備をONにした。戻すこともできる。';renderGear();draw();save()};$('attack').onclick=startFight;$('pack').onclick=()=>{if(s.coins<3)return;s.coins-=3;let a=[];for(let i=0;i<3;i++){let id=Math.floor(Math.random()*111);s.cards[id]=(s.cards[id]||0)+1;a.push(cards[id].name)}$('packresult').textContent=a.join(' / ');renderCards();draw();save()};$('event').onclick=()=>{let kind=eventType;if(kind==='yin')msg=yin();else if(kind==='double')msg=double();else if(kind==='gift'){boxGain();msg='🎁 箱獲得'}else{s.h=Math.max(0,s.h-12);msg='† 調子−12'}eventVisible=false;$('event').classList.add('hide');spawnAt=Date.now()+12000+Math.random()*13000;draw();save()};function step(sec){expeditionTick(sec);let b=bonuses();let count=Math.min(600,Math.ceil(sec/5)),dt=sec/Math.max(1,count);for(let i=0;i<count;i++){if(s.auto){if(s.h<=32)s.mode='rest';else if(s.h>=90)s.mode='fast'}s.n=Math.min(Number.MAX_VALUE,Math.max(0,(Number.isFinite(s.n)?s.n:0)+Math.max(0,Number.isFinite(income())?income():0)*dt));let w={fast:-1,rest:5}[s.mode];if(w<0)w*=Math.max(.1,1-b[2]/100)*gearTrade().drain;else w*=(1+b[1]/100)*gearTrade().healing;if(w<0&&Date.now()<s.shieldUntil)w=0;s.h=Math.max(0,Math.min(100,s.h+w*dt))}v64Elapsed(sec)}
+renderCustomBuilds();$('allOn').onclick=()=>{v57Roll('gear');previousGearSelection={...s.disabled};s.disabled={};s.activeSavedBuild=null;renderCustomBuilds();$('buildUndo').disabled=false;$('buildHint').textContent='全装備をONにした。戻すこともできる。';renderGear();draw();save()};$('attack').onclick=startFight;$('pack').onclick=()=>{if(s.coins<3)return;s.coins-=3;let a=[];for(let i=0;i<3;i++){let id=Math.floor(Math.random()*111);s.cards[id]=(s.cards[id]||0)+1;a.push(cards[id].name)}$('packresult').textContent=a.join(' / ');renderCards();draw();save()};$('event').onclick=()=>{let kind=eventType;if(kind==='yin')msg=yin();else if(kind==='double')msg=double();else if(kind==='gift'){boxGain();msg='🎁 箱獲得'}else{s.h=Math.max(0,s.h-12);msg='† 調子−12'}eventVisible=false;$('event').classList.add('hide');spawnAt=Date.now()+12000+Math.random()*13000;draw();save()};function step(sec){expeditionTick(sec);let b=bonuses();let count=Math.min(600,Math.ceil(sec/5)),dt=sec/Math.max(1,count);for(let i=0;i<count;i++){const guard=fight?.active&&/封印|反転/.test(fight.e.mech||'');let next=s.mode;if(guard||s.h<=32)next='rest';else if(s.h>=90)next='fast';if(next!==s.mode){s.mode=next;v57Roll(next==='rest'?'rest':'work');}s.n=Math.min(Number.MAX_VALUE,Math.max(0,(Number.isFinite(s.n)?s.n:0)+Math.max(0,Number.isFinite(income())?income():0)*dt));let w={fast:-1,rest:5}[s.mode];if(w<0)w*=Math.max(.1,1-b[2]/100)*gearTrade().drain;else w*=(1+b[1]/100)*gearTrade().healing;if(w<0&&Date.now()<s.shieldUntil)w=0;s.h=Math.max(0,Math.min(100,s.h+w*dt))}v64Elapsed(sec)}
 const stories=[
 {title:'第一巻　空箱の街',cost:0,text:`この街では、願いは箱に入って届く。
 
@@ -1233,13 +1233,13 @@ const v9Offline=Math.min(86400,Math.max(0,(Date.now()-v9LastSaved)/1000));
 const v9BeforeNumber=Number(s.n)||0;
 function v9OfflineNotice(){if(v9Offline<30)return;const gain=Math.max(0,(Number(s.n)||0)-v9BeforeNumber);$('v9notice').textContent='⏳ 前回のプレイから約'+Math.floor(v9Offline/60)+'分。放置中の数字増加：'+prettyNum(gain)+'。※最大24時間分まで計算。'}
 $('v9undo').onclick=()=>{try{const raw=localStorage.getItem(key+'-preimport');if(!raw){$('v9notice').textContent='復元できる読み込み前データはありません。';return}const prev=JSON.parse(raw);if(!prev||typeof prev.n!=='number'||!Number.isFinite(prev.n)||typeof prev.lv!=='number'||!Number.isFinite(prev.lv)||prev.lv<1)throw Error('データ不正');if(!confirm('バックアップ読み込み直前の状態へ戻しますか？現在の進行状況は上書きされます。'))return;const current=localStorage.getItem(key);localStorage.setItem(key,JSON.stringify({...prev,last:Date.now()}));localStorage.setItem(key+'-preimport',current);location.reload()}catch(e){$('v9notice').textContent='復元失敗：'+e.message}};
-$('v9report').onclick=async()=>{const p=progressData();const report=['【001 ∞ v52 不具合報告】','発生した操作：','期待した動作：','実際の動作：','再現手順：','--- 診断情報 ---','ブラウザ：'+navigator.userAgent,'表示形式：'+s.numFormat,'レベル：'+s.lv,'転生：'+(s.rebirth||0),'図鑑：'+p.complete+'/'+p.total,'自動運転：'+(s.auto?'ON':'OFF'),'自動開封：'+(s.autoOpen?'ON':'OFF'),'自動回収：'+(s.autoRecycle?'ON':'OFF')].join('\n');try{await navigator.clipboard.writeText(report);$('v9notice').textContent='📋 不具合報告テンプレートをコピーしました。内容を追記して送ってください。'}catch(e){$('v9notice').textContent='クリップボードが使えません。診断パネルのコピーを試してください。'}};
+$('v9report').onclick=async()=>{const p=progressData();const report=['【001 ∞ v52 不具合報告】','発生した操作：','期待した動作：','実際の動作：','再現手順：','--- 診断情報 ---','ブラウザ：'+navigator.userAgent,'表示形式：'+s.numFormat,'レベル：'+s.lv,'転生：'+(s.rebirth||0),'図鑑：'+p.complete+'/'+p.total,'自動進行：'+(document.body.dataset.autoState==='running'?'ON':'停止中'),'自動開封：'+(s.autoOpen?'ON':'OFF'),'自動回収：'+(s.autoRecycle?'ON':'OFF')].join('\n');try{await navigator.clipboard.writeText(report);$('v9notice').textContent='📋 不具合報告テンプレートをコピーしました。内容を追記して送ってください。'}catch(e){$('v9notice').textContent='クリップボードが使えません。診断パネルのコピーを試してください。'}};
 $('v10snapshot').onclick=()=>{const ok=v10Backup(true);$('v10notice').textContent=ok?'📸 現在の状態を保存しました':'保存できませんでした。ブラウザの空き容量をご確認ください。';v10Render()};
 $('v10restore').onclick=()=>{try{const arr=JSON.parse(localStorage.getItem(key+'-snapshots')||'[]'),item=arr[Number($('v10select').value)];if(!item)throw Error('復旧ポイントがありません');const v=JSON.parse(item.data);if(!v||typeof v.n!=='number'||!Number.isFinite(v.n)||typeof v.lv!=='number'||v.lv<1||!Number.isFinite(v.lv))throw Error('復旧データが不正です');if(!confirm('選んだ復旧ポイントに戻しますか？現在の状態は別途退避します。'))return;localStorage.setItem(key+'-preimport',JSON.stringify(s));localStorage.setItem(key,JSON.stringify({...s,...v,last:Date.now()}));location.reload()}catch(e){$('v10notice').textContent='復元失敗：'+e.message}};
 v10Render();
 s.numFormat=fmtKinds.includes(s.numFormat)?s.numFormat:'kanji';$('numformat').value=s.numFormat;function nextFmt(f){s.numFormat=f;$('numformat').value=f;draw();save()}$('numformat').onchange=e=>nextFmt(e.target.value);$('number').onclick=()=>nextFmt(fmtKinds[(fmtKinds.indexOf(s.numFormat)+1)%fmtKinds.length]);const tutorialSteps=[
  {target:'#upgrade',title:'1. 金策を選ぶ',text:'「稼ぐ」で仕事を変更。資金は毎秒増える。強化にはこの資金を使う。仕事名は666種類の演出で、稼ぐ力そのものは変わらない。'},
- {target:'#auto',title:'2. 休む場所も666通り',text:'「休む」で休憩場所を変えられる。調子が下がったら休息へ。自動運転は便利だけど効率−11%。'},
+ {target:'#v68-auto-main',title:'2. 冒険は自動で進む',text:'世界を選ぶと戦闘や探索が始まります。疲れたときの回復も自動。停止・再開は下の進行ボタンで操作できます。'},
  {target:'#boxes',title:'3. 箱が第二の心臓',text:'箱を開けると装備・カード・神の加護に繋がる。数字を増やすだけでなく、箱をどう回すかが気持ちよさの芯。'},
  {target:'#fight',title:'4. 戦闘はブーストの出口',text:'☯や装備共鳴で伸びた力は、戦闘で強敵を抜く時に気持ちよく返ってくる。'},
  {target:'#books',title:'5. 物語は一コーナー',text:'全666巻の物語は世界観の芯だけど、ゲーム全体の一コーナー。紙片で進めて、永久強化にもなる。'},
@@ -1302,7 +1302,6 @@ const v61StaticCopy=[
  ['#v57-money-caption','💰💖 おかね〜',true],
  ['#v57-money-caption span','🫧💰 ✦はべつのおかねだよっ'],
  ['#v54hero .v54-action-row [data-mode="fast"]','💸🤑 かせぐぅ〜‼️'],
- ['#v54hero .v54-action-row [data-mode="rest"]','💤🧸 ねんねぇ〜💗'],
  ['#v54hero .v54-hero-foot','☁️💖 まったりあそぼ〜っ🌈'],
  ['.v59-battle-dock span > b','⚔️💥 ばとるぅ‼️'],
  ['#v57-upgrade-scene > span:first-child','📈💸 つぎのしゅっせ〜'],
@@ -1387,7 +1386,7 @@ function v61DreamUpdate(){
  v61Use('#v57-upgrade-title',raw=>v61SceneTitle('upgrade',raw));
  v61Use('#v57-upgrade-text',raw=>v61SceneLine('upgrade',raw));
  v61Use('#upgrade',()=> '🤑⬆️ つよつよっ '+prettyNum(lvCost()));
- v61Use('#auto',()=> '🎠💗 じどう '+(s.auto?'ON✨':'OFF💤')+'（−11%）');
+
  v61Use('#autobox',()=> '🎁🤖 はこじどう '+(s.autoOpen?'ON💕':'OFF💤'));
  v61Use('#v57-receipt',raw=>'🎉🤑 やったぁ‼️ '+v61Short(raw.replace(/^✓\s*/,''),15));
  const active=!!(fight&&fight.active),pending=!!s.pendingBossReward;
@@ -1424,7 +1423,7 @@ document.addEventListener('visibilitychange',()=>{
 });
 window.addEventListener('pageshow',()=>resumeFromBackground());
 window.addEventListener('pagehide',()=>{if(backgroundAt===null)backgroundAt=Date.now();save()});
-setInterval(()=>{if(document.hidden)return;let t=Date.now();if(backgroundAt!==null)resumeFromBackground();t=Date.now();const activeDelta=Math.min(10,Math.max(0,(t-prev)/1000));s.runActiveSeconds+=activeDelta;step(activeDelta);prev=t;expireTimed();expeditionAutoOpen();v68AutoTick(t,activeDelta);v68FightTick(t,activeDelta);if(eventVisible&&t>eventEnd){eventVisible=false;$('event').classList.add('hide');spawnAt=t+12000+Math.random()*13000}if(!eventVisible&&t>spawnAt){eventVisible=true;eventEnd=t+7000;let v=Math.random();eventType=v<.83?'yin':v<.9?'double':v<.96?'gift':'dagger';$('event').textContent={yin:'☯',double:'‡',gift:'🎁',dagger:'†'}[eventType];$('event').classList.remove('hide')}if(!$('bookpanel').classList.contains('hide'))renderLibrary();renderPrestige();draw();if(t-lastAutoSave>=5000){save();v10Backup();renderRestPanel();lastAutoSave=t}},500);
+setInterval(()=>{if(document.hidden)return;let t=Date.now();if(backgroundAt!==null)resumeFromBackground();t=Date.now();const activeDelta=Math.min(10,Math.max(0,(t-prev)/1000));s.runActiveSeconds+=activeDelta;step(activeDelta);prev=t;expireTimed();expeditionAutoOpen();v75AutomaticReady();v68AutoTick(t,activeDelta);v68FightTick(t,activeDelta);if(eventVisible&&t>eventEnd){eventVisible=false;$('event').classList.add('hide');spawnAt=t+12000+Math.random()*13000}if(!eventVisible&&t>spawnAt){eventVisible=true;eventEnd=t+7000;let v=Math.random();eventType=v<.83?'yin':v<.9?'double':v<.96?'gift':'dagger';$('event').textContent={yin:'☯',double:'‡',gift:'🎁',dagger:'†'}[eventType];$('event').classList.remove('hide')}if(!$('bookpanel').classList.contains('hide'))renderLibrary();renderPrestige();draw();if(t-lastAutoSave>=5000){save();v10Backup();renderRestPanel();lastAutoSave=t}},500);
 
 renderRestPanel();
 // v21 secret ending, accessible only after every collection and both final branches.
@@ -2232,13 +2231,13 @@ v65Init();
 const v68AutoDefaults={explore:true,combat:true,boss:true,reward:true,speed:1,theater:true};
 const v68SavedAuto=s.v68Auto&&typeof s.v68Auto==='object'?s.v68Auto:{};
 s.v68Auto={...v68AutoDefaults};
-for(const option of ['explore','combat','boss','reward','theater'])if(typeof v68SavedAuto[option]==='boolean')s.v68Auto[option]=v68SavedAuto[option];
+
 if([1,2,4].includes(v68SavedAuto.speed))s.v68Auto.speed=v68SavedAuto.speed;
-const v68AutoRuntime={running:false,paused:false,reason:'設定を選んでAUTO開始',internal:false,bound:false,credit:0,lastProgress:0,signature:'',lastDefeat:null,lastExpedition:null,resting:false,gearDirty:false,lastGearRender:0};
+const v68AutoRuntime={running:false,paused:false,wantRunning:!s.autoPlayPaused,reason:s.autoPlayPaused?'進行は停止中です。進行開始で再開できます':'世界を選ぶと自動で進みます',internal:false,bound:false,credit:0,lastProgress:0,signature:'',lastDefeat:null,lastExpedition:null,resting:false,gearDirty:false,lastGearRender:0};
 function v68AutoStatus(message){v68AutoRuntime.reason=message;}
 function v68AutoRender(){
  const a=v68AutoRuntime,c=s.v68Auto,main=$('v68-auto-main');if(!main)return;
- main.textContent=a.running?'■ AUTO停止':a.paused?'▶ AUTO再開':'▶ AUTO開始';
+ main.textContent=a.running?'■ 進行停止':a.paused?'▶ 進行再開':'▶ 進行開始';
  main.setAttribute('aria-pressed',String(a.running));
  const pause=$('v68-auto-pause');if(pause){pause.textContent=a.paused?'▶ 再開':'Ⅱ 一時停止';pause.disabled=!a.running&&!a.paused;}
  const status=$('v68-auto-status');if(status){const text=(a.running?'AUTO · ':a.paused?'一時停止 · ':'手動 · ')+a.reason;if(status.textContent!==text)status.textContent=text;}
@@ -2248,13 +2247,13 @@ function v68AutoRender(){
  document.body.classList.toggle('v68-theater',a.running&&c.theater);
  if(typeof v68RenderUI==='function')v68RenderUI();
 }
-function v68AutoPause(reason='手動操作で一時停止'){
- const a=v68AutoRuntime;if(a.running||a.paused){a.running=false;a.paused=true;a.credit=0;v68AutoStatus(reason);}
+function v68AutoPause(reason='手動操作で一時停止',temporary=false){
+ const a=v68AutoRuntime;if(!temporary){a.wantRunning=false;s.autoPlayPaused=true;save();}if(a.running||a.paused){a.running=false;a.paused=true;a.credit=0;v68AutoStatus(reason);}
  if(fight?.active)fight.last=Date.now();
  v68AutoRender();
 }
 function v68AutoStop(){
- const a=v68AutoRuntime;a.running=false;a.paused=false;a.credit=0;v68AutoStatus('AUTO停止。再開するまで自動操作しません');
+ const a=v68AutoRuntime;a.wantRunning=false;s.autoPlayPaused=true;save();a.running=false;a.paused=false;a.credit=0;v68AutoStatus('AUTO停止。再開するまで自動操作しません');
  if(fight?.active)fight.last=Date.now();v68AutoRender();
 }
 function v68AutoManual(){
@@ -2266,7 +2265,7 @@ function v68AutoManual(){
  v68AutoRender();
 }
 function v68AutoModal(){
- if($('v68-library')?.open)return true;
+ if($('v68-library')?.open||document.body.classList.contains('theme-modal'))return true;
  return ['v63-world-overlay','tutorialOverlay','secretEndingOverlay','godreveal'].some(id=>{
   const el=$(id);return el&&!el.classList.contains('hide')&&getComputedStyle(el).display!=='none'&&el.getBoundingClientRect().width>0;
  });
@@ -2276,7 +2275,7 @@ function v68AutoStart(){
  if(!c.explore&&!c.combat){a.running=false;a.paused=true;v68AutoStatus('自動探索か自動戦闘をONにしてください');v68AutoRender();return;}
  if(v63Active()==='dream'&&!c.explore){a.running=false;a.paused=true;v68AutoStatus('ゆめかわ世界は戦わない冒険です。自動探索をONにしてください');v68AutoRender();return;}
  if(document.hidden||!s.dualWorld?.chosen||v68AutoModal()){a.running=false;a.paused=true;v68AutoStatus('ダイアログを閉じ、画面を表示してから再開してください');v68AutoRender();return;}
- a.running=true;a.paused=false;a.credit=0;a.lastProgress=Date.now();a.signature='';
+ a.wantRunning=true;s.autoPlayPaused=false;save();a.running=true;a.paused=false;a.credit=0;a.lastProgress=Date.now();a.signature='';
  // A deliberate restart may retry an already-failed battle/expedition once.
  a.lastDefeat=fight&&!fight.active?fight:null;a.lastExpedition=v64Expedition();
  if(fight?.active&&c.combat&&v63Active()==='classic'){
@@ -2292,7 +2291,7 @@ function v68AutoInvoke(action){
 }
 function v68AutoMode(mode){
  if(s.mode===mode)return false;
- // Same mode and scene transition as the manual buttons; retain the legacy -11% auto setting.
+ // Preserve the original income/recovery modes and authored scene transitions.
  s.mode=mode;v57Roll(mode==='rest'?'rest':'work');draw();save();return true;
 }
 function v68AutoSignature(){
@@ -2313,7 +2312,7 @@ function v68AutoDecision(now){
  if(!a.running)return;
  if(!c.explore&&!c.combat){v68AutoPause('自動探索・戦闘がどちらもOFFです');return;}
  if(v63Active()==='dream'&&!c.explore){v68AutoPause('ゆめかわ世界は戦わない冒険です。自動探索をONにしてください');return;}
- if(v68AutoModal()){v68AutoPause('ダイアログを閉じて再開してください');return;}
+ if(v68AutoModal()){v68AutoPause('画面の確認中は一時停止しています',true);return;}
  if(!Number.isFinite(s.h)||s.h<0||!Number.isFinite(s.boxes)||s.boxes<0||!Number.isFinite(s.wins)||s.wins<0){v68AutoPause('状態を確認してください。データは変更しません');return;}
  if(fight&&!fight.active&&fight.hp<=0&&fight!==a.lastDefeat){a.lastDefeat=fight;v68AutoPause('敗北でAUTOを一時停止。箱で装備を集める・所持金で強化する→AUTO再開');return;}
  if(s.pendingBossReward&&v63Active()==='classic'){
@@ -2372,10 +2371,14 @@ function v68AutoDecision(now){
  }
  if(v63Active()==='classic')v68AutoStatus('無窮の探索は時間経過で箱を発見。ドロップ率は通常どおり');
 }
+function v75AutomaticReady(){
+ const a=v68AutoRuntime;
+ if(a.wantRunning&&!a.running&&!document.hidden&&s.dualWorld?.chosen&&!opening&&!v68AutoModal())v68AutoStart();
+}
 function v68AutoTick(now,delta){
  const a=v68AutoRuntime;if(!a.running)return;
- if(document.hidden){v68AutoPause('画面が非表示になりました');return;}
- if(v68AutoModal()){v68AutoPause('ダイアログを閉じて再開してください');return;}
+ if(document.hidden){v68AutoPause('画面が非表示になりました',true);return;}
+ if(v68AutoModal()){v68AutoPause('画面の確認中は一時停止しています',true);return;}
  if(a.gearDirty&&now-a.lastGearRender>=1500){const panel=$('boxpanel');if(panel&&!panel.classList.contains('hide')&&panel.getClientRects().length){renderGear();a.gearDirty=false;a.lastGearRender=now;}}
  const sig=v68AutoSignature();if(sig!==a.signature){a.signature=sig;a.lastProgress=now;}
  if(now-a.lastProgress>60000){v68AutoPause('進行が止まりました。状態を確認して再開してください');return;}
@@ -2409,19 +2412,19 @@ function v68AutoInit(){
   const el=$('v68-auto-'+option);if(el)el.onchange=()=>{s.v68Auto[option]=el.checked;if(option==='combat'&&!el.checked&&fight?.v68AutoOwned)v68AutoPause('自動戦闘をOFFにしました');v68AutoRender();save();};
  }
  if($('v68-auto-speed'))$('v68-auto-speed').onchange=e=>{const speed=Number(e.target.value);s.v68Auto.speed=[1,2,4].includes(speed)?speed:1;v68AutoRender();save();};
- const manual=$('v68-manual-controls');if(manual)manual.addEventListener('toggle',()=>{if(manual.open&&a.running)v68AutoPause('手動操作を開いたため一時停止');});
+ const manual=$('v68-manual-controls');if(manual)manual.addEventListener('toggle',()=>{if(manual.open&&a.running)v68AutoPause('手動操作を開いたため一時停止',true);});
  const intervene=e=>{
   if(a.internal||!a.running||!e.target.closest)return;
   const control=e.target.closest('button,a,input,select,textarea,summary,[role="button"]');if(!control)return;
-  if(control.id?.startsWith('v68-auto-')||control.closest('#v68-auto-settings'))return;
+  if(control.id?.startsWith('v68-auto-'))return;
   if(e.type==='keydown'&&!['Enter',' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))return;
-  v68AutoPause('手動操作で一時停止。再開または手動復帰できます');
+  v68AutoPause('操作中は一時停止しています',!['prestige','saveimport','v10restore','v9undo'].includes(control.id));
  };
  document.addEventListener('pointerdown',intervene,true);document.addEventListener('click',intervene,true);document.addEventListener('keydown',intervene,true);
- document.addEventListener('visibilitychange',()=>{if(document.hidden)v68AutoPause('画面が非表示になりました');if(fight?.active)fight.last=Date.now();});
- window.addEventListener('pagehide',()=>v68AutoPause('画面を離れました'));
- const switchWorld=v63Switch;v63Switch=function(world){v68AutoPause('世界を切り替えました');return switchWorld(world);};
- const pickTheme=v63ThemePicked;v63ThemePicked=function(theme){v68AutoPause('着せ替えを変更しました');return pickTheme(theme);};
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)v68AutoPause('画面が非表示になりました',true);if(fight?.active)fight.last=Date.now();});
+ window.addEventListener('pagehide',()=>v68AutoPause('画面を離れました',true));
+ const switchWorld=v63Switch;v63Switch=function(world){v68AutoPause('世界を切り替えました',true);return switchWorld(world);};
+ const pickTheme=v63ThemePicked;v63ThemePicked=function(theme){v68AutoPause('着せ替えを変更しました',true);return pickTheme(theme);};
  v68AutoRender();
 }
 
@@ -2430,8 +2433,8 @@ let v68UIReady=false,v68UIWaiting=false,v68DialogKey='menu',v68PreviousTheater=f
 const v68Panes=new Map();
 function v68Node(tag,id,text){const el=document.createElement(tag);if(id)el.id=id;if(text!==undefined)el.textContent=text;return el;}
 function v68Move(id,host){const node=$(id);if(node)host.appendChild(node);return node;}
-function v68PauseForUI(reason){if(typeof v68AutoPause==='function')v68AutoPause(reason);}
-function v68ClosePanel(){const dialog=$('v68-library');if(dialog?.open){dialog.close();if(v68AutoRuntime.paused&&v68AutoRuntime.reason==='詳細画面を開いています'){v68AutoStatus('詳細画面を閉じました。AUTO再開を押すと続きから進みます');v68AutoRender();}}}
+function v68PauseForUI(reason){if(typeof v68AutoPause==='function')v68AutoPause(reason,true);}
+function v68ClosePanel(){const dialog=$('v68-library');if(dialog?.open){dialog.close();if(v68AutoRuntime.paused&&v68AutoRuntime.reason==='詳細画面を開いています'){v68AutoStatus(v68AutoRuntime.wantRunning?'詳細画面を閉じました。自動進行を再開します':'詳細画面を閉じました。進行再開を押すと続きから進みます');v68AutoRender();}}}
 function v68SyncProgressControls(){
  document.querySelectorAll('[data-v65-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v65Tab===v65Tab)));
  document.querySelectorAll('[data-v65-filter]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v65Filter===v65Filter)));
@@ -2466,7 +2469,7 @@ function v68InitUI(){
  const main=document.querySelector('main');if(!main)return;
  const originalChildren=Array.from(main.children);
  document.body.classList.add('v68-ui');
- document.querySelector('.v32brand').title='成長調整版 v74：戦闘と生産を分離・重複効果を逓減';
+ document.querySelector('.v32brand').title='自動進行版 v75：世界選択後に自動で戦闘・探索、回復も自動';
  const wallet=v68Node('section','v69-wallet');wallet.setAttribute('aria-label','所持金と毎秒収入');
  wallet.innerHTML='<span id="v69-wallet-label">所持金</span><span id="v69-wallet-coins" title="永久商店・美術館で使う別の通貨"></span>';
  const stats=v68Node('div','v68-stats');stats.setAttribute('aria-label','現在の冒険の状態');
@@ -2474,7 +2477,7 @@ function v68InitUI(){
  const play=v68Node('div','v68-play');play.setAttribute('aria-label','探索と戦闘');
  const bottom=v68Node('footer','v68-bottom');
  const auto=v68Node('section','v68-auto-controls');auto.setAttribute('aria-label','AUTO操作');
- auto.innerHTML='<div class="v68-auto-row"><button type="button" id="v68-auto-main">▶ AUTO開始</button><button type="button" id="v68-auto-pause">一時停止</button><button type="button" id="v68-auto-manual">手動に戻る</button></div><div class="v68-auto-sub"><span id="v68-auto-status" role="status" aria-live="polite">手動で開始できます</span><label for="v68-auto-speed">速度</label><select id="v68-auto-speed" aria-label="AUTO速度"><option value="1">×1</option><option value="2">×2</option><option value="4">×4</option></select><button type="button" id="v68-auto-settings-open">AUTO設定</button></div>';
+ auto.innerHTML='<div class="v68-auto-row"><button type="button" id="v68-auto-main">▶ 進行開始</button><button type="button" id="v68-auto-pause">一時停止</button><button type="button" id="v68-auto-manual">手動に戻る</button></div><div class="v68-auto-sub"><span id="v68-auto-status" role="status" aria-live="polite">世界を選ぶと自動で進みます</span><label for="v68-auto-speed">速度</label><select id="v68-auto-speed" aria-label="AUTO速度"><option value="1">×1</option><option value="2">×2</option><option value="4">×4</option></select></div>';
  bottom.appendChild(auto);
  const shortcuts=v68Node('nav','v68-shortcuts');shortcuts.setAttribute('aria-label','主要ショートカット');
  shortcuts.innerHTML='<button id="v68-shortcut-gear" type="button">🎁 装備</button><button id="v68-shortcut-books" type="button">📚 書庫</button><button id="v68-shortcut-progress" type="button">🌗 進捗</button><button id="v68-shortcut-menu" type="button">☰ すべて</button>';
@@ -2488,7 +2491,7 @@ function v68InitUI(){
  const menuHint=v68Node('p',null,'冒険を止めて、装備・物語・記録をゆっくり確認できます。');menuHint.className='small';menu.append(menuHint);
  v68Move('v54nav',menu);v68Move('v62-diary-access',menu);
  const menuLinks=v68Node('div','v68-menu-links');menuLinks.className='v68-menu-grid';
- const links=[['progress','🌗 実績・世界進捗'],['save','💾 セーブ・バックアップ'],['settings','⚙️ 遊び方・音・設定'],['auto','▶ AUTO設定'],['rebirth','🌌 輪廻・再構築'],['logs','📜 戦況・世界の時刻'],['dopa','🎰 ドパチャレンジ'],['extras','✦ その他の操作']];
+ const links=[['progress','🌗 実績・世界進捗'],['save','💾 セーブ・バックアップ'],['settings','⚙️ 遊び方・音・設定'],['rebirth','🌌 輪廻・再構築'],['logs','📜 戦況・世界の時刻'],['dopa','🎰 ドパチャレンジ'],['extras','✦ その他の操作']];
  for(const [key,label]of links){const b=v68Node('button','v68-menu-'+key,label);b.type='button';b.onclick=()=>v68OpenPanel(key);menuLinks.appendChild(b);}
  menu.appendChild(menuLinks);
  const oldSave=$('savetoggle');if(oldSave)menu.appendChild(oldSave);
@@ -2513,10 +2516,8 @@ function v68InitUI(){
  const rebirth=pane('rebirth','輪廻・世界再構築');v68Move('prestigepanel',rebirth);
  const logs=pane('logs','戦況ログ・世界の時刻');const history=document.querySelector('.v59-battle-history');if(history)logs.appendChild(history);v68Move('worldclock',logs);
  const dopa=pane('dopa','ドパ1/2チャレンジ');dopa.appendChild(v68Node('p','v68-dopa-locked','挑戦権は箱の開封で獲得します。獲得条件と抽選はこれまでどおりです。'));v68Move('dopaChallenge',dopa);
- const autoPane=pane('auto','AUTO設定');autoPane.dataset.autoSettings='true';
- autoPane.innerHTML='<div id="v68-auto-settings"><p>既存の行動で進めます。初期設定はすべてON。AUTO開始を押すと動き、個別にOFFへ変更できます。</p><div class="v68-auto-options"><label><input type="checkbox" id="v68-auto-explore"> 自動探索</label><label><input type="checkbox" id="v68-auto-combat"> 自動戦闘（次の戦いを繰り返す）</label><label><input type="checkbox" id="v68-auto-boss"> ボス戦AUTO</label><label><input type="checkbox" id="v68-auto-reward"> 報酬を自動選択</label><label><input type="checkbox" id="v68-auto-theater"> AUTOシアター</label></div><p class="small">手動操作・詳細画面・非表示タブではAUTOを一時停止します。手動に戻る操作は画面下に常にあります。</p></div>';
  const extras=pane('extras','その他の操作');
- const manual=v68Node('details','v68-manual-controls');manual.open=true;manual.appendChild(v68Node('summary',null,'成長・稼ぐ／休む'));
+ const manual=v68Node('details','v68-manual-controls');manual.open=true;manual.appendChild(v68Node('summary',null,'成長・強化'));
  const hero=$('v54hero');
  const actionRows=Array.from(hero.querySelectorAll('.v54-action-row'));for(const row of actionRows)manual.appendChild(row);hero.appendChild(manual);
  // Keep the original live amount, formatter handler and income outside every disclosure.
@@ -2547,13 +2548,12 @@ function v68InitUI(){
  $('v68-shortcut-books').onclick=()=>$(v63Active()==='dream'?'v62-open-diary':'books').click();
  $('v68-shortcut-progress').onclick=()=>v68OpenPanel('progress');
  $('v68-shortcut-menu').onclick=()=>v68OpenPanel('menu');
- $('v68-auto-settings-open').onclick=()=>v68OpenPanel('auto');
- $('v68-library-close').onclick=v68ClosePanel;$('v68-library-back').onclick=()=>v68OpenPanel('menu');
+  $('v68-library-close').onclick=v68ClosePanel;$('v68-library-back').onclick=()=>v68OpenPanel('menu');
  dialog.addEventListener('click',event=>{if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)v68ClosePanel();}});
  dialog.addEventListener('close',()=>{
   if(dialog.open)return;
   if(v68AutoRuntime.paused&&v68AutoRuntime.reason==='詳細画面を開いています'){
-   v68AutoStatus('詳細画面を閉じました。AUTO再開を押すと続きから進みます');v68AutoRender();
+   v68AutoStatus(v68AutoRuntime.wantRunning?'詳細画面を閉じました。自動進行を再開します':'詳細画面を閉じました。進行再開を押すと続きから進みます');v68AutoRender();
   }
   for(const [key,p]of v68Panes)p.hidden=true;
   for(const id of ['boxpanel','shoppanel','cardpanel','bookpanel','artMuseumPanel','v62-diary-panel','savepanel'])$(id).classList.add('hide');
@@ -2569,11 +2569,11 @@ function v68InitUI(){
  const positionNotices=()=>{document.body.style.setProperty('--v68-toast-top',Math.ceil(play.getBoundingClientRect().top+5)+'px');};
  if(typeof ResizeObserver==='function'){const sizeObserver=new ResizeObserver(positionNotices);sizeObserver.observe(play);}
  positionNotices();
- const resourceHints={artTicketCount:'買付券：箱の開封で抽選され、77箱ごとにも獲得できます。美術館の買付候補を探すために使います。',artShardCount:'美術館の欠片：作品を買い付けて収蔵すると2個獲得できます。',artMuseumCoinCount:'✦通貨：ボス撃破・追加報酬・ゆめかわ探索の踏破で獲得。',number:'所持金：時間経過で生産されます。「稼ぐ」で生産、「休む」で調子を回復。戦闘勝利やイベントでも獲得できます。',rate:'毎秒収入：レベル強化、装備、研究、物語の選択などで増えます。調子や稼ぐ／休むでも変化します。','v69-wallet-coins':'✦通貨：ボス撃破・ボスの追加報酬・ゆめかわ探索の踏破で獲得。永久商店、美術館などで使います。',coins:'✦通貨：ボス撃破、追加報酬、ゆめかわ探索の踏破で獲得。',boxes:'箱：時間経過の探索、戦闘勝利、イベント、ゆめかわ探索の踏破で獲得。',emptycount:'空き箱：新しい装備を発見できなかった開封や、期限切れの時限箱などで増えます。古紙回収で紙片にできます。',papercount:'紙片：空き箱の回収で入手。書庫の解放や研究などに使います。',timedcount:'時限箱：戦闘報酬などで出現。期限内に開けないと空き箱になります。',relics:'レリック：ボスを撃破すると獲得する永続強化です。'};
+ const resourceHints={artTicketCount:'買付券：箱の開封で抽選され、77箱ごとにも獲得できます。美術館の買付候補を探すために使います。',artShardCount:'美術館の欠片：作品を買い付けて収蔵すると2個獲得できます。',artMuseumCoinCount:'✦通貨：ボス撃破・追加報酬・ゆめかわ探索の踏破で獲得。',number:'所持金：時間経過で生産されます。「稼ぐ」で生産。調子の回復は自動で行います。戦闘勝利やイベントでも獲得できます。',rate:'毎秒収入：レベル強化、装備、研究、物語の選択などで増えます。調子と自動回復の状態でも変化します。','v69-wallet-coins':'✦通貨：ボス撃破・ボスの追加報酬・ゆめかわ探索の踏破で獲得。永久商店、美術館などで使います。',coins:'✦通貨：ボス撃破、追加報酬、ゆめかわ探索の踏破で獲得。',boxes:'箱：時間経過の探索、戦闘勝利、イベント、ゆめかわ探索の踏破で獲得。',emptycount:'空き箱：新しい装備を発見できなかった開封や、期限切れの時限箱などで増えます。古紙回収で紙片にできます。',papercount:'紙片：空き箱の回収で入手。書庫の解放や研究などに使います。',timedcount:'時限箱：戦闘報酬などで出現。期限内に開けないと空き箱になります。',relics:'レリック：ボスを撃破すると獲得する永続強化です。'};
  for(const [id,hint]of Object.entries(resourceHints)){const node=$(id);if(node){node.title=hint;if(!node.hasAttribute('tabindex'))node.tabIndex=0;}}
  const coinOdds=v68Node('p','v72-box-coin-odds','箱ごとに装備とは別枠で0.1%（1/1000）の通貨抽選。当選すると✦1を追加獲得。手動・まとめ・自動開封で確率は同じです。');$('boxpanel').querySelector('h3').after(coinOdds);
  for(const id of ['v69-wallet-coins','coins','artMuseumCoinCount'])if($(id))$(id).title='✦通貨：箱の追加抽選（1箱ごと0.1%で✦1）、ボス撃破、追加報酬、ゆめかわ探索の踏破で獲得。';
- $('v68-auto-combat').closest('label').title='戦闘が終わるたびに「次の戦いへ」を自動で押します。ボス戦と追加報酬はそれぞれの設定に従います。';
+
  v68UIReady=true;
  if(typeof v68AutoInit==='function')v68AutoInit();
  v68RenderUI();
@@ -3394,7 +3394,6 @@ body.v68-ui .v68-auto-sub{display:grid;grid-template-columns:auto 76px minmax(0,
 body.v68-ui #v68-auto-status{grid-column:1/-1;font-size:14px;line-height:1.45;min-width:0;overflow-wrap:anywhere;color:var(--fg)}
 body.v68-ui .v68-auto-sub>label{font-size:14px}
 body.v68-ui #v68-auto-speed{width:76px;font-size:16px!important}
-body.v68-ui #v68-auto-settings-open{max-width:none;justify-self:end;min-width:100px}
 body.v68-ui #v68-shortcuts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
 body.v68-ui #v68-shortcuts button{font-size:14px!important}
 body.v68-ui #v68-library{box-sizing:border-box;width:min(720px,calc(100vw - 12px));max-width:none;height:min(92dvh,920px);max-height:calc(100dvh - 12px);padding:0;border:1px solid var(--border);border-radius:13px;background:var(--panel);color:var(--fg);overflow:hidden}
@@ -3488,4 +3487,6 @@ body.v68-ui .v59-hp-label b{font-size:14px;overflow-wrap:anywhere;min-width:0}
 body.v68-ui .v59-numbers{font-size:14px;overflow-wrap:anywhere;max-width:100%}
 body.v68-ui .v59-entry-top{min-width:0;flex-wrap:wrap}
 body.v68-ui .v59-entry-top strong,body.v68-ui .v59-entry p{min-width:0;overflow-wrap:anywhere}
+body.v68-ui .v68-auto-sub{grid-template-columns:auto 76px;justify-content:start}
+body.v68-ui #v68-auto-status{grid-column:1/-1}
 </style></body></html>

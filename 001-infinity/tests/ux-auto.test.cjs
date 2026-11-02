@@ -16,6 +16,8 @@ const NOW = Date.parse('2026-11-02T00:00:00Z');
 let passed = 0;
 const outcomes = [];
 const bridge = `
+// Focused controller tests opt out of bootstrap; lifecycle tests keep the production default.
+if(!window.__testNativeAutomatic)v68AutoRuntime.wantRunning=false;
 window.__infinityTest = {
   state: () => JSON.parse(JSON.stringify(s)),
   fight: () => fight && JSON.parse(JSON.stringify(fight)),
@@ -79,7 +81,8 @@ async function main() {
     await context.route('**/*', route => new URL(route.request().url()).origin === new URL(url).origin ? route.continue() : route.abort());
     await page.clock.install({time: new Date(NOW)});
     await page.clock.pauseAt(new Date(NOW));
-    await page.addInitScript(({seed, denyBackup, denyWrites, denyReads}) => {
+    await page.addInitScript(({seed, denyBackup, denyWrites, denyReads, nativeAutomatic}) => {
+      window.__testNativeAutomatic=nativeAutomatic;
       const get = Storage.prototype.getItem;
       const set = Storage.prototype.setItem;
       if (!get.call(sessionStorage, '__infinity_test_seeded')) {
@@ -93,7 +96,7 @@ async function main() {
         return set.call(this, key, value);
       };
       if (denyReads) Storage.prototype.getItem = function() {throw new DOMException('Test storage unavailable', 'SecurityError');};
-    }, {seed: options.seed || {}, denyBackup: !!options.denyBackup, denyWrites: !!options.denyWrites, denyReads: !!options.denyReads});
+    }, {seed: options.seed || {}, denyBackup: !!options.denyBackup, denyWrites: !!options.denyWrites, denyReads: !!options.denyReads, nativeAutomatic: !!options.nativeAutomatic});
     try {
       const response = await page.goto(url, {waitUntil: 'load'});
       assert.equal(response.status(), 200);
@@ -245,13 +248,13 @@ async function main() {
       const layout=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth}));assert.ok(layout.scroll<=layout.width);
       assert.match(await page.locator('#v59-self-hp').getAttribute('title'),/5e\+307/);
     },{context:{viewport:{width:864,height:655}},seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
-    await check('closing details explains paused AUTO and explicit resume continues', async page => {
+    await check('closing details explains temporary pause and automatically resumes', async page => {
       await config(page,{explore:true,combat:false});await page.locator('#v68-auto-main').click();await page.clock.runFor(1000);
       await page.locator('#v68-shortcut-gear').click();assert.equal((await runtime(page)).paused,true);
       await closeLibrary(page);await page.clock.runFor(1);
       assert.match(await page.locator('#v68-auto-status').innerText(),/閉じました/);
       assert.equal((await runtime(page)).running,false);
-      await page.locator('#v68-auto-main').click();assert.equal((await runtime(page)).running,true);
+      await page.clock.runFor(500);assert.equal((await runtime(page)).running,true);
     },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
     await check('balanced combat is independent of production and duplicate growth diminishes', async page => {
       const values=await page.evaluate(()=>{
@@ -419,20 +422,42 @@ async function main() {
       assert.equal(await page.locator('#v67-save-warning').isVisible(),true);
       assert.equal((await state(page)).theme,'dark','An unreadable existing save is not a confirmed fresh game');
     }, {seed:{[KEY]:oldRaw},denyReads:true});
-    await check('settings UI persists independent flags and speed, runtime stays stopped after reload', async page => {
-      await page.locator('#v68-auto-settings-open').click();
-      for (const key of ['explore', 'combat', 'boss', 'reward']) await page.locator('#v68-auto-' + key).check();
-      await page.locator('#v68-auto-theater').uncheck();
-      await closeLibrary(page);
+    await check('automatic defaults replace obsolete flags; speed and explicit stop survive reload', async page => {
+      for(const selector of ['#auto','[data-mode="rest"]','#v68-auto-settings-open','[data-v68-panel="auto"]'])assert.equal(await page.locator(selector).count(),0);
+      assert.deepEqual((await state(page)).v68Auto,{explore:true,combat:true,boss:true,reward:true,speed:1,theater:true});
       await page.locator('#v68-auto-speed').selectOption('4');
-      await page.locator('#v68-auto-main').click();
-      assert.equal((await runtime(page)).running, true);
-      await page.reload({waitUntil: 'load'});
-      const saved = await state(page);
-      assert.deepEqual(saved.v68Auto, {explore: true, combat: true, boss: true, reward: true, speed: 4, theater: false});
-      assert.equal((await runtime(page)).running, false);
-      assert.equal(documentBodyTheater(await page.locator('body').getAttribute('class')), false);
-    }, {seed: {[KEY]: JSON.stringify(fixture({v68Migration: 1}))}});
+      await page.clock.runFor(1000);assert.equal((await runtime(page)).running,true);
+      await page.locator('#v68-auto-main').click();assert.equal((await state(page)).autoPlayPaused,true);
+      await page.reload({waitUntil:'load'});await page.clock.runFor(2000);
+      assert.equal((await state(page)).v68Auto.speed,4);assert.equal((await runtime(page)).running,false);
+      await page.locator('#v68-auto-main').click();assert.equal((await runtime(page)).running,true);
+    }, {nativeAutomatic:true,seed:{[KEY]:JSON.stringify(fixture({v68Migration:1,v68Auto:{explore:false,combat:false,boss:false,reward:false,theater:false,speed:1}}))}});
+    await check('fresh world waits for selection and tutorial, then starts battle automatically', async page => {
+      await page.clock.runFor(3000);assert.equal(await page.evaluate(()=>__infinityTest.fight()),null);
+      await chooseWorld(page,'classic');await page.clock.runFor(1500);
+      assert.equal((await runtime(page)).running,true);assert.equal((await page.evaluate(()=>__infinityTest.fight())).v68AutoOwned,true);
+      await page.screenshot({path:path.join(artifacts,'native-automatic-classic.png')});
+      await page.evaluate(()=>{__infinityTest.initAuto();__infinityTest.initAuto();});
+      await page.locator('#v68-auto-main').click();await page.clock.runFor(5000);assert.equal((await runtime(page)).running,false);
+    },{nativeAutomatic:true});
+    await check('dream starts automatically and details suspend then resume exploration', async page => {
+      await chooseWorld(page,'dream');await page.locator('#v68-auto-speed').selectOption('4');await page.clock.runFor(12000);
+      const before=await state(page);assert.ok(before.dualWorld.v64.completed>=1);assert.ok(before.dualWorld.v64.runs>=2);
+      await page.locator('#v68-shortcut-gear').click();assert.equal((await runtime(page)).paused,true);
+      const paused=(await state(page)).dualWorld.v64.explore;await page.clock.runFor(5000);
+      assert.deepEqual((await state(page)).dualWorld.v64.explore,paused);
+      await closeLibrary(page);await page.clock.runFor(1000);assert.equal((await runtime(page)).running,true);
+      await page.screenshot({path:path.join(artifacts,'native-automatic-dream.png')});
+      await page.locator('#v63-world-switch').click();await page.locator('[data-v63-pick="classic"]').click();
+      await page.clock.runFor(1500);assert.equal((await runtime(page)).running,true);
+      assert.equal((await page.evaluate(()=>__infinityTest.fight())).v68AutoOwned,true);
+    },{nativeAutomatic:true});
+    await check('automatic recovery preserves old save assets and removes legacy income penalty', async page => {
+      const before=await state(page);assert.equal(before.auto,false);assert.equal(before.h,20);
+      await page.clock.runFor(16000);const after=await state(page);
+      assert.ok(after.h>32);assert.equal(after.customHistory.note,'unknown fields survive');assert.deepEqual(after.savedBuilds,before.savedBuilds);
+      assert.equal(after.shop.mondrian,1);assert.ok(after.dualWorld.records.dream.rest>=before.dualWorld.records.dream.rest);
+    },{nativeAutomatic:true,seed:{[KEY]:JSON.stringify(fixture({v68Migration:1,auto:true,h:20}))}});
     await check('idempotent AUTO binding and one-tap manual return from theater', async page => {
       await config(page, {combat: true, explore: false, theater: true});
       await page.evaluate(() => {__infinityTest.initAuto();__infinityTest.initAuto();});
@@ -459,9 +484,9 @@ async function main() {
       assert.equal(later.hp, frozen.hp);
       await page.locator('#v68-auto-pause').click();
       assert.equal((await runtime(page)).paused, false);
-      await page.evaluate(() => document.querySelector('[data-mode="rest"]').click());
+      await page.evaluate(() => document.querySelector('[data-mode="fast"]').click());
       assert.equal((await runtime(page)).paused, true);
-      assert.equal((await state(page)).mode, 'rest');
+      assert.equal((await state(page)).mode, 'fast');
     }, {seed: {[KEY]: JSON.stringify(fixture({v68Migration: 1}))}});
     await check('classic exploration AUTO collects a real box without enabling combat and stops cleanly', async page => {
       await page.evaluate(()=>{window.__originalRandom=Math.random;Math.random=()=>.5;});
@@ -559,7 +584,7 @@ async function main() {
       await page.clock.runFor(60000);
       await page.evaluate(() => {Object.defineProperty(document,'hidden',{configurable:true,value:false});document.dispatchEvent(new Event('visibilitychange'));});
       await page.clock.runFor(500);
-      assert.equal((await runtime(page)).paused, true);
+      assert.equal((await runtime(page)).running, true);
       const after = await page.evaluate(() => __infinityTest.fight());
       assert.equal(after.ehp, before.ehp);
       assert.equal(after.hp, before.hp);
@@ -655,7 +680,7 @@ async function main() {
         assert.equal(await page.locator('#v68-pane-'+pane).isVisible(),true,control+' opens original content');
         await page.locator('#v68-library-back').click();
       }
-      for(const key of ['progress','save','settings','auto','rebirth','logs','dopa','extras']) {
+      for(const key of ['progress','save','settings','rebirth','logs','dopa','extras']) {
         await page.locator('#v68-menu-'+key).click();
         assert.equal(await page.locator('#v68-pane-'+key).isVisible(),true,key+' pane');
         await page.locator('#v68-library-back').click();
