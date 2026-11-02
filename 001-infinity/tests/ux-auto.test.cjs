@@ -39,7 +39,7 @@ window.__infinityTest = {
   dreamEvent: () => v77DreamEvent(), finishDream: success => v64Finish(success),
   patchDream: fields => {Object.assign(v64Expedition(),fields);v64ExpRender();},
   enemyIntent: () => v77EnemyIntent(), stance: () => v77BattleStance(), turnBattle: () => {fightTick(fight.last+1000);draw();},
-  readBook: i => readChapter(i), readDiary: i => v62Read(i), readAll: kind => v80ReadAll(kind), permanent: stat => v80Permanent(stat), enemySpec: () => v80EnemySpec(), resolveDrop: () => v80DropRelic(),
+  readBook: i => readChapter(i), readDiary: i => v62Read(i), readAll: kind => v80ReadAll(kind), permanent: stat => v80Permanent(stat), enemySpec: () => v80EnemySpec(), catalog: () => V80_ENEMIES, nextEnemy: () => enemy(), huntTarget: () => v81HuntTarget(), resolveDrop: () => v80DropRelic(),
   startFight: () => startFight(), chooseDream: type => v64Choose(type), startDream: () => v64Start(),
   snapshot: () => v65Snapshot(), progress: () => progressData(),
   bonus: () => ({income:v63IncomeBonus(),rest:v63RestBonus(),both:v63BothComplete(),reality:v64RealityUnlocked()}),
@@ -498,6 +498,32 @@ async function main() {
       assert.match(await page.locator('#v77-tactic-effect').innerText(),/守り/);
       await page.locator('#v77-tactic').scrollIntoViewIfNeeded();
       await page.screenshot({path:path.join(artifacts,'tactics-classic-320.png')});
+    },{context:{viewport:{width:320,height:568}},seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('151 species have unique identities and searchable drops without losing old trophies',async page=>{
+      const all=await page.evaluate(()=>__infinityTest.catalog());assert.equal(all.length,151);for(const key of ['id','name','drop'])assert.equal(new Set(all.map(x=>x[key])).size,151);
+      assert.equal((await state(page)).v80Relics.counts.ashkeeper,4);
+      await page.locator('#v68-shortcut-menu').click();await page.locator('#v68-menu-permanent').click();await page.locator('#v81-enemy-search').fill('霧市の墓守犬');assert.match(await page.locator('#v81-enemy-count').innerText(),/^1 \/ 151/);
+      assert.equal(await page.locator('#v68-pane-permanent article:visible').count(),1);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1,v80Relics:{counts:{ashkeeper:4}}}))}});
+    await check('hunting fixes enemy strength and rewards without progressing or farming bosses',async page=>{
+      await page.evaluate(()=>{__infinityTest.patch({lv:100,wins:5,bosses:{},v81Hunt:{enabled:true,target:'ashkeeper',kills:0,runKills:0}});Math.random=()=>0;});await config(page,{explore:false,combat:true,boss:false,reward:false,speed:4});const before=await state(page);
+      await page.locator('#v68-auto-main').click();for(let i=0;i<8;i++){await page.clock.runFor(1000);const e=(await page.evaluate(()=>__infinityTest.fight())).e;assert.equal(e.hunt,true);assert.equal(e.stage,1);assert.equal(e.hp,18);assert.equal(e.atk,2);assert.equal(e.boss,false);assert.equal(e.metal,false);}
+      const after=await state(page);assert.equal(after.wins,5);assert.ok(after.v81Hunt.runKills>=3);assert.deepEqual(after.bosses,{});assert.equal(after.pendingBossReward,0);assert.equal(after.coins,before.coins);assert.ok(after.boxes>before.boxes);assert.ok(after.v80Relics.counts.ashkeeper>before.v80Relics.counts.ashkeeper);
+      await page.locator('#v68-auto-main').click();await page.evaluate(()=>{const h=__infinityTest.state().v81Hunt;h.enabled=false;__infinityTest.patch({v81Hunt:h});});const next=await page.evaluate(()=>__infinityTest.nextEnemy());assert.equal(next.stage,6);assert.equal(next.boss,true);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('hunt selection applies next battle, respects unlocks and persists on reload',async page=>{
+      await page.evaluate(()=>__infinityTest.patch({lv:100,wins:0}));await config(page,{combat:true,explore:false});await page.locator('#v68-auto-main').click();await page.clock.runFor(1000);const initial=await page.evaluate(()=>__infinityTest.fight());await page.locator('#v81-hunt-enabled').check();assert.equal((await page.evaluate(()=>__infinityTest.fight())).e.hunt,initial.e.hunt);assert.equal(await page.locator('#v81-hunt-target option').count(),1);
+      await page.clock.runFor(4000);assert.equal((await state(page)).wins,1);assert.equal((await page.evaluate(()=>__infinityTest.fight())).e.hunt,true);await page.locator('#v68-auto-main').click();
+      await page.evaluate(()=>{const h=__infinityTest.state().v81Hunt;h.target='star-jelly';__infinityTest.patch({wins:150,v81Hunt:h});__infinityTest.save();});await page.reload({waitUntil:'load'});assert.equal((await state(page)).v81Hunt.target,'star-jelly');assert.equal(await page.locator('#v81-hunt-target option').count(),147);assert.equal((await page.evaluate(()=>__infinityTest.huntTarget())).stage,147);
+      await page.evaluate(()=>__infinityTest.patch({wins:0}));assert.equal((await page.evaluate(()=>__infinityTest.huntTarget())).stage,1);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('box count updates beside the box shortcut and large counts fit a phone',async page=>{
+      await page.evaluate(()=>{__infinityTest.patch({boxes:42});Math.random=()=>.5;});assert.equal(await page.locator('#v81-box-nav-count').innerText(),'42');await page.locator('#v68-shortcut-gear').click();await page.locator('#open').click();assert.equal(await page.locator('#v81-box-nav-count').innerText(),'41');await closeLibrary(page);
+      await page.evaluate(()=>__infinityTest.patch({boxes:1e30}));assert.match(await page.locator('#v68-shortcut-gear').getAttribute('title'),/1e\+30/);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+    },{context:{viewport:{width:320,height:568}},seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('main rebirth button explains unlocks and preserves permanent growth on confirmed reset',async page=>{
+      const rect=await page.locator('#v81-rebirth').boundingBox();assert.ok(rect.width>=44&&rect.height>=44&&rect.x>=0&&rect.x+rect.width<=320);await page.locator('#v81-rebirth').click();assert.equal(await page.locator('#v68-pane-rebirth').isVisible(),true);assert.equal((await state(page)).rebirth,0);await closeLibrary(page);
+      await page.evaluate(()=>{__infinityTest.readBook(1);const b=__infinityTest.state().v76Buildings;b.levels.market=2;__infinityTest.patch({lv:25,v76Buildings:b,v81Hunt:{enabled:true,target:'mist-hound',kills:12,runKills:7}});});const before=await state(page);page.once('dialog',d=>d.accept());await page.locator('#v81-rebirth').click();const after=await state(page);assert.equal(after.rebirth,1);assert.equal(after.v76Buildings.levels.market,0);assert.deepEqual(after.v80Knowledge,before.v80Knowledge);assert.deepEqual(after.v80Relics,before.v80Relics);assert.equal(after.v81Hunt.kills,12);assert.equal(after.v81Hunt.runKills,0);assert.equal(after.v81Hunt.target,'ashkeeper');assert.equal((await runtime(page)).running,false);
     },{context:{viewport:{width:320,height:568}},seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
     await check('footer removes buildings and labels the shared box and gear entry', async page => {
       assert.equal(await page.locator('#v76-shortcut-buildings').count(),0);
@@ -1073,6 +1099,9 @@ async function main() {
         assert.equal(documentBodyTheater(await page.locator('body').getAttribute('class')),true);
         assert.equal(await page.locator('#v68-manual-controls').evaluate(node=>node.open),false);
         await assertWallet(page,`${world} ${width}px AUTO theater`);
+        const head=await page.evaluate(()=>['v63-world-switch','v81-rebirth','v54Theme'].map(id=>{const r=document.getElementById(id).getBoundingClientRect();return {id,x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height};}));
+        for(const r of head)assert.ok(r.width>=44&&r.height>=44&&r.x>=0&&r.right<=width,r.id+' stays usable');
+        for(let i=0;i<head.length;i++)for(let j=i+1;j<head.length;j++)assert.equal(Math.max(0,Math.min(head[i].right,head[j].right)-Math.max(head[i].x,head[j].x))*Math.max(0,Math.min(head[i].bottom,head[j].bottom)-Math.max(head[i].y,head[j].y)),0,'Header touch targets do not overlap');
         const textFonts=await page.evaluate(()=>['v68-stats','v68-auto-status','v68-auto-main','v68-auto-pause','v68-auto-manual','v68-auto-speed','v68-shortcut-gear','v68-shortcut-books','v68-shortcut-progress','v68-shortcut-menu'].map(id=>({id,font:Number.parseFloat(getComputedStyle(document.getElementById(id)).fontSize)})));
         for(const value of textFonts)assert.ok(value.font>=14,`${world} ${width}px ${value.id} does not shrink essential text below14px (got ${value.font})`);
         const stop=await page.locator('#v68-auto-main').boundingBox();
