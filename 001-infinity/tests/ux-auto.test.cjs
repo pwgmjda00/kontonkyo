@@ -29,6 +29,8 @@ window.__infinityTest = {
   start: () => v68AutoStart(), pause: reason => v68AutoPause(reason), manual: () => v68AutoManual(),
   initAuto: () => v68AutoInit(), autoTick: (t,dt) => v68AutoTick(t,dt), battleTick: (t,dt) => v68FightTick(t,dt),
   openPanel: key => v68OpenPanel(key),
+  buyBuilding: id => v76BuyBuilding(id), buildingCost: id => v76BuildingCost(id),
+  buildingRates: () => ({money:v76BuildingMoney(),boxes:v76BuildingBoxes(),paper:v76BuildingPaper(),scrap:v76BuildingScrap()}),
   boxCoinRoll: () => v72BoxCoinRoll(), openBox: () => openOne(),
   balance: () => ({income:income(),cost:lvCost(),combat:v74CombatStats(),synergy:synergyBonus(),rebirth:v74Rebirth()}),
   save: () => save(), draw: () => draw(), income: () => income(), step: dt => step(dt),
@@ -422,8 +424,82 @@ async function main() {
       assert.equal(await page.locator('#v67-save-warning').isVisible(),true);
       assert.equal((await state(page)).theme,'dark','An unreadable existing save is not a confirmed fresh game');
     }, {seed:{[KEY]:oldRaw},denyReads:true});
+    await check('buildings purchase with real money, reject unaffordable purchases and retain focused controls', async page => {
+      assert.equal(await page.locator('[data-mode="fast"]').count(),0);
+      await page.locator('#v76-shortcut-buildings').click();assert.equal(await page.locator('#v76-buildings').isVisible(),true);
+      assert.equal(await page.locator('#v76-buy-market').isEnabled(),true);
+      await page.locator('#v76-buy-market').click();
+      let actual=await state(page);assert.equal(actual.v76Buildings.levels.market,1);assert.equal(actual.n,12345-120);
+      assert.equal(await page.evaluate(()=>__infinityTest.buildingCost('market')),240);
+      await page.evaluate(()=>__infinityTest.patch({n:0}));
+      assert.equal(await page.locator('#v76-buy-market').isDisabled(),true);
+      assert.equal(await page.evaluate(()=>__infinityTest.buyBuilding('market')),false);
+      assert.equal((await state(page)).v76Buildings.levels.market,1);
+      await page.evaluate(()=>__infinityTest.patch({n:100000}));
+      await page.locator('#v76-buy-factory').focus();const identity=await page.locator('#v76-buy-factory').evaluate(n=>{window.__buildingButton=n;return n===document.activeElement;});assert.equal(identity,true);
+      await page.clock.runFor(1500);assert.equal(await page.locator('#v76-buy-factory').evaluate(n=>n===window.__buildingButton&&n===document.activeElement),true);
+      await page.locator('#v76-buy-factory').click();assert.equal((await state(page)).v76Buildings.levels.factory,1);
+      assert.equal((await state(page)).v76Buildings.levels.scrap,0);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('building production uses elapsed time, preserves fractional outputs and ignores AUTO speed', async page => {
+      const result=await page.evaluate(()=>{
+        const before=__infinityTest.state();const out=[];
+        for(const speed of [1,2,4]){
+          __infinityTest.patch({...before,n:0,boxes:0,paper:0,expeditionFraction:0,v76Buildings:{version:1,levels:{market:4,factory:4,scrap:4,press:4},paperFraction:0,scrapFraction:0}});
+          __infinityTest.configure({speed});const income=__infinityTest.income();__infinityTest.step(30);const half=__infinityTest.state();__infinityTest.step(30);const full=__infinityTest.state();
+          out.push({income,halfPaper:half.paper,fraction:half.v76Buildings.paperFraction,paper:full.paper,boxes:full.boxes,rates:__infinityTest.buildingRates()});
+        }return out;
+      });
+      assert.deepEqual(result[0],result[1]);assert.deepEqual(result[1],result[2]);
+      assert.equal(result[0].halfPaper,0);assert.equal(result[0].fraction,.5);assert.equal(result[0].paper,1);
+      assert.ok(result[0].boxes>=66,'The existing sixty seconds of exploration plus six factory boxes');
+      assert.equal(result[0].rates.money,1.16);assert.equal(result[0].rates.scrap,2/60);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1,rebirth:0,research:{opening:0,recycling:0,balance:0}}))}});
+    await check('buildings survive reload and world change without changing inventory or progress', async page => {
+      const before=await state(page);await page.locator('#v76-shortcut-buildings').click();await page.locator('#v76-buy-press').click();
+      await page.evaluate(()=>__infinityTest.step(30));await page.evaluate(()=>__infinityTest.save());
+      const saved=await state(page);await page.reload({waitUntil:'load'});
+      let actual=await state(page);assert.deepEqual(actual.v76Buildings,saved.v76Buildings);assert.deepEqual(actual.owned,before.owned);assert.deepEqual(actual.savedBuilds,before.savedBuilds);
+      await page.evaluate(()=>__infinityTest.switchWorld('dream'));await page.locator('#v76-shortcut-buildings').click();
+      assert.match(await page.locator('#v76-name-press').innerText(),/おてがみ/);assert.equal((await state(page)).v76Buildings.levels.press,1);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('retired condition never affects income or combat and is absent from the HUD', async page => {
+      const values=await page.evaluate(()=>{
+        const out=[];for(const h of [0,20,100])for(const mode of ['fast','rest']){__infinityTest.patch({h,mode});out.push({income:__infinityTest.income(),combat:__infinityTest.balance().combat});}return out;
+      });
+      for(const row of values)assert.deepEqual(row,values[0]);
+      assert.doesNotMatch(await page.locator('#v68-stats').innerText(),/調子/);
+      assert.equal(await page.locator('#health').count(),0);
+      await page.evaluate(()=>__infinityTest.patch({h:0,mode:'rest'}));
+      await page.clock.runFor(1500);assert.equal((await runtime(page)).running,true);
+      assert.equal((await page.evaluate(()=>__infinityTest.fight())).v68AutoOwned,true);
+    },{nativeAutomatic:true,seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('malformed building fields normalize without touching existing assets or unknown state', async page => {
+      const actual=await state(page);assert.equal(actual.n,12345);assert.equal(actual.v76Buildings.levels.market,0);
+      assert.equal(actual.v76Buildings.levels.factory,25);assert.equal(actual.v76Buildings.levels.scrap,0);
+      assert.equal(actual.v76Buildings.paperFraction,0);assert.equal(actual.v76Buildings.scrapFraction,0);
+      assert.equal(actual.v76Buildings.custom,'preserve');assert.equal(actual.customHistory.note,'unknown fields survive');
+      await page.evaluate(()=>__infinityTest.step(1));assert.ok(Number.isFinite((await state(page)).n));
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1,v76Buildings:{levels:{market:'bad',factory:999,scrap:-3,press:null},paperFraction:'bad',scrapFraction:-2,custom:'preserve'}}))}});
+    await check('offline building production credits elapsed time once without background combat', async page => {
+      const before=await state(page);
+      await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));});
+      await page.clock.runFor(60000);assert.equal((await state(page)).boxes,before.boxes);
+      await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:false});document.dispatchEvent(new Event('visibilitychange'));});
+      let after=await state(page);assert.equal(after.boxes-before.boxes,66);assert.equal(after.paper-before.paper,1);assert.equal(after.empty-before.empty,2);
+      assert.equal(after.wins,before.wins);
+      await page.evaluate(()=>{document.dispatchEvent(new Event('visibilitychange'));window.dispatchEvent(new Event('pageshow'));});
+      const repeated=await state(page);assert.equal(repeated.boxes,after.boxes);assert.equal(repeated.paper,after.paper);assert.equal(repeated.empty,after.empty);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1,autoPlayPaused:true,rebirth:0,research:{opening:0,recycling:0,balance:0},v76Buildings:{levels:{market:0,factory:4,scrap:4,press:4},paperFraction:0,scrapFraction:0}}))}});
+    await check('building level cap prevents overflow and repeated cap purchases cannot consume money', async page => {
+      await page.evaluate(()=>__infinityTest.patch({n:1e100,v76Buildings:{version:1,levels:{market:24,factory:25,scrap:25,press:25},paperFraction:0,scrapFraction:0}}));
+      assert.equal(await page.evaluate(()=>__infinityTest.buyBuilding('market')),true);
+      const before=await state(page);assert.equal(await page.evaluate(()=>__infinityTest.buyBuilding('market')),false);
+      assert.equal((await state(page)).n,before.n);assert.equal((await state(page)).v76Buildings.levels.market,25);
+      const rates=await page.evaluate(()=>__infinityTest.buildingRates());assert.equal(rates.money,1.4);assert.equal(rates.boxes,.25);assert.equal(rates.scrap,5/60);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
     await check('automatic defaults replace obsolete flags; speed and explicit stop survive reload', async page => {
-      for(const selector of ['#auto','[data-mode="rest"]','#v68-auto-settings-open','[data-v68-panel="auto"]'])assert.equal(await page.locator(selector).count(),0);
+      for(const selector of ['#auto','[data-mode="fast"]','[data-mode="rest"]','#v68-auto-settings-open','[data-v68-panel="auto"]'])assert.equal(await page.locator(selector).count(),0);
       assert.deepEqual((await state(page)).v68Auto,{explore:true,combat:true,boss:true,reward:true,speed:1,theater:true});
       await page.locator('#v68-auto-speed').selectOption('4');
       await page.clock.runFor(1000);assert.equal((await runtime(page)).running,true);
@@ -452,10 +528,10 @@ async function main() {
       await page.clock.runFor(1500);assert.equal((await runtime(page)).running,true);
       assert.equal((await page.evaluate(()=>__infinityTest.fight())).v68AutoOwned,true);
     },{nativeAutomatic:true});
-    await check('automatic recovery preserves old save assets and removes legacy income penalty', async page => {
+    await check('retired condition does not delay automatic battles or modify old save assets', async page => {
       const before=await state(page);assert.equal(before.auto,false);assert.equal(before.h,20);
       await page.clock.runFor(16000);const after=await state(page);
-      assert.ok(after.h>32);assert.equal(after.customHistory.note,'unknown fields survive');assert.deepEqual(after.savedBuilds,before.savedBuilds);
+      assert.equal(after.h,20);assert.ok(after.wins>before.wins);assert.equal(after.customHistory.note,'unknown fields survive');assert.deepEqual(after.savedBuilds,before.savedBuilds);
       assert.equal(after.shop.mondrian,1);assert.ok(after.dualWorld.records.dream.rest>=before.dualWorld.records.dream.rest);
     },{nativeAutomatic:true,seed:{[KEY]:JSON.stringify(fixture({v68Migration:1,auto:true,h:20}))}});
     await check('idempotent AUTO binding and one-tap manual return from theater', async page => {
@@ -484,9 +560,10 @@ async function main() {
       assert.equal(later.hp, frozen.hp);
       await page.locator('#v68-auto-pause').click();
       assert.equal((await runtime(page)).paused, false);
-      await page.evaluate(() => document.querySelector('[data-mode="fast"]').click());
+      await page.evaluate(() => document.getElementById('v76-shortcut-buildings').click());
       assert.equal((await runtime(page)).paused, true);
-      assert.equal((await state(page)).mode, 'fast');
+      assert.equal(await page.locator('#v76-buildings').isVisible(),true);
+      await closeLibrary(page);
     }, {seed: {[KEY]: JSON.stringify(fixture({v68Migration: 1}))}});
     await check('classic exploration AUTO collects a real box without enabling combat and stops cleanly', async page => {
       await page.evaluate(()=>{window.__originalRandom=Math.random;Math.random=()=>.5;});
@@ -521,7 +598,7 @@ async function main() {
       assert.equal((await state(page)).wins, 5);
       assert.equal((await runtime(page)).paused, true);
     }, {seed: {[KEY]: JSON.stringify(fixture({v68Migration: 1}))}});
-    await check('pending boss reward remains manual by default and duplicate clicks cannot grant twice', async page => {
+    await check('legacy reward guard and duplicate clicks cannot grant rewards twice', async page => {
       await page.evaluate(() => __infinityTest.patch({pendingBossReward: 6, boxes: 10}));
       await config(page, {combat: true, reward: false});
       await page.locator('#v68-auto-main').click();
@@ -650,7 +727,7 @@ async function main() {
       assert.equal((await state(page)).dualWorld.v64.runs, stopped);
     }, {seed: {[KEY]: JSON.stringify(fixture({v68Migration: 1}))}});
     await check('prestige retains original collections and pauses AUTO before rebuilding the world', async page => {
-      await page.evaluate(() => __infinityTest.patch({lv: 25}));
+      await page.evaluate(() => {__infinityTest.buyBuilding('scrap');__infinityTest.patch({lv:25});});
       // The existing shared loop refreshes prestige availability after level changes.
       await page.clock.runFor(500);
       assert.equal(await page.locator('#prestige').isEnabled(), true);
@@ -660,6 +737,7 @@ async function main() {
       await page.evaluate(() => document.getElementById('prestige').click());
       const actual = await state(page);
       assert.equal(actual.rebirth, 1);
+      assert.equal(actual.v76Buildings.levels.scrap,1);
       assert.equal(actual.lv, 1);
       assert.deepEqual(actual.owned, {});
       assert.deepEqual(actual.discoveredGear, {'0': true, '42': true});
@@ -680,7 +758,7 @@ async function main() {
         assert.equal(await page.locator('#v68-pane-'+pane).isVisible(),true,control+' opens original content');
         await page.locator('#v68-library-back').click();
       }
-      for(const key of ['progress','save','settings','rebirth','logs','dopa','extras']) {
+      for(const key of ['buildings','progress','save','settings','rebirth','logs','dopa','extras']) {
         await page.locator('#v68-menu-'+key).click();
         assert.equal(await page.locator('#v68-pane-'+key).isVisible(),true,key+' pane');
         await page.locator('#v68-library-back').click();
@@ -780,6 +858,11 @@ async function main() {
         await page.locator('#v68-auto-manual').click();
         assert.equal(documentBodyTheater(await page.locator('body').getAttribute('class')),false);
         await assertWallet(page,`${world} ${width}px returned to manual`);
+        const town=await page.locator('#v76-shortcut-buildings').boundingBox();assert.ok(town.height>=44&&town.x>=0&&town.x+town.width<=width&&town.y+town.height<=height,'Town stays reachable during play');
+        await page.locator('#v76-shortcut-buildings').click();assert.equal(await page.locator('#v76-buildings').isVisible(),true);
+        assert.match(await page.locator('#v76-building-wallet').innerText(),/所持金/);
+        const panelWidth=await page.locator('#v76-buildings').evaluate(n=>({scroll:n.scrollWidth,width:n.clientWidth}));assert.ok(panelWidth.scroll<=panelWidth.width,'Town does not overflow horizontally');
+        await page.screenshot({path:path.join(artifacts,`buildings-${world}-${width}.png`)});await closeLibrary(page);
         await page.locator('#v68-shortcut-progress').click();
         assert.equal(await page.locator('#v68-library').evaluate(node=>node.open),true);
         assert.equal(await page.locator('#v65-details').isVisible(),true);
