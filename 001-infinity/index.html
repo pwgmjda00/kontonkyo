@@ -545,16 +545,26 @@ function v59Flash(kind,detail){
  $('v59-finale-text').textContent=detail;
  panel.classList.remove('v59-burst');void panel.offsetWidth;panel.classList.add('v59-burst');
 }
+// Compact combat notation is independent of the player's money display preference.
+function v73BattleNum(value){
+ const n=Number(value);if(!Number.isFinite(n))return n===Infinity?'∞':'---';
+ return Math.abs(n)>=1e9?n.toExponential(2):prettyNum(n);
+}
 function v59RenderBattle(){
  const active=!!(fight&&fight.active),pending=!!s.pendingBossReward,bar=(id,pct)=>{$(id).style.width=Math.max(0,Math.min(100,pct))+'%'};
  const stage=fight?.e?.stage||s.wins+1,foe=fight?.e;
- const enemyPct=foe?.hp>0?100*Math.max(0,fight.ehp)/foe.hp:0;
- const selfPct=fight?.max>0?100*Math.max(0,fight.hp)/fight.max:0;
+ const enemyPct=foe?.hp>0?100*(Math.max(0,fight.ehp)/foe.hp):0;
+ const selfPct=fight?.max>0?100*(Math.max(0,fight.hp)/fight.max):0;
  bar('v59-enemy-bar',enemyPct);bar('v59-self-bar',selfPct);
  $('v59-enemy-meter').setAttribute('aria-valuenow',String(Math.round(Math.min(100,enemyPct))));
  $('v59-self-meter').setAttribute('aria-valuenow',String(Math.round(Math.min(100,selfPct))));
- $('v59-enemy-hp').textContent=foe?prettyNum(Math.max(0,Math.ceil(fight.ehp)))+' / '+prettyNum(foe.hp):'---';
- $('v59-self-hp').textContent=fight?prettyNum(Math.max(0,Math.ceil(fight.hp)))+' / '+prettyNum(Math.ceil(fight.max)):'---';
+ $('v59-enemy-hp').textContent=foe?v73BattleNum(Math.max(0,Math.ceil(fight.ehp)))+' / '+v73BattleNum(foe.hp):'---';
+ $('v59-self-hp').textContent=fight?v73BattleNum(Math.max(0,Math.ceil(fight.hp)))+' / '+v73BattleNum(Math.ceil(fight.max)):'---';
+ if(fight){
+  $('battleinfo').textContent='敵 '+v73BattleNum(Math.max(0,Math.ceil(fight.ehp)))+' / 自分 '+v73BattleNum(Math.max(0,Math.ceil(fight.hp)));
+  $('v59-self-hp').title='自分のHP '+String(fight.hp)+' / '+String(fight.max);
+  $('v59-enemy-hp').title='敵のHP '+String(fight.ehp)+' / '+String(foe.hp);
+ }
  if(!foe){$('foe').textContent='⚔️ 次は第'+stage+'戦';$('battleinfo').textContent='一度押せば自動で決着する。';}
  const state=pending?'報酬選択':active?'交戦中':(fight?'決着':'待機中');
  $('battlepanel').dataset.battleState=pending?'reward':active?'active':fight?'finished':'ready';
@@ -2444,6 +2454,7 @@ function v68InitUI(){
  const main=document.querySelector('main');if(!main)return;
  const originalChildren=Array.from(main.children);
  document.body.classList.add('v68-ui');
+ document.querySelector('.v32brand').title='表示修正版 v73：所持金常時表示・大数HP対応';
  const wallet=v68Node('section','v69-wallet');wallet.setAttribute('aria-label','所持金と毎秒収入');
  wallet.innerHTML='<span id="v69-wallet-label">所持金</span><span id="v69-wallet-coins" title="永久商店・美術館で使う別の通貨"></span>';
  const stats=v68Node('div','v68-stats');stats.setAttribute('aria-label','現在の冒険の状態');
@@ -2528,6 +2539,9 @@ function v68InitUI(){
  dialog.addEventListener('click',event=>{if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)v68ClosePanel();}});
  dialog.addEventListener('close',()=>{
   if(dialog.open)return;
+  if(v68AutoRuntime.paused&&v68AutoRuntime.reason==='詳細画面を開いています'){
+   v68AutoStatus('詳細画面を閉じました。AUTO再開を押すと続きから進みます');v68AutoRender();
+  }
   for(const [key,p]of v68Panes)p.hidden=true;
   for(const id of ['boxpanel','shoppanel','cardpanel','bookpanel','artMuseumPanel','v62-diary-panel','savepanel'])$(id).classList.add('hide');
   $('artMuseumBtn').setAttribute('aria-expanded','false');$('savetoggle').setAttribute('aria-expanded','false');v62Visibility();
@@ -2562,7 +2576,7 @@ function v68RenderUI(){
  if(world!==v68PreviousWorld){$('v68-manual-controls').open=!dream&&!document.body.classList.contains('v68-theater');v68PreviousWorld=world;}
  $('v64-dream-expedition').dataset.expeditionState=exp?.active?'active':'ready';
  const stage=fight?.e?.stage||s.wins+1;
- const fields=dream?[['レベル',s.lv],['元気',(exp?.active?exp.energy:8)+'/10'],['旅',(exp?.active?exp.step:0)+'/7'],['きらめき',exp?.active?exp.sparkle:0]]:[['レベル',s.lv],['調子',Math.round(s.h)+'%'],['階層',stage],['HP',fight?prettyNum(Math.max(0,Math.ceil(fight.hp)))+' / '+prettyNum(Math.ceil(fight.max)):'出撃待ち']];
+ const fields=dream?[['レベル',s.lv],['元気',(exp?.active?exp.energy:8)+'/10'],['旅',(exp?.active?exp.step:0)+'/7'],['きらめき',exp?.active?exp.sparkle:0]]:[['レベル',s.lv],['調子',Math.round(s.h)+'%'],['階層',stage],['HP',fight?v73BattleNum(Math.max(0,Math.ceil(fight.hp)))+' / '+v73BattleNum(Math.ceil(fight.max)):'出撃待ち']];
  fields.push(['強化まで',s.n>=lvCost()?'購入可能':prettyNum(Math.ceil(lvCost()-s.n))]);
  for(const [i,[label,value]]of fields.entries()){
   const name=$('v69-stat-label-'+i),amount=$('v69-stat-value-'+i),text=String(value);
@@ -3456,4 +3470,9 @@ body.v68-ui #v71-treasure-help{padding:12px;border:1px solid var(--border);borde
 body.v68-ui #v72-box-coin-notice{grid-column:1/-1;font-size:14px;line-height:1.5;font-weight:700;color:var(--fg);background:var(--panel);padding:4px 0}
 body.v68-ui #v72-box-coin-notice[hidden]{display:none!important}
 body.v68-ui #v72-box-coin-odds{font-size:14px;line-height:1.6;color:var(--fg);margin:8px 0}
+body.v68-ui .v59-hp-label{min-width:0;flex-wrap:wrap}
+body.v68-ui .v59-hp-label b{font-size:14px;overflow-wrap:anywhere;min-width:0}
+body.v68-ui .v59-numbers{font-size:14px;overflow-wrap:anywhere;max-width:100%}
+body.v68-ui .v59-entry-top{min-width:0;flex-wrap:wrap}
+body.v68-ui .v59-entry-top strong,body.v68-ui .v59-entry p{min-width:0;overflow-wrap:anywhere}
 </style></body></html>

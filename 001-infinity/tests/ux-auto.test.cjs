@@ -233,6 +233,25 @@ async function main() {
       await page.evaluate(()=>__infinityTest.save());await page.reload({waitUntil:'load'});
       assert.equal((await state(page)).boxCoinTotal,current.boxCoinTotal,'Coin reward total survives reload');
     },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('level178 large HP stays compact without changing combat state or hiding money', async page => {
+      await page.evaluate(()=>{__infinityTest.patch({lv:178,n:9e60,numFormat:'digits'});__infinityTest.setFight({e:{stage:2,hp:21,atk:2,boss:false},hp:5e307,max:1e308,ehp:0,last:Date.now(),active:false});});
+      assert.ok((await page.locator('#v59-self-hp').innerText()).length<40);
+      assert.match(await page.locator('#v59-self-hp').innerText(),/e\+307/);
+      assert.ok((await page.locator('#battleinfo').innerText()).length<60);
+      assert.equal(await page.locator('#v59-self-bar').evaluate(n=>n.style.width),'50%');
+      assert.equal((await page.evaluate(()=>__infinityTest.fight())).hp,5e307);
+      await assertWallet(page,'level178 large HP');
+      const layout=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth}));assert.ok(layout.scroll<=layout.width);
+      assert.match(await page.locator('#v59-self-hp').getAttribute('title'),/5e\+307/);
+    },{context:{viewport:{width:864,height:655}},seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('closing details explains paused AUTO and explicit resume continues', async page => {
+      await config(page,{explore:true,combat:false});await page.locator('#v68-auto-main').click();await page.clock.runFor(1000);
+      await page.locator('#v68-shortcut-gear').click();assert.equal((await runtime(page)).paused,true);
+      await closeLibrary(page);await page.clock.runFor(1);
+      assert.match(await page.locator('#v68-auto-status').innerText(),/閉じました/);
+      assert.equal((await runtime(page)).running,false);
+      await page.locator('#v68-auto-main').click();assert.equal((await runtime(page)).running,true);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
     await check('fresh dream: existing default theme and seven-step exploration reward once', async page => {
       await chooseWorld(page, 'dream');
       assert.equal((await state(page)).theme, 'dream');
