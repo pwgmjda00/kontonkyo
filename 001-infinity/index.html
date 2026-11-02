@@ -316,30 +316,47 @@ s.runLongestRest=Math.max(0,Number(s.runLongestRest)||0);
 s.returnBonusUntil=Number(s.returnBonusUntil)||0;
 s.returnBonusLast=Number(s.returnBonusLast)||0;
 s.runEnding=s.runEnding||null;
-// v76: bounded, additive town upgrades; both worlds share ownership across rebirths.
+// v79: run-based town upgrades; no gameplay level or effect cap.
 const v76BuildingDefs=[
- {id:'market',name:'🌃 夜の商店街',dream:'🍰 おかしの商店街',cost:120,description:'所持金の毎秒生産を増やす。戦闘力への直接補正はありません。'},
- {id:'factory',name:'📦 箱の工房',dream:'🎁 リボン工房',cost:600,description:'時間経過で箱を追加生産。中身・ジェムの抽選確率は通常の箱と同じ。'},
- {id:'scrap',name:'♻️ 古紙回収所',dream:'🧺 おもいで回収所',cost:360,description:'時間経過で空き箱を集める。装備画面の古紙回収で紙片に交換できます。'},
- {id:'press',name:'📜 紙片印刷所',dream:'💌 おてがみ印刷所',cost:1800,description:'時間経過で紙片を生産。書庫の解放や研究に使えます。'},
- {id:'dojo',name:'⚔️ 剣術道場',dream:'🦁 ゆうきの教室',cost:2400,description:'無窮世界の戦闘攻撃力を強化。最大＋10%。生産量とは独立した補正です。'},
- {id:'clinic',name:'🏥 星灯りの診療所',dream:'🧸 おやすみ診療所',cost:3600,description:'無窮世界の毎ターンの戦闘HP回復を強化。最大＋20%。回復阻害の敵には効果を阻害されます。'},
- {id:'observatory',name:'🔭 夢見の天文台',dream:'🌌 おほしさま観測所',cost:12000,description:'ゆめかわの新しい探検の出発時きらめきを追加。Lv1・4・9・16・25で増え、最大＋5。進行中の旅には再付与されません。'}
+ {id:'market',name:'🌃 混沌商会',dream:'🍰 こんぺいとう通り',cost:120,description:'毎秒の所持金生産を強化。転生すると建て直しになります。'},
+ {id:'factory',name:'⚙️ 歯車の箱工場',dream:'🎁 リボン工房',cost:600,description:'時間経過で箱を追加生産。装備とジェムの抽選は既存の箱と同じです。'},
+ {id:'scrap',name:'♻️ 廃都の回収所',dream:'🧺 おもいで回収所',cost:360,description:'空き箱を自動で集めます。古紙回収で紙片へ交換できます。'},
+ {id:'press',name:'📜 禁書印刷所',dream:'💌 おてがみ印刷所',cost:1800,description:'時間経過で紙片を生産。書庫や研究に使えます。'},
+ {id:'dojo',name:'⚔️ 黒鉄道場',dream:'🦁 ゆうきの教室',cost:2400,description:'無窮の戦闘攻撃力を強化。生産量から独立した補正です。'},
+ {id:'clinic',name:'🕯️ 灯火救護院',dream:'🧸 ぬいぐるみ診療所',cost:3600,description:'無窮の毎ターンの戦闘HP回復を強化。回復阻害の敵には阻害されます。'},
+ {id:'observatory',name:'🔭 無窮観測塔',dream:'🌌 ほしぞら観測所',cost:12000,description:'新しい夢の探検の出発時きらめきを追加。出発済みの旅に再付与はしません。'},
+ {id:'fortress',name:'🏰 虚無の城壁',dream:'☁️ わたあめのお城',cost:6000,description:'無窮の戦闘最大HPを強化し、強い敵の攻撃に備えます。'},
+ {id:'guild',name:'🧭 探索者ギルド',dream:'🐾 たからもの拾い小屋',cost:4800,description:'戦闘勝利・ギフトイベントの獲得箱に追加。表示値の1未満の端数は抽選されます。'},
+ {id:'exchange',name:'💎 遺物換金所',dream:'✨ きらきら両替屋',cost:9000,description:'無窮のボス撃破時に追加ジェムを獲得。追加報酬の選択とは別に、一度だけ受け取れます。'}
 ];
 {
  const old=s.v76Buildings&&typeof s.v76Buildings==='object'&&!Array.isArray(s.v76Buildings)?s.v76Buildings:{};
- const levels={};for(const d of v76BuildingDefs){const n=old.levels?.[d.id];levels[d.id]=Number.isFinite(n)?Math.max(0,Math.min(25,Math.floor(n))):0;}
- s.v76Buildings={...old,version:1,levels,paperFraction:Number.isFinite(old.paperFraction)?Math.max(0,Math.min(.999999999,old.paperFraction)):0,scrapFraction:Number.isFinite(old.scrapFraction)?Math.max(0,Math.min(.999999999,old.scrapFraction)):0};
+ const levels={};for(const d of v76BuildingDefs){const n=old.levels?.[d.id];levels[d.id]=Number.isFinite(n)?Math.max(0,Math.min(Number.MAX_SAFE_INTEGER,Math.floor(n))):0;}
+ s.v76Buildings={...old,version:2,levels,paperFraction:Number.isFinite(old.paperFraction)?Math.max(0,Math.min(.999999999,old.paperFraction)):0,scrapFraction:Number.isFinite(old.scrapFraction)?Math.max(0,Math.min(.999999999,old.scrapFraction)):0};
 }
 function v76BuildingLevel(id){return s.v76Buildings.levels[id]||0;}
-function v76BuildingCost(id){const d=v76BuildingDefs.find(d=>d.id===id);return d&&v76BuildingLevel(id)<25?d.cost*2**v76BuildingLevel(id):Infinity;}
-function v76BuildingMoney(){return 1+.08*Math.sqrt(v76BuildingLevel('market'));}
-function v76BuildingBoxes(){return .05*Math.sqrt(v76BuildingLevel('factory'));}
-function v76BuildingScrap(){return Math.sqrt(v76BuildingLevel('scrap'))/60;}
-function v76BuildingPaper(){return Math.sqrt(v76BuildingLevel('press'))/120;}
-function v78BuildingAttack(){return 1+.02*Math.sqrt(v76BuildingLevel('dojo'));}
-function v78BuildingHealing(){return 1+.04*Math.sqrt(v76BuildingLevel('clinic'));}
-function v78BuildingSparkle(){return Math.floor(Math.sqrt(v76BuildingLevel('observatory')));}
+function v79BuildingPower(id){return v76BuildingLevel(id)**.85;}
+function v76BuildingCost(id,level=v76BuildingLevel(id)){const d=v76BuildingDefs.find(d=>d.id===id);return d?Math.min(Number.MAX_VALUE,Math.ceil(d.cost*(1+level)**1.75)):Infinity;}
+function v79BuildingQuote(id,count=1){
+ if(![1,10,100].includes(count))return Infinity;
+ const level=v76BuildingLevel(id);if(!Number.isSafeInteger(level+count)||level+count<=level)return Infinity;
+ let total=0;for(let i=0;i<count;i++){total+=v76BuildingCost(id,level+i);if(!Number.isFinite(total))return Infinity;}return total;
+}
+function v79TownBatch(){const value=Number($('v79-building-batch')?.value||s.v79BuildingBatch||1);return [1,10,100].includes(value)?value:1;}
+function v76BuildingMoney(){return 1+.2*v79BuildingPower('market');}
+function v76BuildingBoxes(){return .15*v79BuildingPower('factory');}
+function v76BuildingScrap(){return 3*v79BuildingPower('scrap')/60;}
+function v76BuildingPaper(){return 1.5*v79BuildingPower('press')/60;}
+function v78BuildingAttack(){return 1+.06*v79BuildingPower('dojo');}
+function v78BuildingHealing(){return 1+.12*v79BuildingPower('clinic');}
+function v78BuildingSparkle(){return Math.floor(2*v79BuildingPower('observatory'));}
+function v79BuildingHP(){return 1+.15*v79BuildingPower('fortress');}
+function v79BuildingLoot(){return .5*v79BuildingPower('guild');}
+function v79BuildingGems(){return Math.floor(v79BuildingPower('exchange'));}
+function v79ResetBuildings(){
+ s.v76Buildings={...s.v76Buildings,version:2,levels:Object.fromEntries(v76BuildingDefs.map(d=>[d.id,0])),paperFraction:0,scrapFraction:0};
+ s.expeditionFraction=0;
+}
 function v76BuildingTick(sec){
  if(!Number.isFinite(sec)||sec<=0)return;
  const b=s.v76Buildings;b.paperFraction+=Math.min(86400,sec)*v76BuildingPaper();
@@ -348,28 +365,26 @@ function v76BuildingTick(sec){
  b.scrapFraction+=Math.min(86400,sec)*v76BuildingScrap();const empty=Math.floor(b.scrapFraction);b.scrapFraction-=empty;
  if(empty)s.empty=Math.min(Number.MAX_VALUE,s.empty+empty);
 }
-function v76BuyBuilding(id){
- const price=v76BuildingCost(id);
+function v76BuyBuilding(id,count=1){
+ const price=v79BuildingQuote(id,count);
  if(!Number.isFinite(price)||!Number.isFinite(s.n)||s.n<price)return false;
- s.n-=price;s.v76Buildings.levels[id]++;save();draw();return true;
+ s.n-=price;s.v76Buildings.levels[id]+=count;save();draw();return true;
 }
 function v76BuildingEffect(id,level){
- const root=Math.sqrt(level);
- return {market:'所持金生産 ＋'+(8*root).toFixed(1)+'%',factory:'箱 ＋'+(.05*root).toFixed(3)+'個 /秒',scrap:'空き箱 ＋'+root.toFixed(2)+'個 /分',press:'紙片 ＋'+(.5*root).toFixed(2)+'枚 /分',dojo:'戦闘攻撃 ＋'+(2*root).toFixed(1)+'%',clinic:'戦闘HP回復 ＋'+(4*root).toFixed(1)+'%',observatory:'出発きらめき ＋'+Math.floor(root)}[id];
+ const power=level**.85;
+ return {market:'所持金生産 ＋'+(20*power).toFixed(1)+'%',factory:'箱 ＋'+(.15*power).toFixed(3)+'個 /秒',scrap:'空き箱 ＋'+(3*power).toFixed(2)+'個 /分',press:'紙片 ＋'+(1.5*power).toFixed(2)+'枚 /分',dojo:'戦闘攻撃 ＋'+(6*power).toFixed(1)+'%',clinic:'戦闘HP回復 ＋'+(12*power).toFixed(1)+'%',observatory:'出発きらめき ＋'+Math.floor(2*power),fortress:'戦闘最大HP ＋'+(15*power).toFixed(1)+'%',guild:'戦利品の追加箱 ＋'+(.5*power).toFixed(2),exchange:'ボス追加ジェム ＋'+Math.floor(power)}[id];
 }
 function v76RenderBuildings(){
  const panel=$('v76-buildings');if(!panel)return;
- const dream=v63Active()==='dream';
- const balance='所持金 '+prettyNum(s.n)+' ｜ 毎秒収入 ＋'+prettyNum(income());
- const wallet=$('v76-building-wallet');if(wallet&&wallet.textContent!==balance)wallet.textContent=balance;
+ const dream=v63Active()==='dream',count=v79TownBatch();
  for(const d of v76BuildingDefs){
-  const level=v76BuildingLevel(d.id),price=v76BuildingCost(d.id),button=$('v76-buy-'+d.id);
-  const values={['v76-name-'+d.id]:dream?d.dream:d.name,['v76-level-'+d.id]:'Lv.'+level+' / 25',['v76-effect-'+d.id]:v76BuildingEffect(d.id,level),['v76-next-'+d.id]:level<25?'次の効果：'+v76BuildingEffect(d.id,level+1):'最大レベルに到達'};
+  const level=v76BuildingLevel(d.id),price=v79BuildingQuote(d.id,count),button=$('v76-buy-'+d.id);
+  const values={['v76-name-'+d.id]:dream?d.dream:d.name,['v76-level-'+d.id]:'Lv.'+prettyNum(level),['v76-effect-'+d.id]:v76BuildingEffect(d.id,level),['v76-next-'+d.id]:'強化後：'+v76BuildingEffect(d.id,level+count)};
   for(const [id,text]of Object.entries(values)){const node=$(id);if(node.textContent!==text)node.textContent=text;}
-  const label=level>=25?'最大レベル':(level?'強化':'建設')+' '+prettyNum(price);
+  const label=(level?'強化':'建設')+(count>1?' ×'+count:'')+' '+prettyNum(price);
   if(button.textContent!==label)button.textContent=label;
-  button.disabled=level>=25||!Number.isFinite(s.n)||s.n<price;
-  button.title=level>=25?'これ以上の購入はありません':'所持金を'+prettyNum(price)+'消費。あと'+prettyNum(Math.max(0,price-s.n))+'で購入可能';
+  button.disabled=!Number.isFinite(price)||!Number.isFinite(s.n)||s.n<price;
+  button.title=Number.isFinite(price)?'所持金を'+prettyNum(price)+'消費。あと'+prettyNum(Math.max(0,price-s.n))+'で購入可能':'この数量の強化は数値を正確に扱えません';
  }
 }
 function v78OpenTown(){
@@ -379,17 +394,18 @@ function v78OpenTown(){
 }
 function v76InitBuildings(host){
  const panel=v68Node('section','v76-buildings');panel.setAttribute('aria-label','建物の購入と生産');
- const cards=v68Node('div','v78-building-cards');cards.setAttribute('aria-label','横に並ぶ7つの建物');
+ const batchLabel=v68Node('label',null,'まとめ強化 '),batch=v68Node('select','v79-building-batch');batch.setAttribute('aria-label','建物の強化回数');for(const amount of [1,10,100]){const option=v68Node('option',null,'×'+amount);option.value=String(amount);batch.appendChild(option);}batch.value=String([1,10,100].includes(s.v79BuildingBatch)?s.v79BuildingBatch:1);batch.onchange=()=>{s.v79BuildingBatch=Number(batch.value);save();v76RenderBuildings();};batchLabel.appendChild(batch);panel.appendChild(batchLabel);
+ const cards=v68Node('div','v78-building-cards');cards.setAttribute('aria-label','横に並ぶ10の建物');
  for(const d of v76BuildingDefs){
   const card=v68Node('article');card.className='v76-building-card';
   const heading=v68Node('header');heading.append(v68Node('h3','v76-name-'+d.id),v68Node('b','v76-level-'+d.id));card.appendChild(heading);
   card.appendChild(v68Node('strong','v76-effect-'+d.id));
-  const button=v68Node('button','v76-buy-'+d.id);button.type='button';button.onclick=()=>v76BuyBuilding(d.id);card.appendChild(button);
+  const button=v68Node('button','v76-buy-'+d.id);button.type='button';button.onclick=()=>v76BuyBuilding(d.id,v79TownBatch());card.appendChild(button);
   const detail=v68Node('details');detail.appendChild(v68Node('summary',null,'効果・次の強化'));
   detail.appendChild(v68Node('p','v76-next-'+d.id));detail.appendChild(v68Node('p',null,d.description));card.appendChild(detail);cards.appendChild(card);
  }
  panel.appendChild(cards);
- panel.appendChild(v68Node('p','v78-building-help','所持金で建設・強化。各Lv25まで、価格は強化ごとに2倍。両世界で共有し、輪廻でも残ります。'));
+ panel.appendChild(v68Node('p','v78-building-help','強化は上限なし。両世界で共有。転生で全施設Lv0・生産の端数をリセット。'));
  host.appendChild(panel);v76RenderBuildings();
 }
 
@@ -409,8 +425,8 @@ function v78HUDRows(){
  for(const [key,label,value]of [['money','所持金',prettyNum(s.n)],['income','毎秒収入',prettyNum(income())],['gems','ジェム',fmt(s.coins)],['boxes','箱',fmt(s.boxes)],['empty','空き箱',fmt(s.empty)],['paper','紙片',fmt(s.paper)],['upgradeGap','強化まで不足金',prettyNum(Math.max(0,lvCost()-s.n))],['timed','時限箱',s.timed?.length||0],['tickets','買付券',s.artTickets||0],['shards','額装片',s.artShards||0],['ticketPity','買付券天井まで',Math.max(0,77-(s.artMeter||0))]])add('資源',key,label,value);
  for(const [key,label,value]of [['level','レベル',s.lv],['levelCost','次の強化費用',prettyNum(lvCost())],['hp','戦闘HP',fight?fmt(Math.max(0,fight.hp))+' / '+fmt(fight.max):'待機 / 最大 '+fmt(stats.hp)],['attack','攻撃力',fmt(stats.attack)],['healing','HP回復 /ターン',fmt(stats.healing)],['stage','階層',fight?.e?.stage||s.wins+1],['wins','勝利数',s.wins],['enemyHP','敵HP',fight?fmt(Math.max(0,fight.ehp))+' / '+fmt(fight.e.hp):'待機'],['enemyAttack','敵基礎攻撃',fight?fmt(fight.e.atk):'待機'],['intent','敵の次行動',fight?.active?v77EnemyIntent().action:'待機'],['tactic','戦い方',fight?.active?V77_STANCES[v77BattleStance()].name:'待機'],['bosses','ボス撃破',count(s.bosses)],['relics','レリック',count(s.relics)],['bossReward','ボス追加報酬',s.pendingBossReward?'選択待ち':'なし']])add('戦闘',key,label,value);
  for(const [key,label,value]of [['site','夢の行き先',V64_SITES[v64SafeInt(e.site,0,10)].name],['steps','夢の旅',e.active?e.step+' / 7':'出発待ち'],['energy','夢の元気',e.active?e.energy+' / 10':'出発時 8 / 10'],['sparkle','夢のきらめき',e.active?e.sparkle:'出発時 '+v78BuildingSparkle()],['rests','旅の休憩残り',e.active?2-e.rests:2],['dreamRuns','夢の出発回数',v.runs],['dreamClear','夢の踏破回数',v.completed],['sites','夢の景色',Object.keys(v.sites||{}).length+' / 11'],['memories','旅の記録',Object.keys(s.dualWorld.v77?.album||{}).filter(k=>/^([0-9]|10):[0-2]$/.test(k)).length+' / 33']])add('夢の探検',key,label,value);
- for(const d of v76BuildingDefs)add('建物','building-'+d.id,(v63Active()==='dream'?d.dream:d.name),v76BuildingLevel(d.id)+' / 25');
- for(const [key,label,value]of [['boxRate','工房の箱 /秒',fmt(v76BuildingBoxes())],['paperRate','印刷所の紙片 /分',fmt(v76BuildingPaper()*60)],['scrapRate','回収所の空き箱 /分',fmt(v76BuildingScrap()*60)],['marketBonus','商店街の生産補正',fmt((v76BuildingMoney()-1)*100)+'%'],['dojoBonus','道場の攻撃補正',fmt((v78BuildingAttack()-1)*100)+'%'],['clinicBonus','診療所の回復補正',fmt((v78BuildingHealing()-1)*100)+'%'],['observatoryBonus','天文台の出発きらめき',v78BuildingSparkle()]])add('建物',key,label,value);
+ for(const d of v76BuildingDefs)add('建物','building-'+d.id,(v63Active()==='dream'?d.dream:d.name),v76BuildingLevel(d.id));
+ for(const [key,label,value]of [['boxRate','工房の箱 /秒',fmt(v76BuildingBoxes())],['paperRate','印刷所の紙片 /分',fmt(v76BuildingPaper()*60)],['scrapRate','回収所の空き箱 /分',fmt(v76BuildingScrap()*60)],['marketBonus','商店街の生産補正',fmt((v76BuildingMoney()-1)*100)+'%'],['dojoBonus','道場の攻撃補正',fmt((v78BuildingAttack()-1)*100)+'%'],['clinicBonus','診療所の回復補正',fmt((v78BuildingHealing()-1)*100)+'%'],['observatoryBonus','天文台の出発きらめき',v78BuildingSparkle()],['fortressBonus','城壁の最大HP補正',fmt((v79BuildingHP()-1)*100)+'%'],['guildBonus','戦利品の追加箱期待値',fmt(v79BuildingLoot())],['exchangeBonus','ボスの追加ジェム',v79BuildingGems()]])add('建物',key,label,value);
  for(const [key,label,value]of [['rebirth','輪廻回数',s.rebirth],['gearTypes','装備所持種類',Object.keys(s.owned).filter(k=>s.owned[k]>0).length],['gearCount','装備所持合計',fmt(sum(s.owned))],['activeGear','装備ON種類',gear.filter(g=>has(g.id)).length],['cards','カード種類',Object.keys(s.cards).filter(k=>s.cards[k]>0).length+' / 111'],['research','研究レベル合計',sum(s.research)],['forge','鍛造レベル合計',sum(s.forgeLevel)],['books','読める物語',stories.filter((_,i)=>i===0||s.novels[i]).length+' / 666'],['branches','選択した物語',Object.keys(s.choices).length],['opened','箱の累計開封',s.opened],['boxGems','箱からの累計ジェム',s.boxCoinTotal||0],['museum','美術館の収蔵作品',Object.keys(s.artCollection||{}).length],['diary','読んだ日記',count(s.dreamDiary?.read)],['stamps','日記スタンプ',count(s.dreamDiary?.stamps)]])add('育成・収集',key,label,value);
  for(const [key,label,value]of [['world','現在の世界',v63Active()==='dream'?'ゆめかわ':'無窮'],['classicIntro','無窮の入門達成',v63MissionsDone('classic')+' / 6'],['dreamIntro','夢の入門達成',v63MissionsDone('dream')+' / 6'],['classicTreasure','無窮の宝物',s.dualWorld.treasures.classic.length+' / 11'],['dreamTreasure','夢の宝物',s.dualWorld.treasures.dream.length+' / 11'],['achievements','実績獲得',count(s.dualWorld.v65?.earned)],['both','ダブルコンプリート',v63BothComplete()?'達成':'進行中'],['reality','現実モードの扉',v64RealityUnlocked()?'入口解禁':'未解禁']])add('世界・進捗',key,label,value);
  for(const [key,label,value]of [['boost','生産ブースト残り',remaining(s.boostUntil)],['chaos','混沌ブースト残り',remaining(s.chaosUntil)],['return','復帰ボーナス残り',remaining(s.returnBonusUntil)],['curse','呪い',s.curse],['incomeLink','世界の生産連動',fmt(v63IncomeBonus())+'倍'],['healingLink','世界の回復連動',fmt(v63RestBonus())+'倍'],['auto','自動進行',v68AutoRuntime.running?'進行中':v68AutoRuntime.paused?'一時停止':'停止'],['speed','進行速度','×'+s.v68Auto.speed],['autoOpen','箱の自動開封',s.autoOpen?'ON':'OFF'],['autoRecycle','自動古紙回収',s.autoRecycle?'ON':'OFF'],['activeTime','操作時間 /分',fmt((s.runActiveSeconds||0)/60)],['awayTime','放置時間 /分',fmt((s.runAwaySeconds||0)/60)]])add('効果・進行',key,label,value);
@@ -489,7 +505,7 @@ function v74CombatStats(){
  const level=Math.max(0,Number(s.lv)-1),trade=gearTrade();
  const rebirth=1+.3*(v74Rebirth()-1);
  const baseHP=24*(1+.18*level)**1.35;
- return {hp:baseHP*Math.sqrt(trade.hp*(1+.3*shopLv('vital'))*(1+.08*(s.research.balance||0)))*(god(0)?3:1)*(god(9)?2:1)*rebirth,
+ return {hp:baseHP*Math.sqrt(trade.hp*(1+.3*shopLv('vital'))*(1+.08*(s.research.balance||0)))*(god(0)?3:1)*(god(9)?2:1)*rebirth*v79BuildingHP(),
  attack:5*(1+.16*level)**1.3*Math.sqrt(trade.attack*(1+storyBonus().attack)*(1+cardSet().attack))*(god(1)?3:1)*rebirth*v78BuildingAttack(),healing:baseHP*.03*Math.sqrt(trade.healing*(1+bonuses()[1]/100))*rebirth*v78BuildingHealing()};
 }
 function bonuses(){let b=[0,0,0,0,0];for(let i=0;i<107;i++)if(has(i))b[i%5]+=5*(gear[i].t+1)*v74Copies(s.owned[i]);return b}// v14: 尖った装備。各系統は強い代わりに代償を持つ。OFFで効果も代償も停止。
@@ -619,7 +635,7 @@ function pick(){let r=Math.floor(Math.random()*1000000),a=0,t=0;for(let i=0;i<6;
 // Queue one challenge per reached milestone; auto-opening can continue without losing opportunities.
 if(s.opened%250===0&&cards.some((c,i)=>!(s.cards[i]>0)))s.dopaCardPending=Math.min(1000000,(s.dopaCardPending||0)+1);
 if(s.opened%6000===0&&GOD_IDS.some(id=>!s.discoveredGear[id]))s.dopaGodPending=Math.min(1000000,(s.dopaGodPending||0)+1);
-return true}function boxGain(){let n=1+(Math.random()<Math.min(.9,shopLv('loot')*.12+(.08*(s.research.opening||0)+cardSet().boxes))?1:0);if(god(2))n*=3;if(god(5))n+=3;if(god(10))n+=5;let bonusChance=Math.min(.8,gearTrade().boxes);if(Math.random()<bonusChance)n++;if(Math.random()<worldBonus().extraBox)n++;if(v63Active()==='dream'&&Math.random()<.11)n++;s.boxes+=n;if(Math.random()<worldBonus().timedChance&&!s.autoOpen){let m=Math.max(1,Math.floor(n*.5));for(let i=0;i<m;i++)s.timed.push(Date.now()+(30+storyBonus().time)*1000);msg='⏳ 時限箱 '+m+'個 · 30秒以内に開封';}if(s.autoOpen&&!opening){for(let i=0;i<n;i++)openOne()}return n}function openBatch(limit){if(opening||!s.boxes)return;opening=true;let total=Math.min(limit,s.boxes),done=0,stats={r:[0,0,0,0,0,0],new:0,urgent:0};function batch(){let take=Math.min(100,total-done),actual=0;for(let i=0;i<take;i++)if(openOne(stats))actual++;done+=actual;$('boxresult').textContent='開封中 '+done.toLocaleString()+'/'+total.toLocaleString();if(done<total&&actual)setTimeout(batch,0);else{opening=false;$('boxresult').textContent='🎁 '+done+'連 · 新規'+stats.new+'種 · 残り5秒ボーナス'+stats.urgent+'回 / '+rar.map((n,i)=>n+':'+stats.r[i]).join('・')+' / ✦ジェム＋'+(stats.coins||0);if(s.lastRare)msg='✨ '+s.lastRare;renderGear();draw();save();showGod()}}batch()}function allOpen(){openBatch(s.boxes)}function yin(){let t=Date.now(),r=Math.random();if(r<.4){s.boost=3;s.boostUntil=t+30000;return'☯ 生産3倍 30秒'}if(r<.7){s.n+=income()*30;return'☯ 拾得金 30秒分獲得'}s.n+=income()*120;return'☯ 120秒分獲得'}function double(){s.chaos=5;s.chaosUntil=Date.now()+45000;return'‡ 生産5倍 45秒'}function enemy(){let stage=s.wins+1,boss=s.wins>0&&s.wins%5===0&&!s.bosses[s.wins],metal=!boss&&Math.random()<.04;return{stage,boss,metal,mech:boss?['🩸 回復阻害','⛓️ 装備封印','☯️ 陰陽反転'][(Math.floor(s.wins/5)-1)%3]:'',hp:Math.ceil(18*(1+.2*(stage-1))**1.8*(boss?3:metal?2.5:1)),atk:Math.ceil(2*(1+.14*(stage-1))**1.75*(boss?1.6:1))}}function startFight(){if(s.pendingBossReward){msg='🐉 先にボスの戦利品を選ぼう';$('battlepanel').classList.remove('hide');renderBossChoice();draw();return}if(fight&&fight.active){msg='⚔️ 戦闘中。決着を待とう';draw();return}let e=enemy(),hp=Math.max(1,v74CombatStats().hp);fight={e,hp,max:hp,ehp:e.hp,last:Date.now(),active:true};v57Roll('battle');v59Log('start','⚔️ 第'+e.stage+'戦・出撃',v57Get('battle')?.title||'新しい戦いが始まった');$('v59-finale').hidden=true;$('battlepanel').classList.remove('v59-burst');$('battlepanel').classList.remove('hide');draw()}function fightTick(t){
+return true}function boxGain(){let n=1+(Math.random()<Math.min(.9,shopLv('loot')*.12+(.08*(s.research.opening||0)+cardSet().boxes))?1:0);if(god(2))n*=3;if(god(5))n+=3;if(god(10))n+=5;const extra=v79BuildingLoot();if(extra>0)n+=Math.floor(extra)+(Math.random()<extra%1?1:0);let bonusChance=Math.min(.8,gearTrade().boxes);if(Math.random()<bonusChance)n++;if(Math.random()<worldBonus().extraBox)n++;if(v63Active()==='dream'&&Math.random()<.11)n++;s.boxes+=n;if(Math.random()<worldBonus().timedChance&&!s.autoOpen){let m=Math.max(1,Math.floor(n*.5));for(let i=0;i<m;i++)s.timed.push(Date.now()+(30+storyBonus().time)*1000);msg='⏳ 時限箱 '+m+'個 · 30秒以内に開封';}if(s.autoOpen&&!opening){for(let i=0;i<Math.min(n,120);i++)openOne()}return n}function openBatch(limit){if(opening||!s.boxes)return;opening=true;let total=Math.min(limit,s.boxes),done=0,stats={r:[0,0,0,0,0,0],new:0,urgent:0};function batch(){let take=Math.min(100,total-done),actual=0;for(let i=0;i<take;i++)if(openOne(stats))actual++;done+=actual;$('boxresult').textContent='開封中 '+done.toLocaleString()+'/'+total.toLocaleString();if(done<total&&actual)setTimeout(batch,0);else{opening=false;$('boxresult').textContent='🎁 '+done+'連 · 新規'+stats.new+'種 · 残り5秒ボーナス'+stats.urgent+'回 / '+rar.map((n,i)=>n+':'+stats.r[i]).join('・')+' / ✦ジェム＋'+(stats.coins||0);if(s.lastRare)msg='✨ '+s.lastRare;renderGear();draw();save();showGod()}}batch()}function allOpen(){openBatch(s.boxes)}function yin(){let t=Date.now(),r=Math.random();if(r<.4){s.boost=3;s.boostUntil=t+30000;return'☯ 生産3倍 30秒'}if(r<.7){s.n+=income()*30;return'☯ 拾得金 30秒分獲得'}s.n+=income()*120;return'☯ 120秒分獲得'}function double(){s.chaos=5;s.chaosUntil=Date.now()+45000;return'‡ 生産5倍 45秒'}function enemy(){let stage=s.wins+1,boss=s.wins>0&&s.wins%5===0&&!s.bosses[s.wins],metal=!boss&&Math.random()<.04;return{stage,boss,metal,mech:boss?['🩸 回復阻害','⛓️ 装備封印','☯️ 陰陽反転'][(Math.floor(s.wins/5)-1)%3]:'',hp:Math.ceil(18*(1+.2*(stage-1))**1.8*(boss?3:metal?2.5:1)),atk:Math.ceil(2*(1+.14*(stage-1))**1.75*(boss?1.6:1))}}function startFight(){if(s.pendingBossReward){msg='🐉 先にボスの戦利品を選ぼう';$('battlepanel').classList.remove('hide');renderBossChoice();draw();return}if(fight&&fight.active){msg='⚔️ 戦闘中。決着を待とう';draw();return}let e=enemy(),hp=Math.max(1,v74CombatStats().hp);fight={e,hp,max:hp,ehp:e.hp,last:Date.now(),active:true};v57Roll('battle');v59Log('start','⚔️ 第'+e.stage+'戦・出撃',v57Get('battle')?.title||'新しい戦いが始まった');$('v59-finale').hidden=true;$('battlepanel').classList.remove('v59-burst');$('battlepanel').classList.remove('hide');draw()}function fightTick(t){
  if(!fight||!fight.active)return;
  let steps=Math.min(5,Math.floor((t-fight.last)/1000));fight.last+=steps*1000;
  for(let i=0;i<steps&&fight.active;i++){
@@ -635,7 +651,7 @@ return true}function boxGain(){let n=1+(Math.random()<Math.min(.9,shopLv('loot')
   if(fight.ehp<=0){
    fight.active=false;s.wins++;v63Action('win');let e=fight.e,amount=boxGain();s.n+=income()*2;
    const note='敵に '+prettyNum(Math.ceil(Math.min(startEnemy,dealt)))+' ダメージ / 🎁 箱 +'+amount;
-   if(e.boss){let coin=(3+Math.ceil(e.stage/5))*(god(1)?2:1);s.coins+=coin;s.bosses[e.stage]=true;s.relics[Math.ceil(e.stage/5)]=true;s.pendingBossReward=e.stage;renderBossChoice();msg='🐉 ボス撃破 ✦+'+coin+' 🎁'+amount+' · 追加報酬を選ぼう';v59Log('boss','🐉 BOSS CLEAR ・ 第'+e.stage+'戦',note+' / ✦+'+coin+' / 追加報酬を選択');v59Flash('boss','ボスを倒した！ 戦利品を選ぼう');}
+   if(e.boss){let coin=(3+Math.ceil(e.stage/5))*(god(1)?2:1)+v79BuildingGems();s.coins+=coin;s.bosses[e.stage]=true;s.relics[Math.ceil(e.stage/5)]=true;s.pendingBossReward=e.stage;renderBossChoice();msg='🐉 ボス撃破 ✦+'+coin+' 🎁'+amount+' · 追加報酬を選ぼう';v59Log('boss','🐉 BOSS CLEAR ・ 第'+e.stage+'戦',note+' / ✦+'+coin+' / 追加報酬を選択');v59Flash('boss','ボスを倒した！ 戦利品を選ぼう');}
    else if(e.metal){msg='🩶 メタル撃破 🎁'+amount+' '+yin()+' '+double();v59Log('win','🩶 METAL CLEAR ・ 第'+e.stage+'戦',note+' / ボーナス発生');v59Flash('win','メタル撃破！ 特殊ボーナス獲得');}
    else{msg='⚔️ 勝利 🎁'+amount;v59Log('win','🏆 VICTORY ・ 第'+e.stage+'戦',note+' / 次の戦いが解放');v59Flash('win','勝利！ 箱と資産を獲得');}
    v57BattleResult(true);break;
@@ -1265,7 +1281,7 @@ function expeditionTick(sec){
  s.expeditionFraction=(Number(s.expeditionFraction)||0)+Math.min(86400,sec)*(expeditionRate()*(v63Active()==='dream'?1.11:1)+v76BuildingBoxes());
  const boxes=Math.floor(s.expeditionFraction);
  s.expeditionFraction-=boxes;
- s.boxes=Math.min(1e9,Math.max(0,s.boxes)+boxes);
+ s.boxes=Math.min(Number.MAX_VALUE,Math.max(0,s.boxes)+boxes);
  s.expeditionEarned=(Number(s.expeditionEarned)||0)+boxes;
 }
 // Fast, bounded auto-opening; preserves existing rarity rolls and discovery logic.
@@ -1372,7 +1388,7 @@ function renderAlternates(){let out='';for(let i=alternatePage*BOOKS_PER_PAGE;i<
 // v68: Keep the carry-book selector stable between ticks (including keyboard focus).
 let v68CarryMarkup=null;
 function renderPrestige(){let books=stories.map((v,i)=>i===0||s.novels[i]?'<option value="'+i+'" '+'>'+(i+1)+'巻 '+v.title.slice(0,32)+'</option>':'').join('');const markup='<div class="small">次の世界へ持ち越す一冊（効果2倍）</div><select id="carrySelect" style="max-width:100%;width:100%;padding:10px;background:#262d45;color:white">'+books+'</select>';if(v68CarryMarkup!==markup){v68CarryMarkup=markup;$('carrybooks').innerHTML=markup;$('carrySelect').onchange=e=>{s.carryBook=+e.target.value;save()};}const select=$('carrySelect'),selected=String(s.carryBook);if(select.value!==selected&&Array.from(select.options).some(option=>option.value===selected))select.value=selected;$('prestigestatus').textContent='転生 '+s.rebirth+'回 · 永久倍率 ×'+prettyNum(v74Rebirth())+' · Lv.'+s.lv+'/25';$('prestige').disabled=s.lv<25}
-$('prestige').onclick=()=>{if(s.lv<25)return;if(!confirm('世界を再構築しますか？ 数字・レベル・装備・箱・戦闘階層は初期化されます。図鑑・書庫・研究・紙片などは残ります。'))return;v10Backup(true);s.rebirth++;s.n=0;s.lv=1;s.mode='fast';s.boxes=2;s.timed=[];s.empty=0;s.owned={};s.disabled={};s.activeSavedBuild=null;s.wins=0;s.bosses={};s.curse=0;s.boostUntil=0;s.chaosUntil=0;s.shieldUntil=0;s.worldEpoch=Date.now();fight=null;s.pendingBossReward=0;renderBossChoice();msg='🌌 第'+(s.rebirth+1)+'世界が始まった';renderGear();renderCustomBuilds();renderPrestige();draw();save()};
+$('prestige').onclick=()=>{if(s.lv<25)return;if(!confirm('世界を再構築しますか？ 数字・レベル・装備・箱・戦闘階層は初期化されます。建物は全施設Lv0に戻り、生産の端数もリセットします。図鑑・書庫・研究・紙片・ジェムなどは残ります。'))return;v10Backup(true);v79ResetBuildings();s.rebirth++;s.n=0;s.lv=1;s.mode='fast';s.boxes=2;s.timed=[];s.empty=0;s.owned={};s.disabled={};s.activeSavedBuild=null;s.wins=0;s.bosses={};s.curse=0;s.boostUntil=0;s.chaosUntil=0;s.shieldUntil=0;s.worldEpoch=Date.now();fight=null;s.pendingBossReward=0;renderBossChoice();msg='🌌 第'+(s.rebirth+1)+'世界が始まった';renderGear();renderCustomBuilds();renderPrestige();draw();save()};
 
 // v6: manual backup and restore, no network dependency
 const savepanel=$('savepanel'), savedata=$('savedata'), savestatus=$('savestatus');
@@ -2083,7 +2099,7 @@ function v64Ensure(){
  for(const i of Object.keys(v.sites))if(!/^\d+$/.test(i)||Number(i)<0||Number(i)>=11)delete v.sites[i];
  if(v.explore.active){
   const x=v.explore;
-  x.site=v64SafeInt(x.site,0,10);x.step=v64SafeInt(x.step,0,7);x.energy=v64SafeInt(x.energy,0,10);x.sparkle=v64SafeInt(x.sparkle,0,100);x.rests=v64SafeInt(x.rests,0,2);
+  x.site=v64SafeInt(x.site,0,10);x.step=v64SafeInt(x.step,0,7);x.energy=v64SafeInt(x.energy,0,10);x.sparkle=v64SafeInt(x.sparkle,0,Number.MAX_SAFE_INTEGER);x.rests=v64SafeInt(x.rests,0,2);
   if(x.step>=7)x.active=false;
  }
 }
@@ -2163,7 +2179,7 @@ function v64Finish(success){
  if(success){
   const better=e.sparkle>=12?'虹色':e.sparkle>=8?'きらきら':'ふんわり';
   const boxes=2+Math.floor(e.sparkle/4),coins=1+Math.floor(e.sparkle/5);
-  s.boxes=Math.min(1e9,s.boxes+boxes);s.coins+=coins;v.completed++;
+  s.boxes=Math.min(Number.MAX_VALUE,s.boxes+boxes);s.coins+=coins;v.completed++;
   const first=!v.sites[e.site];v.sites[e.site]=(v.sites[e.site]||0)+1;
   v64RewardActivity('dream','dreamClear');if(first)v64RewardActivity('dream','newDreamSite');
   e.message=place.icon+' '+place.name+' 踏破！ '+better+'の帰り道 ✨　箱+'+boxes+' / ✦'+coins+(first?'　🗺️ 初踏破！':'');
@@ -2687,7 +2703,7 @@ function v68InitUI(){
  const main=document.querySelector('main');if(!main)return;
  const originalChildren=Array.from(main.children);
  document.body.classList.add('v68-ui');
- document.querySelector('.v32brand').title='街づくり版 v78：メイン画面に7つの建物・戦闘と夢の探検を支援';
+ document.querySelector('.v32brand').title='街づくり版 v79：世界別名称の10施設・上限なし強化・転生でリセット';
  const wallet=v68Node('section','v69-wallet');wallet.setAttribute('aria-label','所持金と毎秒収入');
  wallet.innerHTML='<span id="v69-wallet-label">所持金</span><span id="v69-wallet-coins" title="永久商店・美術館で使う別のジェム"></span>';
  const stats=v68Node('div','v68-stats');stats.setAttribute('aria-label','現在の冒険の状態');
@@ -2732,7 +2748,7 @@ function v68InitUI(){
  const settings=pane('settings','遊び方・音・設定');v68Move('v54Guide',settings);v68Move('v9panel',settings);v68Move('v35audio',settings);
  const savePane=pane('save','セーブ・バックアップ');v68Move('savepanel',savePane);
  const town=v68Node('details','v78-town');town.open=innerHeight>=700;
- const townTitle=v68Node('summary',null,'🏘 街づくり · 7種');townTitle.tabIndex=0;town.appendChild(townTitle);v76InitBuildings(town);
+ const townTitle=v68Node('summary',null,'🏘 街づくり · 10種');townTitle.tabIndex=0;town.appendChild(townTitle);v76InitBuildings(town);
  const hudSettings=pane('hud','ステータス表示設定');
  const journal=pane('dreamjournal','夢の旅の記録');journal.appendChild(v68Node('div','v77-dream-journal'));
  const rebirth=pane('rebirth','輪廻・世界再構築');v68Move('prestigepanel',rebirth);
@@ -3768,4 +3784,5 @@ body.v68-ui #v78-hud-toggle[aria-pressed="true"]{border-width:2px;font-weight:80
 #v68-pane-hud .v78-hud-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 8px}
 #v68-pane-hud input[type="checkbox"]{width:20px;height:20px;flex-shrink:0}
 #v78-hud-position{min-height:44px;font-size:16px}
+body.v68-ui #v79-building-batch{min-height:44px;font-size:16px;margin:0 0 6px 5px}
 </style></body></html>
