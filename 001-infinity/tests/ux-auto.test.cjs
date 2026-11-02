@@ -73,7 +73,7 @@ async function main() {
     const context = await browser.newContext({viewport: {width: 390, height: 844}, isMobile: true, hasTouch: true, locale: 'ja-JP', reducedMotion: 'reduce', ...options.context});
     const page = await context.newPage();
     const errors = [];
-    page.on('pageerror', error => errors.push(error.message));
+    page.on('pageerror', error => errors.push(error.stack || error.message));
     await context.route('**/*', route => new URL(route.request().url()).origin === new URL(url).origin ? route.continue() : route.abort());
     await page.clock.install({time: new Date(NOW)});
     await page.clock.pauseAt(new Date(NOW));
@@ -96,6 +96,7 @@ async function main() {
       const response = await page.goto(url, {waitUntil: 'load'});
       assert.equal(response.status(), 200);
       await page.waitForFunction(() => !!window.__infinityTest);
+      assert.deepEqual(errors, [], `${name}: startup page errors`);
       await run(page, context);
       assert.deepEqual(errors, [], `${name}: uncaught page errors`);
       passed++;
@@ -120,6 +121,50 @@ async function main() {
   async function config(page, settings) {await page.evaluate(value => __infinityTest.configure(value), settings);}
   async function closeLibrary(page) {
     if (await page.locator('#v68-library').evaluate(node => node.open)) await page.locator('#v68-library-close').click();
+  }
+  async function assertWallet(page, label) {
+    assert.equal(await page.locator('#v69-wallet').isVisible(),true,`${label}: wallet is visible`);
+    const wallet = await page.evaluate(() => {
+      const element = id => document.getElementById(id);
+      const rect = node => {const r=node.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,bottom:r.bottom};};
+      const color = value => {
+        const parts=value.match(/[\d.]+/g)?.map(Number);
+        return parts&&parts.length>=3?[parts[0],parts[1],parts[2],parts.length>3?parts[3]:1]:null;
+      };
+      const background = node => {
+        let result=[0,0,0,0];
+        for(let current=node;current;current=current.parentElement){
+          const value=color(getComputedStyle(current).backgroundColor);
+          if(!value)continue;
+          const alpha=result[3]+value[3]*(1-result[3]);
+          if(alpha>0)result=[...result.slice(0,3).map((c,i)=>(c*result[3]+value[i]*value[3]*(1-result[3]))/alpha),alpha];
+          if(alpha>=.999)return result;
+        }
+        return null;
+      };
+      const luminance = rgb => rgb.slice(0,3).map(v=>v/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4).reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0);
+      const metric = id => {
+        const node=element(id),box=rect(node),style=getComputedStyle(node),fg=color(style.color),bg=background(node);
+        let opacity=1;for(let current=node;current;current=current.parentElement)opacity*=Number.parseFloat(getComputedStyle(current).opacity);
+        const rendered=fg&&bg?fg.slice(0,3).map((c,i)=>c*fg[3]*opacity+bg[i]*(1-fg[3]*opacity)):null;
+        const top=document.elementFromPoint(Math.min(innerWidth-1,box.x+box.width/2),Math.min(innerHeight-1,box.y+box.height/2));
+        const clipped=(node.scrollWidth>node.clientWidth+1&&['hidden','clip'].includes(style.overflowX))||(node.scrollHeight>node.clientHeight+1&&['hidden','clip'].includes(style.overflowY));
+        return {box,font:Number.parseFloat(style.fontSize),inDetails:!!node.closest('details'),clipped,visibleTop:!!top&&(top===node||node.contains(top)),contrast:rendered&&bg?(Math.max(luminance(rendered),luminance(bg))+.05)/(Math.min(luminance(rendered),luminance(bg))+.05):null,text:node.textContent.trim()};
+      };
+      return {width:innerWidth,height:innerHeight,box:rect(element('v69-wallet')),footer:rect(element('v68-bottom')),number:metric('number'),rate:metric('rate')};
+    });
+    assert.ok(wallet.box.y>=0&&wallet.box.right<=wallet.width+.5&&wallet.box.bottom<=wallet.footer.y+.5,`${label}: wallet remains above controls and inside viewport`);
+    for(const [key,minFont] of [['number',24],['rate',14]]){
+      const value=wallet[key];
+      assert.ok(value.text.length>0,`${label}: ${key} contains current financial information`);
+      assert.equal(value.inDetails,false,`${label}: ${key} is never inside a collapsed detail panel`);
+      assert.equal(value.clipped,false,`${label}: ${key} remains readable instead of being clipped`);
+      assert.ok(value.box.height>0&&value.box.width>0&&value.box.y>=0&&value.box.bottom<=wallet.height,`${label}: ${key} stays on screen`);
+      assert.ok(value.font>=minFont,`${label}: ${key} font ${value.font}px is readable`);
+      assert.equal(value.visibleTop,true,`${label}: ${key} is not covered by scenery or notifications`);
+      assert.ok(value.contrast!==null&&value.contrast>=4.5,`${label}: ${key} text contrast is at least4.5:1, got ${value.contrast}`);
+    }
+    return wallet;
   }
   try {
     await check('fresh classic: world selector, default composition, real manual battle', async page => {
@@ -515,9 +560,44 @@ async function main() {
       assert.equal(bonus.reality,false);
       assert.deepEqual((await state(page)).dualWorld.treasures,bothIntro.dualWorld.treasures);
     }, {seed: {[KEY]:JSON.stringify(bothIntro)}});
+    await check('persistent wallet reflects income and spending, keeps number-format interaction', async page => {
+      await page.evaluate(()=>__infinityTest.patch({numFormat:'digits'}));
+      const displayed = async () => (await page.locator('#number').innerText()).trim();
+      const expected = async () => Math.floor((await state(page)).n).toLocaleString('ja-JP');
+      assert.equal(await displayed(),await expected(),'Wallet starts with the actual owned money');
+      const beforeIncome=(await state(page)).n;
+      await page.clock.runFor(1500);
+      assert.ok((await state(page)).n>beforeIncome,'Existing income really increases owned money');
+      assert.equal(await displayed(),await expected(),'Always-visible number updates after income');
+      const beforeSpend=await state(page);
+      if(!await page.locator('#upgrade').isVisible())await page.locator('#v68-manual-controls > summary').click();
+      await page.locator('#upgrade').click();
+      const afterSpend=await state(page);
+      assert.equal(afterSpend.lv,beforeSpend.lv+1,'The real upgrade action executes');
+      assert.ok(afterSpend.n<beforeSpend.n,'The real upgrade spends money');
+      assert.equal(await displayed(),await expected(),'Always-visible number updates immediately after spending');
+      const beforeFormat=afterSpend.numFormat;
+      await page.locator('#number').click();
+      assert.notEqual((await state(page)).numFormat,beforeFormat,'Money still switches the existing number format');
+      await assertWallet(page,'income / spending / format switch');
+    }, {seed:{[KEY]:JSON.stringify(fixture({v68Migration:1,numFormat:'digits'}))}});
+    await check('large balances keep a readable wallet and can switch formats without page overflow', async page => {
+      await page.evaluate(()=>__infinityTest.patch({n:1e80,numFormat:'digits'}));
+      assert.equal((await page.locator('#number').innerText()).trim(),Math.floor(1e80).toLocaleString('ja-JP'),'Large balances are not replaced with a dummy or ellipsis');
+      await assertWallet(page,'large digits balance');
+      const dimensions=await page.evaluate(()=>({width:innerWidth,scrollWidth:document.documentElement.scrollWidth}));
+      assert.ok(dimensions.scrollWidth<=dimensions.width,'Large money cannot make the whole page scroll horizontally');
+      await page.locator('#number').click();
+      await assertWallet(page,'large balance after format switch');
+    }, {seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
     for (const world of ['classic', 'dream']) for (const [width, height] of [[320,568],[375,667],[390,844],[430,932]]) {
       await check(`${world} mobile ${width}x${height}: compact progress, available controls, bounded page`, async page => {
         await chooseWorld(page, world);
+        const initialWallet=await assertWallet(page,`${world} ${width}px manual`);
+        await page.locator('#v68-play').evaluate(node=>{node.scrollTop=node.scrollHeight;});
+        const scrolledWallet=await assertWallet(page,`${world} ${width}px scrolled play area`);
+        assert.equal(scrolledWallet.box.y,initialWallet.box.y,'Money never scrolls away with the play area');
+        await page.locator('#v68-play').evaluate(node=>{node.scrollTop=0;});
         const layout = await page.evaluate(() => {
           const rect=id=>{const b=document.getElementById(id).getBoundingClientRect();return {x:b.x,y:b.y,width:b.width,height:b.height,bottom:b.bottom,right:b.right};};
           return {width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth,scrollHeight:document.documentElement.scrollHeight,
@@ -539,10 +619,14 @@ async function main() {
         await page.locator('#v68-auto-main').click();
         assert.equal(documentBodyTheater(await page.locator('body').getAttribute('class')),true);
         assert.equal(await page.locator('#v68-manual-controls').evaluate(node=>node.open),false);
+        await assertWallet(page,`${world} ${width}px AUTO theater`);
+        const textFonts=await page.evaluate(()=>['v68-stats','v68-auto-status','v68-auto-main','v68-auto-pause','v68-auto-manual','v68-auto-speed','v68-shortcut-gear','v68-shortcut-books','v68-shortcut-progress','v68-shortcut-menu'].map(id=>({id,font:Number.parseFloat(getComputedStyle(document.getElementById(id)).fontSize)})));
+        for(const value of textFonts)assert.ok(value.font>=14,`${world} ${width}px ${value.id} does not shrink essential text below14px (got ${value.font})`);
         const stop=await page.locator('#v68-auto-main').boundingBox();
         assert.ok(stop.y>=0&&stop.y+stop.height<=height,'Theater stop remains available');
         await page.locator('#v68-auto-manual').click();
         assert.equal(documentBodyTheater(await page.locator('body').getAttribute('class')),false);
+        await assertWallet(page,`${world} ${width}px returned to manual`);
         await page.locator('#v68-shortcut-progress').click();
         assert.equal(await page.locator('#v68-library').evaluate(node=>node.open),true);
         assert.equal(await page.locator('#v65-details').isVisible(),true);
