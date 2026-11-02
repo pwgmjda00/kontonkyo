@@ -173,8 +173,8 @@ async function main() {
       await chooseWorld(page, 'classic');
       assert.equal((await state(page)).theme, 'mondrian');
       assert.equal((await state(page)).dualWorld.classicTheme, 'mondrian');
-      assert.equal((await state(page)).v68Auto.boss, false);
-      assert.equal((await state(page)).v68Auto.reward, false);
+      assert.equal((await state(page)).v68Auto.boss, true);
+      assert.equal((await state(page)).v68Auto.reward, true);
       await page.locator('#attack').click();
       const initialFight = await page.evaluate(() => __infinityTest.fight());
       assert.equal(initialFight.active, true);
@@ -183,6 +183,21 @@ async function main() {
       await page.clock.runFor(1500);
       assert.ok((await page.evaluate(() => __infinityTest.fight())).ehp < initialFight.ehp, 'Existing combat rules must execute a real attack against either ordinary or metal enemies');
     });
+    await check('all AUTO defaults enabled, loot counts update and treasures are explained', async page => {
+      const initial=await state(page);
+      for(const flag of ['explore','combat','boss','reward','theater'])assert.equal(initial.v68Auto[flag],true,flag+' default ON');
+      assert.equal((await runtime(page)).running,false,'Settings ON does not start play behind the player');
+      await page.evaluate(()=>{__infinityTest.patch({boxes:42});Math.random=()=>.5;});
+      await page.locator('#v68-shortcut-gear').click();
+      assert.match(await page.locator('#v68-library-title').innerText(),/42/);
+      assert.match(await page.locator('#boxpanel h3').innerText(),/42個/);
+      await page.locator('#open').click();
+      assert.match(await page.locator('#boxpanel h3').innerText(),/41個/);
+      await closeLibrary(page);
+      await page.locator('#v68-shortcut-progress').click();
+      const help=await page.locator('#v71-treasure-help').innerText();
+      assert.match(help,/11種類/);assert.match(help,/生産が×1.06/);assert.match(help,/回復が×1.06/);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
     await check('fresh dream: existing default theme and seven-step exploration reward once', async page => {
       await chooseWorld(page, 'dream');
       assert.equal((await state(page)).theme, 'dream');
@@ -369,7 +384,7 @@ async function main() {
       assert.ok(await page.evaluate(()=>window.__nextBattleClicks)>=3,'Next battle button is actually clicked repeatedly');
       for(const id of ['number','rate','v69-wallet-coins','boxes','papercount','emptycount','artTicketCount'])assert.ok((await page.locator('#'+id).getAttribute('title')).length>10,id+' explains its source');
     },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
-    await check('boss AUTO defaults OFF and prevents entry before the next boss', async page => {
+    await check('explicit boss AUTO OFF prevents entry before the next boss', async page => {
       await config(page, {combat: true, explore: false, boss: false});
       await page.evaluate(() => __infinityTest.patch({wins: 5, bosses: {}}));
       await page.locator('#v68-auto-main').click();
