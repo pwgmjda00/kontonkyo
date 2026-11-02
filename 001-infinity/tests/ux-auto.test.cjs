@@ -359,6 +359,16 @@ async function main() {
       assert.equal((await state(page)).opened,1);
       await page.evaluate(()=>{Math.random=window.__originalRandom;});
     }, {seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('combat AUTO repeatedly clicks next battle and resource explanations remain available', async page => {
+      await page.evaluate(()=>{__infinityTest.patch({lv:25,wins:0});window.__nextBattleClicks=0;document.getElementById('attack').addEventListener('click',()=>window.__nextBattleClicks++);});
+      await config(page,{combat:true,explore:false,boss:false});
+      await page.locator('#v68-auto-main').click();
+      await page.clock.runFor(12000);
+      const current=await state(page);
+      assert.ok(current.wins>=3,'AUTO must advance through multiple genuine victories');
+      assert.ok(await page.evaluate(()=>window.__nextBattleClicks)>=3,'Next battle button is actually clicked repeatedly');
+      for(const id of ['number','rate','v69-wallet-coins','boxes','papercount','emptycount','artTicketCount'])assert.ok((await page.locator('#'+id).getAttribute('title')).length>10,id+' explains its source');
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
     await check('boss AUTO defaults OFF and prevents entry before the next boss', async page => {
       await config(page, {combat: true, explore: false, boss: false});
       await page.evaluate(() => __infinityTest.patch({wins: 5, bosses: {}}));

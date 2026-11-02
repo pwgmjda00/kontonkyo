@@ -2273,7 +2273,7 @@ function v68StartAutoBattle(now){
  if(v63Active()!=='classic'||fight?.active||!s.v68Auto.combat||!v68AutoRuntime.running)return;
  const boss=s.wins>0&&s.wins%5===0&&!s.bosses[s.wins];
  if(boss&&!s.v68Auto.boss){v68AutoPause('次はボス戦です（ボス戦AUTOはOFF）');return;}
- v68AutoInvoke(startFight);
+ v68AutoInvoke(()=>$('attack').click());
  if(fight?.active){fight.v68AutoOwned=true;fight.v68AutoCredit=0;fight.v68AutoStartedAt=now;fight.last=now;v68AutoStatus(boss?'既存のボス戦を進行中':'既存の通常戦闘を進行中');}
 }
 function v68AutoDecision(now){
@@ -2476,7 +2476,7 @@ function v68InitUI(){
  const logs=pane('logs','戦況ログ・世界の時刻');const history=document.querySelector('.v59-battle-history');if(history)logs.appendChild(history);v68Move('worldclock',logs);
  const dopa=pane('dopa','ドパ1/2チャレンジ');dopa.appendChild(v68Node('p','v68-dopa-locked','挑戦権は箱の開封で獲得します。獲得条件と抽選はこれまでどおりです。'));v68Move('dopaChallenge',dopa);
  const autoPane=pane('auto','AUTO設定');autoPane.dataset.autoSettings='true';
- autoPane.innerHTML='<div id="v68-auto-settings"><p>既存の行動で進めます。ボス戦と報酬の選択は、初期状態では手動です。</p><div class="v68-auto-options"><label><input type="checkbox" id="v68-auto-explore"> 自動探索</label><label><input type="checkbox" id="v68-auto-combat"> 自動戦闘</label><label><input type="checkbox" id="v68-auto-boss"> ボス戦AUTO</label><label><input type="checkbox" id="v68-auto-reward"> 報酬を自動選択</label><label><input type="checkbox" id="v68-auto-theater"> AUTOシアター</label></div><p class="small">手動操作・詳細画面・非表示タブではAUTOを一時停止します。手動に戻る操作は画面下に常にあります。</p></div>';
+ autoPane.innerHTML='<div id="v68-auto-settings"><p>既存の行動で進めます。ボス戦と報酬の選択は、初期状態では手動です。</p><div class="v68-auto-options"><label><input type="checkbox" id="v68-auto-explore"> 自動探索</label><label><input type="checkbox" id="v68-auto-combat"> 自動戦闘（次の戦いを繰り返す）</label><label><input type="checkbox" id="v68-auto-boss"> ボス戦AUTO</label><label><input type="checkbox" id="v68-auto-reward"> 報酬を自動選択</label><label><input type="checkbox" id="v68-auto-theater"> AUTOシアター</label></div><p class="small">手動操作・詳細画面・非表示タブではAUTOを一時停止します。手動に戻る操作は画面下に常にあります。</p></div>';
  const extras=pane('extras','その他の操作');
  const manual=v68Node('details','v68-manual-controls');manual.open=true;manual.appendChild(v68Node('summary',null,'成長・稼ぐ／休む'));
  const hero=$('v54hero');
@@ -2527,6 +2527,9 @@ function v68InitUI(){
  const positionNotices=()=>{document.body.style.setProperty('--v68-toast-top',Math.ceil(play.getBoundingClientRect().top+5)+'px');};
  if(typeof ResizeObserver==='function'){const sizeObserver=new ResizeObserver(positionNotices);sizeObserver.observe(play);}
  positionNotices();
+ const resourceHints={artTicketCount:'買付券：箱の開封で抽選され、77箱ごとにも獲得できます。美術館の買付候補を探すために使います。',artShardCount:'美術館の欠片：作品を買い付けて収蔵すると2個獲得できます。',artMuseumCoinCount:'✦通貨：ボス撃破・追加報酬・ゆめかわ探索の踏破で獲得。',number:'所持金：時間経過で生産されます。「稼ぐ」で生産、「休む」で調子を回復。戦闘勝利やイベントでも獲得できます。',rate:'毎秒収入：レベル強化、装備、研究、物語の選択などで増えます。調子や稼ぐ／休むでも変化します。','v69-wallet-coins':'✦通貨：ボス撃破・ボスの追加報酬・ゆめかわ探索の踏破で獲得。永久商店、美術館などで使います。',coins:'✦通貨：ボス撃破、追加報酬、ゆめかわ探索の踏破で獲得。',boxes:'箱：時間経過の探索、戦闘勝利、イベント、ゆめかわ探索の踏破で獲得。',emptycount:'空き箱：新しい装備を発見できなかった開封や、期限切れの時限箱などで増えます。古紙回収で紙片にできます。',papercount:'紙片：空き箱の回収で入手。書庫の解放や研究などに使います。',timedcount:'時限箱：戦闘報酬などで出現。期限内に開けないと空き箱になります。',relics:'レリック：ボスを撃破すると獲得する永続強化です。'};
+ for(const [id,hint]of Object.entries(resourceHints)){const node=$(id);if(node){node.title=hint;if(!node.hasAttribute('tabindex'))node.tabIndex=0;}}
+ $('v68-auto-combat').closest('label').title='戦闘が終わるたびに「次の戦いへ」を自動で押します。ボス戦と追加報酬はそれぞれの設定に従います。';
  v68UIReady=true;
  if(typeof v68AutoInit==='function')v68AutoInit();
  v68RenderUI();
@@ -3422,4 +3425,6 @@ body.v68-ui button:disabled{opacity:1!important;filter:none!important;background
 body.v68-ui[data-theme="mondrian"]{--accent:#b82320;--accentText:#fff}
 body.v68-ui #v68-bottom{color:var(--fg);background:var(--panel)!important;border-radius:9px 9px 0 0;padding:5px 0 0}
 body.v68-ui #v65-hub .v65-color-labels,body.v68-ui #v65-hub .v65-color-labels b{font-size:12px;line-height:18px}
+/* Outcome text must remain readable in light and dark worlds. */
+body.v68-ui #v57-battle-outcome,body.v68-ui #v57-receipt,body.v68-ui #log{color:var(--fg)!important;background:var(--panel)!important;font-size:14px!important;font-weight:650;opacity:1!important}
 </style></body></html>
