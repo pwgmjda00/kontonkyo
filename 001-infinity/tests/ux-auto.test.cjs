@@ -27,6 +27,7 @@ window.__infinityTest = {
   start: () => v68AutoStart(), pause: reason => v68AutoPause(reason), manual: () => v68AutoManual(),
   initAuto: () => v68AutoInit(), autoTick: (t,dt) => v68AutoTick(t,dt), battleTick: (t,dt) => v68FightTick(t,dt),
   openPanel: key => v68OpenPanel(key),
+  boxCoinRoll: () => v72BoxCoinRoll(), openBox: () => openOne(),
   save: () => save(), draw: () => draw(), income: () => income(), step: dt => step(dt),
   closeTutorial: () => closeTutorial(true), switchWorld: w => v63Switch(w),
   startFight: () => startFight(), chooseDream: type => v64Choose(type), startDream: () => v64Start(),
@@ -197,6 +198,40 @@ async function main() {
       await page.locator('#v68-shortcut-progress').click();
       const help=await page.locator('#v71-treasure-help').innerText();
       assert.match(help,/11種類/);assert.match(help,/生産が×1.06/);assert.match(help,/回復が×1.06/);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('box coin odds use one exact 1-in-1000 outcome and reject biased tail values', async page => {
+      const result=await page.evaluate(()=>{
+        const original=crypto.getRandomValues.bind(crypto);let next=0,hits=0;
+        try{
+          crypto.getRandomValues=words=>{words[0]=next++;return words;};
+          for(let i=0;i<1000;i++)if(__infinityTest.boxCoinRoll())hits++;
+          let calls=0;const values=[4294967295,4294967000,1000];
+          crypto.getRandomValues=words=>{words[0]=values[calls++];return words;};
+          return {hits,rejectedThenWon:__infinityTest.boxCoinRoll(),calls};
+        }finally{crypto.getRandomValues=original;}
+      });
+      assert.deepEqual(result,{hits:1,rejectedThenWon:true,calls:3});
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('manual, batch and AUTO boxes award currency once per box alongside equipment', async page => {
+      await page.evaluate(()=>{crypto.getRandomValues=words=>{words.fill(0);return words;};Math.random=()=>.5;__infinityTest.patch({boxes:50,coins:0,owned:{109:1},boxCoinTotal:0,opened:0});});
+      await page.locator('#v68-shortcut-gear').click();
+      await page.locator('#open').click();
+      let current=await state(page);assert.equal(current.coins,1);assert.equal(current.opened,1);
+      assert.equal(current.owned['21'],11,'Additional equipment does not multiply the currency draw');
+      assert.match(await page.locator('#boxresult').innerText(),/通貨＋1/);
+      assert.match(await page.locator('#v72-box-coin-notice').innerText(),/通貨＋1/);
+      await page.locator('#open10').click();
+      current=await state(page);assert.equal(current.coins,11);assert.equal(current.boxCoinTotal,11);
+      assert.match(await page.locator('#boxresult').innerText(),/通貨＋10/);
+      await closeLibrary(page);await config(page,{explore:true,combat:false,speed:4});
+      await page.locator('#v68-auto-main').click();await page.clock.runFor(1000);await page.locator('#v68-auto-main').click();
+      current=await state(page);assert.ok(current.opened>11);assert.equal(current.coins,current.opened);
+      await page.evaluate(()=>{__infinityTest.patch({autoOpen:true});});await page.clock.runFor(500);
+      current=await state(page);assert.equal(current.coins,current.opened,'Legacy auto-open uses the same per-box reward');
+      await page.evaluate(()=>{__infinityTest.patch({boxes:0,autoOpen:false});});const before=await state(page);
+      assert.equal(await page.evaluate(()=>__infinityTest.openBox()),false);assert.equal((await state(page)).coins,before.coins);
+      await page.evaluate(()=>__infinityTest.save());await page.reload({waitUntil:'load'});
+      assert.equal((await state(page)).boxCoinTotal,current.boxCoinTotal,'Coin reward total survives reload');
     },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
     await check('fresh dream: existing default theme and seven-step exploration reward once', async page => {
       await chooseWorld(page, 'dream');
