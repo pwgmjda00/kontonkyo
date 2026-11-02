@@ -321,7 +321,10 @@ const v76BuildingDefs=[
  {id:'market',name:'🌃 夜の商店街',dream:'🍰 おかしの商店街',cost:120,description:'所持金の毎秒生産を増やす。戦闘力への直接補正はありません。'},
  {id:'factory',name:'📦 箱の工房',dream:'🎁 リボン工房',cost:600,description:'時間経過で箱を追加生産。中身・ジェムの抽選確率は通常の箱と同じ。'},
  {id:'scrap',name:'♻️ 古紙回収所',dream:'🧺 おもいで回収所',cost:360,description:'時間経過で空き箱を集める。装備画面の古紙回収で紙片に交換できます。'},
- {id:'press',name:'📜 紙片印刷所',dream:'💌 おてがみ印刷所',cost:1800,description:'時間経過で紙片を生産。書庫の解放や研究に使えます。'}
+ {id:'press',name:'📜 紙片印刷所',dream:'💌 おてがみ印刷所',cost:1800,description:'時間経過で紙片を生産。書庫の解放や研究に使えます。'},
+ {id:'dojo',name:'⚔️ 剣術道場',dream:'🦁 ゆうきの教室',cost:2400,description:'無窮世界の戦闘攻撃力を強化。最大＋10%。生産量とは独立した補正です。'},
+ {id:'clinic',name:'🏥 星灯りの診療所',dream:'🧸 おやすみ診療所',cost:3600,description:'無窮世界の毎ターンの戦闘HP回復を強化。最大＋20%。回復阻害の敵には効果を阻害されます。'},
+ {id:'observatory',name:'🔭 夢見の天文台',dream:'🌌 おほしさま観測所',cost:12000,description:'ゆめかわの新しい探検の出発時きらめきを追加。Lv1・4・9・16・25で増え、最大＋5。進行中の旅には再付与されません。'}
 ];
 {
  const old=s.v76Buildings&&typeof s.v76Buildings==='object'&&!Array.isArray(s.v76Buildings)?s.v76Buildings:{};
@@ -334,6 +337,9 @@ function v76BuildingMoney(){return 1+.08*Math.sqrt(v76BuildingLevel('market'));}
 function v76BuildingBoxes(){return .05*Math.sqrt(v76BuildingLevel('factory'));}
 function v76BuildingScrap(){return Math.sqrt(v76BuildingLevel('scrap'))/60;}
 function v76BuildingPaper(){return Math.sqrt(v76BuildingLevel('press'))/120;}
+function v78BuildingAttack(){return 1+.02*Math.sqrt(v76BuildingLevel('dojo'));}
+function v78BuildingHealing(){return 1+.04*Math.sqrt(v76BuildingLevel('clinic'));}
+function v78BuildingSparkle(){return Math.floor(Math.sqrt(v76BuildingLevel('observatory')));}
 function v76BuildingTick(sec){
  if(!Number.isFinite(sec)||sec<=0)return;
  const b=s.v76Buildings;b.paperFraction+=Math.min(86400,sec)*v76BuildingPaper();
@@ -349,13 +355,13 @@ function v76BuyBuilding(id){
 }
 function v76BuildingEffect(id,level){
  const root=Math.sqrt(level);
- return {market:'所持金生産 ＋'+(8*root).toFixed(1)+'%',factory:'箱 ＋'+(.05*root).toFixed(3)+'個 /秒',scrap:'空き箱 ＋'+root.toFixed(2)+'個 /分',press:'紙片 ＋'+(.5*root).toFixed(2)+'枚 /分'}[id];
+ return {market:'所持金生産 ＋'+(8*root).toFixed(1)+'%',factory:'箱 ＋'+(.05*root).toFixed(3)+'個 /秒',scrap:'空き箱 ＋'+root.toFixed(2)+'個 /分',press:'紙片 ＋'+(.5*root).toFixed(2)+'枚 /分',dojo:'戦闘攻撃 ＋'+(2*root).toFixed(1)+'%',clinic:'戦闘HP回復 ＋'+(4*root).toFixed(1)+'%',observatory:'出発きらめき ＋'+Math.floor(root)}[id];
 }
 function v76RenderBuildings(){
  const panel=$('v76-buildings');if(!panel)return;
  const dream=v63Active()==='dream';
  const balance='所持金 '+prettyNum(s.n)+' ｜ 毎秒収入 ＋'+prettyNum(income());
- if($('v76-building-wallet').textContent!==balance)$('v76-building-wallet').textContent=balance;
+ const wallet=$('v76-building-wallet');if(wallet&&wallet.textContent!==balance)wallet.textContent=balance;
  for(const d of v76BuildingDefs){
   const level=v76BuildingLevel(d.id),price=v76BuildingCost(d.id),button=$('v76-buy-'+d.id);
   const values={['v76-name-'+d.id]:dream?d.dream:d.name,['v76-level-'+d.id]:'Lv.'+level+' / 25',['v76-effect-'+d.id]:v76BuildingEffect(d.id,level),['v76-next-'+d.id]:level<25?'次の効果：'+v76BuildingEffect(d.id,level+1):'最大レベルに到達'};
@@ -366,19 +372,82 @@ function v76RenderBuildings(){
   button.title=level>=25?'これ以上の購入はありません':'所持金を'+prettyNum(price)+'消費。あと'+prettyNum(Math.max(0,price-s.n))+'で購入可能';
  }
 }
+function v78OpenTown(){
+ v68ClosePanel();const town=$('v78-town');if(!town)return;town.open=true;
+ const play=$('v68-play');play.scrollTop+=town.getBoundingClientRect().top-play.getBoundingClientRect().top;
+ town.querySelector('summary').focus({preventScroll:true});
+}
 function v76InitBuildings(host){
  const panel=v68Node('section','v76-buildings');panel.setAttribute('aria-label','建物の購入と生産');
- panel.appendChild(v68Node('strong','v76-building-wallet'));
- panel.appendChild(v68Node('p',null,'建物は両世界で共有し、輪廻でも残ります。購入は所持金のみ。生産は自動で受け取り、速度×1〜×4では増えません。各25レベルまで。'));
+ const cards=v68Node('div','v78-building-cards');cards.setAttribute('aria-label','横に並ぶ7つの建物');
  for(const d of v76BuildingDefs){
   const card=v68Node('article');card.className='v76-building-card';
-  card.appendChild(v68Node('h3','v76-name-'+d.id));card.appendChild(v68Node('b','v76-level-'+d.id));
-  card.appendChild(v68Node('p',null,d.description));card.appendChild(v68Node('strong','v76-effect-'+d.id));
-  card.appendChild(v68Node('p','v76-next-'+d.id));
-  const button=v68Node('button','v76-buy-'+d.id);button.type='button';button.onclick=()=>v76BuyBuilding(d.id);card.appendChild(button);panel.appendChild(card);
+  const heading=v68Node('header');heading.append(v68Node('h3','v76-name-'+d.id),v68Node('b','v76-level-'+d.id));card.appendChild(heading);
+  card.appendChild(v68Node('strong','v76-effect-'+d.id));
+  const button=v68Node('button','v76-buy-'+d.id);button.type='button';button.onclick=()=>v76BuyBuilding(d.id);card.appendChild(button);
+  const detail=v68Node('details');detail.appendChild(v68Node('summary',null,'効果・次の強化'));
+  detail.appendChild(v68Node('p','v76-next-'+d.id));detail.appendChild(v68Node('p',null,d.description));card.appendChild(detail);cards.appendChild(card);
  }
- panel.appendChild(v68Node('p',null,'放置中は既存の24時間上限と時間減衰を適用。箱と紙片の端数も保存します。建物同士の効果は掛け合わせず、レベルが上がるほど伸びが緩やかになります。'));
+ panel.appendChild(cards);
+ panel.appendChild(v68Node('p','v78-building-help','所持金で建設・強化。各Lv25まで、価格は強化ごとに2倍。両世界で共有し、輪廻でも残ります。'));
  host.appendChild(panel);v76RenderBuildings();
+}
+
+const v78HUDDefaults={enabled:false,position:'right-top',fields:['money','income','gems','boxes','level','hp','attack','healing','stage','energy','sparkle']};
+{
+ const old=s.v78HUD&&typeof s.v78HUD==='object'&&!Array.isArray(s.v78HUD)?s.v78HUD:{};
+ s.v78HUD={...old,enabled:old.enabled===true,position:['right-top','left-top','right-bottom','left-bottom'].includes(old.position)?old.position:'right-top',fields:Array.isArray(old.fields)?[...new Set(old.fields.filter(x=>typeof x==='string'))].slice(0,120):[...v78HUDDefaults.fields]};
+}
+let v78HUDLast=-Infinity;
+const v78HUDNodes=new Map();
+function v78HUDRows(){
+ if(!s.dualWorld?.v64||!s.v76Buildings)return [];
+ const rows=[],add=(group,key,label,value)=>rows.push({group,key,label,value});
+ const count=o=>Object.values(o||{}).filter(Boolean).length,sum=o=>Object.values(o||{}).reduce((a,b)=>a+(Number(b)||0),0);
+ const fmt=n=>Number.isFinite(n)?(Math.abs(n)>=1e9?v73BattleNum(n):String(Math.round(n*1000)/1000)):'—';
+ const stats=v74CombatStats(),v=s.dualWorld.v64,e=v.explore||{},now=Date.now(),remaining=t=>Math.max(0,Math.ceil(((Number(t)||0)-now)/1000))+'秒';
+ for(const [key,label,value]of [['money','所持金',prettyNum(s.n)],['income','毎秒収入',prettyNum(income())],['gems','ジェム',fmt(s.coins)],['boxes','箱',fmt(s.boxes)],['empty','空き箱',fmt(s.empty)],['paper','紙片',fmt(s.paper)],['upgradeGap','強化まで不足金',prettyNum(Math.max(0,lvCost()-s.n))],['timed','時限箱',s.timed?.length||0],['tickets','買付券',s.artTickets||0],['shards','額装片',s.artShards||0],['ticketPity','買付券天井まで',Math.max(0,77-(s.artMeter||0))]])add('資源',key,label,value);
+ for(const [key,label,value]of [['level','レベル',s.lv],['levelCost','次の強化費用',prettyNum(lvCost())],['hp','戦闘HP',fight?fmt(Math.max(0,fight.hp))+' / '+fmt(fight.max):'待機 / 最大 '+fmt(stats.hp)],['attack','攻撃力',fmt(stats.attack)],['healing','HP回復 /ターン',fmt(stats.healing)],['stage','階層',fight?.e?.stage||s.wins+1],['wins','勝利数',s.wins],['enemyHP','敵HP',fight?fmt(Math.max(0,fight.ehp))+' / '+fmt(fight.e.hp):'待機'],['enemyAttack','敵基礎攻撃',fight?fmt(fight.e.atk):'待機'],['intent','敵の次行動',fight?.active?v77EnemyIntent().action:'待機'],['tactic','戦い方',fight?.active?V77_STANCES[v77BattleStance()].name:'待機'],['bosses','ボス撃破',count(s.bosses)],['relics','レリック',count(s.relics)],['bossReward','ボス追加報酬',s.pendingBossReward?'選択待ち':'なし']])add('戦闘',key,label,value);
+ for(const [key,label,value]of [['site','夢の行き先',V64_SITES[v64SafeInt(e.site,0,10)].name],['steps','夢の旅',e.active?e.step+' / 7':'出発待ち'],['energy','夢の元気',e.active?e.energy+' / 10':'出発時 8 / 10'],['sparkle','夢のきらめき',e.active?e.sparkle:'出発時 '+v78BuildingSparkle()],['rests','旅の休憩残り',e.active?2-e.rests:2],['dreamRuns','夢の出発回数',v.runs],['dreamClear','夢の踏破回数',v.completed],['sites','夢の景色',Object.keys(v.sites||{}).length+' / 11'],['memories','旅の記録',Object.keys(s.dualWorld.v77?.album||{}).filter(k=>/^([0-9]|10):[0-2]$/.test(k)).length+' / 33']])add('夢の探検',key,label,value);
+ for(const d of v76BuildingDefs)add('建物','building-'+d.id,(v63Active()==='dream'?d.dream:d.name),v76BuildingLevel(d.id)+' / 25');
+ for(const [key,label,value]of [['boxRate','工房の箱 /秒',fmt(v76BuildingBoxes())],['paperRate','印刷所の紙片 /分',fmt(v76BuildingPaper()*60)],['scrapRate','回収所の空き箱 /分',fmt(v76BuildingScrap()*60)],['marketBonus','商店街の生産補正',fmt((v76BuildingMoney()-1)*100)+'%'],['dojoBonus','道場の攻撃補正',fmt((v78BuildingAttack()-1)*100)+'%'],['clinicBonus','診療所の回復補正',fmt((v78BuildingHealing()-1)*100)+'%'],['observatoryBonus','天文台の出発きらめき',v78BuildingSparkle()]])add('建物',key,label,value);
+ for(const [key,label,value]of [['rebirth','輪廻回数',s.rebirth],['gearTypes','装備所持種類',Object.keys(s.owned).filter(k=>s.owned[k]>0).length],['gearCount','装備所持合計',fmt(sum(s.owned))],['activeGear','装備ON種類',gear.filter(g=>has(g.id)).length],['cards','カード種類',Object.keys(s.cards).filter(k=>s.cards[k]>0).length+' / 111'],['research','研究レベル合計',sum(s.research)],['forge','鍛造レベル合計',sum(s.forgeLevel)],['books','読める物語',stories.filter((_,i)=>i===0||s.novels[i]).length+' / 666'],['branches','選択した物語',Object.keys(s.choices).length],['opened','箱の累計開封',s.opened],['boxGems','箱からの累計ジェム',s.boxCoinTotal||0],['museum','美術館の収蔵作品',Object.keys(s.artCollection||{}).length],['diary','読んだ日記',count(s.dreamDiary?.read)],['stamps','日記スタンプ',count(s.dreamDiary?.stamps)]])add('育成・収集',key,label,value);
+ for(const [key,label,value]of [['world','現在の世界',v63Active()==='dream'?'ゆめかわ':'無窮'],['classicIntro','無窮の入門達成',v63MissionsDone('classic')+' / 6'],['dreamIntro','夢の入門達成',v63MissionsDone('dream')+' / 6'],['classicTreasure','無窮の宝物',s.dualWorld.treasures.classic.length+' / 11'],['dreamTreasure','夢の宝物',s.dualWorld.treasures.dream.length+' / 11'],['achievements','実績獲得',count(s.dualWorld.v65?.earned)],['both','ダブルコンプリート',v63BothComplete()?'達成':'進行中'],['reality','現実モードの扉',v64RealityUnlocked()?'入口解禁':'未解禁']])add('世界・進捗',key,label,value);
+ for(const [key,label,value]of [['boost','生産ブースト残り',remaining(s.boostUntil)],['chaos','混沌ブースト残り',remaining(s.chaosUntil)],['return','復帰ボーナス残り',remaining(s.returnBonusUntil)],['curse','呪い',s.curse],['incomeLink','世界の生産連動',fmt(v63IncomeBonus())+'倍'],['healingLink','世界の回復連動',fmt(v63RestBonus())+'倍'],['auto','自動進行',v68AutoRuntime.running?'進行中':v68AutoRuntime.paused?'一時停止':'停止'],['speed','進行速度','×'+s.v68Auto.speed],['autoOpen','箱の自動開封',s.autoOpen?'ON':'OFF'],['autoRecycle','自動古紙回収',s.autoRecycle?'ON':'OFF'],['activeTime','操作時間 /分',fmt((s.runActiveSeconds||0)/60)],['awayTime','放置時間 /分',fmt((s.runAwaySeconds||0)/60)]])add('効果・進行',key,label,value);
+ return rows;
+}
+function v78HUDConfig(){return s.v78HUD&&Array.isArray(s.v78HUD.fields)?s.v78HUD:v78HUDDefaults;}
+function v78HUDUpdate(fields){s.v78HUD={...v78HUDConfig(),...fields};save();v78RenderHUD(true);}
+function v78RenderHUD(force=false){
+ const overlay=$('v78-status-overlay'),button=$('v78-hud-toggle');if(!overlay||!button)return;
+ const config=v78HUDConfig(),text='HUD '+(config.enabled?'ON':'OFF');if(button.textContent!==text)button.textContent=text;
+ button.setAttribute('aria-pressed',String(config.enabled));button.title='ステータスオーバーレイを'+(config.enabled?'OFF':'ON')+'にする';overlay.hidden=!config.enabled;overlay.dataset.position=config.position;
+ const enabled=$('v78-hud-enabled');if(enabled)enabled.checked=config.enabled;
+ if($('v78-hud-position'))$('v78-hud-position').value=config.position;
+ if(!force&&(!config.enabled||Date.now()-v78HUDLast<1000))return;v78HUDLast=Date.now();
+ let shown=0;for(const row of v78HUDRows()){
+  const nodes=v78HUDNodes.get(row.key);if(!nodes)continue;
+  const selected=config.fields.includes(row.key);nodes.line.hidden=!selected;nodes.input.checked=selected;
+  const value=String(row.value);if(nodes.value.textContent!==value)nodes.value.textContent=value;if(selected)shown++;
+ }
+ $('v78-hud-empty').hidden=shown>0;
+}
+function v78InitHUD(settings){
+ const overlay=v68Node('aside','v78-status-overlay');overlay.setAttribute('aria-label','ステータスオーバーレイ');overlay.hidden=true;
+ const head=v68Node('header');head.appendChild(v68Node('strong',null,'ステータス'));
+ const setup=v68Node('button',null,'設定');setup.type='button';setup.onclick=()=>v68OpenPanel('hud');
+ const close=v68Node('button',null,'×');close.type='button';close.setAttribute('aria-label','ステータス表示をOFF');close.onclick=()=>v78HUDUpdate({enabled:false});head.append(setup,close);overlay.appendChild(head);
+ const list=v68Node('dl','v78-hud-values');overlay.appendChild(list);const empty=v68Node('p','v78-hud-empty','表示する項目を設定してください');overlay.appendChild(empty);document.body.appendChild(overlay);
+ const enable=v68Node('label');const input=v68Node('input','v78-hud-enabled');input.type='checkbox';input.onchange=()=>v78HUDUpdate({enabled:input.checked});enable.append(input,document.createTextNode(' ステータスをオーバーレイ表示'));settings.appendChild(enable);
+ const position=v68Node('select','v78-hud-position');position.setAttribute('aria-label','オーバーレイの位置');for(const [value,label]of [['right-top','右上'],['left-top','左上'],['right-bottom','右下'],['left-bottom','左下']]){const option=v68Node('option',null,label);option.value=value;position.appendChild(option);}position.onchange=()=>v78HUDUpdate({position:position.value});settings.appendChild(position);
+ const actions=v68Node('div');actions.className='row';for(const [id,label,all]of [['v78-hud-all','全項目ON',true],['v78-hud-none','全項目OFF',false]]){const b=v68Node('button',id,label);b.type='button';b.onclick=()=>v78HUDUpdate({fields:all?v78HUDRows().map(row=>row.key):[]});actions.appendChild(b);}settings.appendChild(actions);
+ settings.appendChild(v68Node('p',null,'項目と表示位置を選べます。値は約1秒ごとに更新し、表示内容が多い場合はオーバーレイ内をスクロールできます。'));
+ const groups=new Map();for(const row of v78HUDRows()){
+  if(!groups.has(row.group)){const group=v68Node('details');group.appendChild(v68Node('summary',null,row.group));settings.appendChild(group);const grid=v68Node('div');grid.className='v78-hud-fields';group.appendChild(grid);groups.set(row.group,grid);}
+  const label=v68Node('label');const check=v68Node('input','v78-hud-field-'+row.key);check.type='checkbox';check.onchange=()=>{const fields=new Set(v78HUDConfig().fields);check.checked?fields.add(row.key):fields.delete(row.key);v78HUDUpdate({fields:[...fields]});};label.append(check,document.createTextNode(' '+row.label));groups.get(row.group).appendChild(label);
+  const line=v68Node('div');line.appendChild(v68Node('dt',null,row.label));const value=v68Node('dd');line.appendChild(value);list.appendChild(line);v78HUDNodes.set(row.key,{line,value,input:check});
+ }
+ $('v78-hud-toggle').onclick=()=>v78HUDUpdate({enabled:!v78HUDConfig().enabled});v78RenderHUD(true);
 }
 
 // v77: all tactics run through the original combat clock and reward handlers.
@@ -421,7 +490,7 @@ function v74CombatStats(){
  const rebirth=1+.3*(v74Rebirth()-1);
  const baseHP=24*(1+.18*level)**1.35;
  return {hp:baseHP*Math.sqrt(trade.hp*(1+.3*shopLv('vital'))*(1+.08*(s.research.balance||0)))*(god(0)?3:1)*(god(9)?2:1)*rebirth,
- attack:5*(1+.16*level)**1.3*Math.sqrt(trade.attack*(1+storyBonus().attack)*(1+cardSet().attack))*(god(1)?3:1)*rebirth,healing:baseHP*.03*Math.sqrt(trade.healing*(1+bonuses()[1]/100))*rebirth};
+ attack:5*(1+.16*level)**1.3*Math.sqrt(trade.attack*(1+storyBonus().attack)*(1+cardSet().attack))*(god(1)?3:1)*rebirth*v78BuildingAttack(),healing:baseHP*.03*Math.sqrt(trade.healing*(1+bonuses()[1]/100))*rebirth*v78BuildingHealing()};
 }
 function bonuses(){let b=[0,0,0,0,0];for(let i=0;i<107;i++)if(has(i))b[i%5]+=5*(gear[i].t+1)*v74Copies(s.owned[i]);return b}// v14: 尖った装備。各系統は強い代わりに代償を持つ。OFFで効果も代償も停止。
 const gearTraits=[
@@ -2072,7 +2141,7 @@ function v64Start(){
  v64Ensure();let v=s.dualWorld.v64;if(v.explore?.active)return;
  const site=v64SafeInt(document.getElementById('v64-exp-select').value,0,10);
  v.runs++;
- v.explore={active:true,site,step:0,energy:8,sparkle:0,rests:0,history:[],seed:Math.floor(Math.random()*1e8)};
+ v.explore={active:true,site,step:0,energy:8,sparkle:v78BuildingSparkle(),rests:0,history:[],seed:Math.floor(Math.random()*1e8)};
  v64ExpRender();save();
 }
 function v64Choose(type){
@@ -2586,6 +2655,7 @@ function v68SyncProgressControls(){
  document.querySelectorAll('[data-v65-filter]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v65Filter===v65Filter)));
 }
 function v68OpenPanel(key='menu'){
+ if(key==='buildings'){v78OpenTown();return;}
  if(!v68UIReady||!v68Panes.has(key))return;
  if(key==='diary'&&v63Active()!=='dream')key='menu';
  v68PauseForUI('詳細画面を開いています');
@@ -2602,6 +2672,7 @@ function v68OpenPanel(key='menu'){
  if(key==='save'){$('savepanel').classList.remove('hide');$('savetoggle').setAttribute('aria-expanded','true');}
  if(key==='rebirth')renderPrestige();
  if(key==='dreamjournal')v77RenderDreamExtras();
+ if(key==='hud')v78RenderHUD(true);
  if(key==='settings')$('v54Guide').open=true;
  if(!dialog.open)dialog.showModal();
  $('v68-library-body').scrollTop=0;
@@ -2616,7 +2687,7 @@ function v68InitUI(){
  const main=document.querySelector('main');if(!main)return;
  const originalChildren=Array.from(main.children);
  document.body.classList.add('v68-ui');
- document.querySelector('.v32brand').title='冒険拡張版 v77：夢の出来事・旅の記録・戦闘予告と戦い方';
+ document.querySelector('.v32brand').title='街づくり版 v78：メイン画面に7つの建物・戦闘と夢の探検を支援';
  const wallet=v68Node('section','v69-wallet');wallet.setAttribute('aria-label','所持金と毎秒収入');
  wallet.innerHTML='<span id="v69-wallet-label">所持金</span><span id="v69-wallet-coins" title="永久商店・美術館で使う別のジェム"></span>';
  const stats=v68Node('div','v68-stats');stats.setAttribute('aria-label','現在の冒険の状態');
@@ -2627,7 +2698,7 @@ function v68InitUI(){
  auto.innerHTML='<div class="v68-auto-row"><button type="button" id="v68-auto-main">▶ 進行開始</button><button type="button" id="v68-auto-pause">一時停止</button><button type="button" id="v68-auto-manual">手動に戻る</button></div><div class="v68-auto-sub"><span id="v68-auto-status" role="status" aria-live="polite">世界を選ぶと自動で進みます</span><label for="v68-auto-speed">速度</label><select id="v68-auto-speed" aria-label="AUTO速度"><option value="1">×1</option><option value="2">×2</option><option value="4">×4</option></select></div>';
  bottom.appendChild(auto);
  const shortcuts=v68Node('nav','v68-shortcuts');shortcuts.setAttribute('aria-label','主要ショートカット');
- shortcuts.innerHTML='<button id="v76-shortcut-buildings" type="button">🏘 建物</button><button id="v68-shortcut-gear" type="button">🎁 装備</button><button id="v68-shortcut-books" type="button">📚 書庫</button><button id="v68-shortcut-progress" type="button">🌗 進捗</button><button id="v68-shortcut-menu" type="button">☰ すべて</button>';
+ shortcuts.innerHTML='<button id="v78-hud-toggle" type="button" aria-pressed="false">HUD OFF</button><button id="v76-shortcut-buildings" type="button">建物</button><button id="v68-shortcut-gear" type="button">装備</button><button id="v68-shortcut-books" type="button">書庫</button><button id="v68-shortcut-progress" type="button">進捗</button><button id="v68-shortcut-menu" type="button">すべて</button>';
  bottom.appendChild(shortcuts);
  const dialog=v68Node('dialog','v68-library');dialog.setAttribute('aria-labelledby','v68-library-title');
  dialog.innerHTML='<header class="v68-library-head"><button type="button" id="v68-library-back">← 一覧</button><h2 id="v68-library-title">すべての機能</h2><button type="button" id="v68-library-close" aria-label="詳細画面を閉じる">閉じる ×</button></header><div id="v68-library-body"></div>';
@@ -2638,7 +2709,7 @@ function v68InitUI(){
  const menuHint=v68Node('p',null,'冒険を止めて、装備・物語・記録をゆっくり確認できます。');menuHint.className='small';menu.append(menuHint);
  v68Move('v54nav',menu);v68Move('v62-diary-access',menu);
  const menuLinks=v68Node('div','v68-menu-links');menuLinks.className='v68-menu-grid';
- const links=[['buildings','🏘 建物・生産'],['dreamjournal','📒 夢の旅の記録'],['progress','🌗 実績・世界進捗'],['save','💾 セーブ・バックアップ'],['settings','⚙️ 遊び方・音・設定'],['rebirth','🌌 輪廻・再構築'],['logs','📜 戦況・世界の時刻'],['dopa','🎰 ドパチャレンジ'],['extras','✦ その他の操作']];
+ const links=[['hud','📊 ステータス表示設定'],['buildings','🏘 建物・生産'],['dreamjournal','📒 夢の旅の記録'],['progress','🌗 実績・世界進捗'],['save','💾 セーブ・バックアップ'],['settings','⚙️ 遊び方・音・設定'],['rebirth','🌌 輪廻・再構築'],['logs','📜 戦況・世界の時刻'],['dopa','🎰 ドパチャレンジ'],['extras','✦ その他の操作']];
  for(const [key,label]of links){const b=v68Node('button','v68-menu-'+key,label);b.type='button';b.onclick=()=>v68OpenPanel(key);menuLinks.appendChild(b);}
  menu.appendChild(menuLinks);
  const oldSave=$('savetoggle');if(oldSave)menu.appendChild(oldSave);
@@ -2660,7 +2731,9 @@ function v68InitUI(){
  const progressOpen=v68Node('button','v68-progress-open');progressOpen.type='button';progressOpen.setAttribute('aria-label','無窮とゆめかわの進捗の詳細を開く');progressOpen.setAttribute('aria-haspopup','dialog');progressOpen.onclick=()=>{v68OpenPanel('progress');v65ChangeTab('tracks');v68SyncProgressControls();};hub.appendChild(progressOpen);
  const settings=pane('settings','遊び方・音・設定');v68Move('v54Guide',settings);v68Move('v9panel',settings);v68Move('v35audio',settings);
  const savePane=pane('save','セーブ・バックアップ');v68Move('savepanel',savePane);
- const buildings=pane('buildings','建物・自動生産');v76InitBuildings(buildings);
+ const town=v68Node('details','v78-town');town.open=innerHeight>=700;
+ const townTitle=v68Node('summary',null,'🏘 街づくり · 7種');townTitle.tabIndex=0;town.appendChild(townTitle);v76InitBuildings(town);
+ const hudSettings=pane('hud','ステータス表示設定');
  const journal=pane('dreamjournal','夢の旅の記録');journal.appendChild(v68Node('div','v77-dream-journal'));
  const rebirth=pane('rebirth','輪廻・世界再構築');v68Move('prestigepanel',rebirth);
  const logs=pane('logs','戦況ログ・世界の時刻');const history=document.querySelector('.v59-battle-history');if(history)logs.appendChild(history);v68Move('worldclock',logs);
@@ -2684,6 +2757,7 @@ function v68InitUI(){
  // Existing overlays must remain outside the constrained play scroller.
  for(const id of ['godreveal','themepanel','v54Scrim','tutorialOverlay','artDiscoveryToast'])v68Move(id,document.body);
  for(const id of ['v54hero','v64-dream-expedition','battlepanel','log','event'])v68Move(id,play);
+ play.prepend(town);
  v68Move('v63-live-announcement',document.body);
  main.append(wallet,stats,play,bottom);
  for(const child of originalChildren){if(child.parentElement===main&&!['v32header','v65-hub','v67-save-warning'].includes(child.id))extras.appendChild(child);}
@@ -2721,7 +2795,7 @@ function v68InitUI(){
  for(const id of ['godreveal','secretEndingOverlay','tutorialOverlay','v63-world-overlay'])overlayObserver.observe($(id),{attributes:true,attributeFilter:['class']});
  overlayObserver.observe(document.body,{attributes:true,attributeFilter:['class']});
  // Progress notices may cover scenery briefly, but never the persistent HP/status header.
- const positionNotices=()=>{document.body.style.setProperty('--v68-toast-top',Math.ceil(play.getBoundingClientRect().top+5)+'px');};
+ const positionNotices=()=>{document.body.style.setProperty('--v68-toast-top',Math.ceil(play.getBoundingClientRect().top+5)+'px');document.body.style.setProperty('--v78-hud-bottom',Math.ceil(innerHeight-bottom.getBoundingClientRect().top+8)+'px');};
  if(typeof ResizeObserver==='function'){const sizeObserver=new ResizeObserver(positionNotices);sizeObserver.observe(play);}
  positionNotices();
  const resourceHints={artTicketCount:'買付券：箱の開封で抽選され、77箱ごとにも獲得できます。美術館の買付候補を探すために使います。',artShardCount:'美術館の欠片：作品を買い付けて収蔵すると2個獲得できます。',artMuseumCoinCount:'✦ジェム：ボス撃破・追加報酬・ゆめかわ探索の踏破で獲得。',number:'所持金：時間経過で生産されます。商店街やレベル強化で生産を増やせます。戦闘勝利やイベントでも獲得できます。',rate:'毎秒収入：レベル強化、装備、研究、物語の選択などで増えます。建物の商店街でも増えます。','v69-wallet-coins':'✦ジェム：ボス撃破・ボスの追加報酬・ゆめかわ探索の踏破で獲得。永久商店、美術館などで使います。',coins:'✦ジェム：ボス撃破、追加報酬、ゆめかわ探索の踏破で獲得。',boxes:'箱：時間経過の探索、箱の工房、戦闘勝利、イベント、ゆめかわ探索の踏破で獲得。',emptycount:'空き箱：古紙回収所、新しい装備を発見できなかった開封、期限切れの時限箱などで増えます。古紙回収で紙片にできます。',papercount:'紙片：空き箱の回収や紙片印刷所で入手。書庫の解放や研究などに使います。',timedcount:'時限箱：戦闘報酬などで出現。期限内に開けないと空き箱になります。',relics:'レリック：ボスを撃破すると獲得する永続強化です。'};
@@ -2729,13 +2803,14 @@ function v68InitUI(){
  const coinOdds=v68Node('p','v72-box-coin-odds','箱ごとに装備とは別枠で0.1%（1/1000）のジェム抽選。当選すると✦1を追加獲得。手動・まとめ・自動開封で確率は同じです。');$('boxpanel').querySelector('h3').after(coinOdds);
  for(const id of ['v69-wallet-coins','coins','artMuseumCoinCount'])if($(id))$(id).title='✦ジェム：箱の追加抽選（1箱ごと0.1%で✦1）、ボス撃破、追加報酬、ゆめかわ探索の踏破で獲得。';
 
+ v78InitHUD(hudSettings);
  v68UIReady=true;
  if(typeof v68AutoInit==='function')v68AutoInit();
  v68RenderUI();
 }
 function v68RenderUI(){
  if(!v68UIReady)return;
- v76RenderBuildings();v77RenderCombat();v77RenderDreamExtras();
+ v76RenderBuildings();v77RenderCombat();v77RenderDreamExtras();v78RenderHUD();
  const boxCount='🎁 ルートボックス　所持 '+prettyNum(Math.floor(s.boxes))+'個';
  const boxHeading=$('boxpanel').querySelector('h3');if(boxHeading.textContent!==boxCount)boxHeading.textContent=boxCount;
  const gearTitle='装備・ルートボックス（'+prettyNum(Math.floor(s.boxes))+'個）';v68Panes.get('gear').dataset.title=gearTitle;
@@ -2761,7 +2836,7 @@ function v68RenderUI(){
  const upgrade=$('upgrade'),upgradeText=(dream?'つよつよ ':'強化 ')+prettyNum(lvCost());
  if(upgrade.textContent!==upgradeText)upgrade.textContent=upgradeText;
  upgrade.title='次の投資：'+(v57Get('upgrade')?.title||'昇進')+' / 必要な所持金 '+prettyNum(lvCost());
- const shortcut=$('v68-shortcut-books'),label=dream?'📔 日記':'📚 書庫';if(shortcut.textContent!==label)shortcut.textContent=label;
+ const shortcut=$('v68-shortcut-books'),label=dream?'日記':'書庫';if(shortcut.textContent!==label)shortcut.textContent=label;
  const locked=$('v68-dopa-locked');locked.hidden=!$('dopaChallenge').classList.contains('hide');
  const theater=document.body.classList.contains('v68-theater');
  if(theater!==v68PreviousTheater){if(theater)$('v68-manual-controls').open=false;else if(!dream)$('v68-manual-controls').open=true;v68PreviousTheater=theater;}
@@ -3660,4 +3735,37 @@ body.v68-ui #v77-tactic-effect{flex-basis:100%;font-size:14px;color:var(--fg)}
 body.v68-ui #v77-dream-route{font-size:14px;line-height:1.65;overflow-wrap:anywhere;margin:6px 0;color:var(--fg)}
 body.v68-ui #v77-dream-journal-open{min-height:44px;font-size:14px;width:100%}
 body.v68-theater #v54hero{display:none!important}
+/* The town stays in the main play scroller, including during AUTO. */
+body.v68-ui #v78-town{border:1px solid var(--border);border-radius:10px;padding:0 7px;background:var(--panel);color:var(--fg)}
+body.v68-ui #v78-town>summary{min-height:44px;display:list-item;cursor:pointer;font-size:16px;font-weight:750;line-height:44px}
+body.v68-ui #v78-town>summary::after{content:' · 横に選べます';font-size:14px;font-weight:400}
+body.v68-ui #v78-building-cards{display:flex;gap:8px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;max-width:100%;padding:0 0 6px}
+body.v68-ui #v78-building-cards>.v76-building-card{box-sizing:border-box;flex:0 0 min(240px,calc(100vw - 58px));margin:0;padding:8px;scroll-snap-align:start;min-width:0}
+body.v68-ui #v78-building-cards header{display:flex;align-items:baseline;justify-content:space-between;gap:4px;flex-wrap:wrap;margin-bottom:5px}
+body.v68-ui #v78-building-cards h3{font-size:16px;margin:0;overflow-wrap:anywhere}
+body.v68-ui #v78-building-cards b,body.v68-ui #v78-building-cards strong{font-size:14px}
+body.v68-ui #v78-building-cards summary{min-height:44px;line-height:44px;cursor:pointer;font-size:14px}
+body.v68-ui #v78-building-cards p{margin:5px 0;font-size:14px}
+body.v68-ui #v78-building-help{font-size:14px;line-height:1.5;margin:5px 0 8px}
+body.v68-ui #v68-shortcuts{grid-template-columns:repeat(6,minmax(0,1fr))}
+body.v68-ui #v78-hud-toggle{white-space:normal}
+body.v68-ui #v78-hud-toggle[aria-pressed="true"]{border-width:2px;font-weight:800}
+#v78-status-overlay{position:fixed;z-index:120;right:8px;top:var(--v68-toast-top,250px);width:min(260px,calc(100vw - 16px));max-height:max(44px,min(35dvh,calc(100dvh - var(--v68-toast-top,250px) - var(--v78-hud-bottom,180px) - 12px)));box-sizing:border-box;display:flex;flex-direction:column;padding:5px 8px;border:2px solid var(--border);border-radius:10px;background:var(--panel);color:var(--fg);box-shadow:0 4px 14px #0005;font-size:14px;line-height:1.5}
+#v78-status-overlay[hidden]{display:none!important}
+#v78-status-overlay[data-position^="left"]{left:8px;right:auto}
+#v78-status-overlay[data-position$="bottom"]{bottom:var(--v78-hud-bottom,180px);top:auto}
+#v78-status-overlay>header{display:flex;align-items:center;gap:5px;flex:0 0 auto}
+#v78-status-overlay>header>strong{flex:1}
+#v78-status-overlay button{min-height:44px;min-width:44px;font-size:14px;padding:4px}
+#v78-hud-values{overflow:auto;min-height:0;margin:0;overscroll-behavior:contain}
+#v78-hud-values>div{display:flex;justify-content:space-between;gap:8px;padding:3px 0;border-top:1px solid var(--border)}
+#v78-hud-values>div[hidden]{display:none}
+#v78-hud-values dt{flex:1;min-width:0;overflow-wrap:anywhere}
+#v78-hud-values dd{flex:1;text-align:right;margin:0;min-width:0;overflow-wrap:anywhere;font-weight:750}
+#v78-hud-empty{font-size:14px;margin:3px 0}
+#v68-pane-hud label,#v68-pane-hud summary{display:flex;align-items:center;gap:6px;min-height:44px;font-size:14px;cursor:pointer}
+#v68-pane-hud summary{display:list-item;line-height:44px}
+#v68-pane-hud .v78-hud-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 8px}
+#v68-pane-hud input[type="checkbox"]{width:20px;height:20px;flex-shrink:0}
+#v78-hud-position{min-height:44px;font-size:16px}
 </style></body></html>

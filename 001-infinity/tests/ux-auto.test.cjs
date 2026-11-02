@@ -30,7 +30,8 @@ window.__infinityTest = {
   initAuto: () => v68AutoInit(), autoTick: (t,dt) => v68AutoTick(t,dt), battleTick: (t,dt) => v68FightTick(t,dt),
   openPanel: key => v68OpenPanel(key),
   buyBuilding: id => v76BuyBuilding(id), buildingCost: id => v76BuildingCost(id),
-  buildingRates: () => ({money:v76BuildingMoney(),boxes:v76BuildingBoxes(),paper:v76BuildingPaper(),scrap:v76BuildingScrap()}),
+  hudRows: () => v78HUDRows(), hudUpdate: fields => v78HUDUpdate(fields),
+  buildingRates: () => ({attack:v78BuildingAttack(),healing:v78BuildingHealing(),sparkle:v78BuildingSparkle(),money:v76BuildingMoney(),boxes:v76BuildingBoxes(),paper:v76BuildingPaper(),scrap:v76BuildingScrap()}),
   boxCoinRoll: () => v72BoxCoinRoll(), openBox: () => openOne(),
   balance: () => ({income:income(),cost:lvCost(),combat:v74CombatStats(),synergy:synergyBonus(),rebirth:v74Rebirth()}),
   save: () => save(), draw: () => draw(), income: () => income(), step: dt => step(dt),
@@ -79,6 +80,7 @@ async function main() {
   const url = `http://127.0.0.1:${server.address().port}/`;
   const browser = await chromium.launch({executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium', headless: true, args: ['--no-sandbox']});
   async function check(name, run, options = {}) {
+    if(process.env.INFINITY_TEST_FILTER&&!new RegExp(process.env.INFINITY_TEST_FILTER).test(name))return;
     const context = await browser.newContext({viewport: {width: 390, height: 844}, isMobile: true, hasTouch: true, locale: 'ja-JP', reducedMotion: 'reduce', ...options.context});
     const page = await context.newPage();
     const errors = [];
@@ -492,6 +494,49 @@ async function main() {
       await page.locator('#v77-tactic').scrollIntoViewIfNeeded();
       await page.screenshot({path:path.join(artifacts,'tactics-classic-320.png')});
     },{context:{viewport:{width:320,height:568}},seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('seven buildings are on the main screen and town shortcut never opens a modal', async page => {
+      assert.equal(await page.locator('#v78-town #v76-buildings').count(),1);
+      assert.equal(await page.locator('#v78-building-cards article').count(),7);
+      await page.locator('#v76-shortcut-buildings').click();assert.equal(await page.locator('#v78-town').evaluate(n=>n.open),true);
+      assert.equal(await page.locator('#v68-library').evaluate(n=>n.open),false);
+      await page.locator('#v76-buy-dojo').click();const after=await state(page);assert.equal(after.v76Buildings.levels.dojo,1);assert.equal(after.n,12345-2400);
+      assert.equal(await page.locator('#v68-library').evaluate(n=>n.open),false);
+      await page.locator('#v68-shortcut-menu').click();await page.locator('#v68-menu-buildings').click();
+      assert.equal(await page.locator('#v68-library').evaluate(n=>n.open),false);assert.equal(await page.locator('#v76-buildings').isVisible(),true);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('new buildings provide bounded combat and dream benefits without granting on reload', async page => {
+      const stats=await page.evaluate(()=>{
+        const old=__infinityTest.balance();const buildings=__infinityTest.state().v76Buildings;buildings.levels.dojo=25;buildings.levels.clinic=25;buildings.levels.observatory=25;
+        __infinityTest.patch({v76Buildings:buildings});const next=__infinityTest.balance();return {old,next,rates:__infinityTest.buildingRates()};
+      });
+      assert.ok(Math.abs(stats.next.combat.attack/stats.old.combat.attack-1.1)<1e-9);assert.ok(Math.abs(stats.next.combat.healing/stats.old.combat.healing-1.2)<1e-9);
+      assert.equal(stats.next.combat.hp,stats.old.combat.hp);assert.equal(stats.next.income,stats.old.income);assert.equal(stats.rates.sparkle,5);
+      await page.evaluate(()=>{__infinityTest.switchWorld('dream');__infinityTest.startDream();});assert.equal((await state(page)).dualWorld.v64.explore.sparkle,5);
+      await page.evaluate(()=>__infinityTest.chooseDream(0));const before=await state(page);await page.reload({waitUntil:'load'});
+      assert.equal((await state(page)).dualWorld.v64.explore.sparkle,before.dualWorld.v64.explore.sparkle);
+      assert.equal((await state(page)).v76Buildings.levels.observatory,25);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('status overlay toggles, tracks live stats, selects all fields and persists settings', async page => {
+      assert.equal(await page.locator('#v78-status-overlay').isVisible(),false);
+      await page.locator('#v78-hud-toggle').click();assert.equal(await page.locator('#v78-status-overlay').isVisible(),true);
+      assert.equal(await page.locator('#v78-hud-toggle').getAttribute('aria-pressed'),'true');
+      const rows=await page.evaluate(()=>__infinityTest.hudRows());assert.ok(rows.length>=70);assert.equal(new Set(rows.map(r=>r.key)).size,rows.length);assert.ok(rows.some(r=>r.key==='upgradeGap'));assert.equal(rows.some(r=>r.key==='dust'),false);
+      const before=await page.locator('#v78-hud-values').innerText();await page.clock.runFor(1500);assert.notEqual(await page.locator('#v78-hud-values').innerText(),before);
+      await page.locator('#v68-shortcut-menu').click();await page.locator('#v68-menu-hud').click();
+      await page.locator('#v78-hud-all').click();assert.equal((await state(page)).v78HUD.fields.length,rows.length);
+      await page.locator('#v78-hud-position').selectOption('left-bottom');await closeLibrary(page);
+      assert.equal(await page.locator('#v78-status-overlay').getAttribute('data-position'),'left-bottom');
+      await page.reload({waitUntil:'load'});assert.equal(await page.locator('#v78-status-overlay').isVisible(),true);assert.equal((await state(page)).v78HUD.position,'left-bottom');
+      await page.locator('[aria-label="ステータス表示をOFF"]').click();assert.equal(await page.locator('#v78-status-overlay').isVisible(),false);
+      await page.reload({waitUntil:'load'});assert.equal(await page.locator('#v78-status-overlay').isVisible(),false);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('status overlay fields can be selected independently without resetting other settings', async page => {
+      await page.locator('#v68-shortcut-menu').click();await page.locator('#v68-menu-hud').click();await page.locator('#v78-hud-none').click();
+      await page.locator('#v68-pane-hud details').filter({has:page.locator('#v78-hud-field-gems')}).locator('summary').click();
+      await page.locator('#v78-hud-field-gems').check();await page.locator('#v78-hud-enabled').check();await closeLibrary(page);
+      assert.deepEqual((await state(page)).v78HUD.fields,['gems']);assert.match(await page.locator('#v78-hud-values').innerText(),/ジェム/);assert.doesNotMatch(await page.locator('#v78-hud-values').innerText(),/攻撃力/);
+      await page.evaluate(()=>__infinityTest.patch({coins:99}));await page.clock.runFor(1000);assert.match(await page.locator('#v78-hud-values').innerText(),/99/);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
     await check('buildings purchase with real money, reject unaffordable purchases and retain focused controls', async page => {
       assert.equal(await page.locator('[data-mode="fast"]').count(),0);
       await page.locator('#v76-shortcut-buildings').click();assert.equal(await page.locator('#v76-buildings').isVisible(),true);
@@ -826,7 +871,7 @@ async function main() {
         assert.equal(await page.locator('#v68-pane-'+pane).isVisible(),true,control+' opens original content');
         await page.locator('#v68-library-back').click();
       }
-      for(const key of ['dreamjournal','buildings','progress','save','settings','rebirth','logs','dopa','extras']) {
+      for(const key of ['hud','dreamjournal','progress','save','settings','rebirth','logs','dopa','extras']) {
         await page.locator('#v68-menu-'+key).click();
         assert.equal(await page.locator('#v68-pane-'+key).isVisible(),true,key+' pane');
         await page.locator('#v68-library-back').click();
@@ -926,9 +971,10 @@ async function main() {
         await page.locator('#v68-auto-manual').click();
         assert.equal(documentBodyTheater(await page.locator('body').getAttribute('class')),false);
         await assertWallet(page,`${world} ${width}px returned to manual`);
+        assert.equal(await page.locator('#v68-shortcut-books').innerText(),world==='dream'?'日記':'書庫');
         const town=await page.locator('#v76-shortcut-buildings').boundingBox();assert.ok(town.height>=44&&town.x>=0&&town.x+town.width<=width&&town.y+town.height<=height,'Town stays reachable during play');
         await page.locator('#v76-shortcut-buildings').click();assert.equal(await page.locator('#v76-buildings').isVisible(),true);
-        assert.match(await page.locator('#v76-building-wallet').innerText(),/所持金/);
+        assert.match(await page.locator('#v69-wallet-label').innerText(),/所持金/);
         const panelWidth=await page.locator('#v76-buildings').evaluate(n=>({scroll:n.scrollWidth,width:n.clientWidth}));assert.ok(panelWidth.scroll<=panelWidth.width,'Town does not overflow horizontally');
         await page.screenshot({path:path.join(artifacts,`buildings-${world}-${width}.png`)});await closeLibrary(page);
         await page.locator('#v68-shortcut-progress').click();
@@ -939,6 +985,12 @@ async function main() {
         await page.locator('#v68-shortcut-menu').click();
         assert.equal(await page.locator('#v54nav').isVisible(),true);
         await closeLibrary(page);
+        await page.locator('#v78-hud-toggle').click();assert.equal(await page.locator('#v78-status-overlay').isVisible(),true);
+        const overlay=await page.locator('#v78-status-overlay').boundingBox(),toggle=await page.locator('#v78-hud-toggle').boundingBox(),footer=await page.locator('#v68-bottom').boundingBox();
+        assert.ok(overlay.x>=0&&overlay.x+overlay.width<=width&&overlay.y>=0&&overlay.y+overlay.height<=footer.y+1,'HUD stays within the play viewport and above controls');
+        assert.ok(toggle.width>=44&&toggle.height>=44,'HUD toggle has a usable touch target');
+        await page.screenshot({path:path.join(artifacts,`hud-${world}-${width}.png`)});
+        await page.locator('#v78-hud-toggle').click();
         await page.screenshot({path:path.join(artifacts,`${world}-${width}.png`)});
       }, {context:{viewport:{width,height}}});
     }
