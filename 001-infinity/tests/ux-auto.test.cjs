@@ -28,6 +28,7 @@ window.__infinityTest = {
   initAuto: () => v68AutoInit(), autoTick: (t,dt) => v68AutoTick(t,dt), battleTick: (t,dt) => v68FightTick(t,dt),
   openPanel: key => v68OpenPanel(key),
   boxCoinRoll: () => v72BoxCoinRoll(), openBox: () => openOne(),
+  balance: () => ({income:income(),cost:lvCost(),combat:v74CombatStats(),synergy:synergyBonus(),rebirth:v74Rebirth()}),
   save: () => save(), draw: () => draw(), income: () => income(), step: dt => step(dt),
   closeTutorial: () => closeTutorial(true), switchWorld: w => v63Switch(w),
   startFight: () => startFight(), chooseDream: type => v64Choose(type), startDream: () => v64Start(),
@@ -252,6 +253,54 @@ async function main() {
       assert.equal((await runtime(page)).running,false);
       await page.locator('#v68-auto-main').click();assert.equal((await runtime(page)).running,true);
     },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('balanced combat is independent of production and duplicate growth diminishes', async page => {
+      const values=await page.evaluate(()=>{
+        __infinityTest.patch({lv:178,h:100,mode:'fast',auto:false,rebirth:0,owned:{},disabled:{},shop:{mondrian:1},cards:{},choices:{},forgeLevel:{},research:{opening:0,recycling:0,balance:0},boostUntil:0,chaosUntil:0,returnBonusUntil:0});
+        const owned={};for(let i=0;i<107;i++)owned[i]=100;
+        __infinityTest.patch({owned});const first=__infinityTest.balance();
+        __infinityTest.patch({shop:{mondrian:1,power:100},boost:5,boostUntil:Date.now()+90000});const financial=__infinityTest.balance();
+        __infinityTest.patch({shop:{mondrian:1},boostUntil:0,owned:Object.fromEntries(Object.keys(owned).map(k=>[k,10000]))});const duplicates=__infinityTest.balance();
+        __infinityTest.patch({rebirth:40});const reborn=__infinityTest.balance();
+        return {first,financial,duplicates,reborn,state:__infinityTest.state()};
+      });
+      assert.deepEqual(values.financial.combat,values.first.combat,'Production investments and money boosts do not create combat HP');
+      assert.ok(values.financial.income>values.first.income);
+      assert.ok(values.duplicates.income/values.first.income<4,'100x duplicate count must not create a millionfold output');
+      assert.ok(values.duplicates.income>values.first.income,'Duplicates still improve production');
+      assert.ok(values.duplicates.combat.hp/values.first.combat.hp<2);
+      assert.ok(values.first.cost/values.first.income>10&&values.first.cost/values.first.income<60);
+      assert.ok(values.reborn.rebirth>1&&values.reborn.rebirth<5);
+      assert.equal(values.state.owned['0'],10000,'Owned quantities are retained');assert.equal(values.state.lv,178);
+      assert.ok(Object.values(values.first.combat).every(Number.isFinite));
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('fresh level1 can finish its first normal battle with the real turn loop', async page => {
+      await chooseWorld(page,'classic');
+      await page.evaluate(()=>{Math.random=()=>.5;});
+      await page.locator('#attack').click();const initial=await page.evaluate(()=>__infinityTest.fight());
+      assert.equal(initial.hp,initial.max);assert.ok(initial.hp>=20);
+      await page.clock.runFor(5500);
+      assert.equal((await state(page)).wins,1);assert.ok((await page.evaluate(()=>__infinityTest.fight())).hp>0);
+    });
+    await check('two-minute fresh play with opening, growth and AUTO remains finite and advances', async page => {
+      await chooseWorld(page,'classic');
+      await page.evaluate(()=>{let seed=7401;Math.random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};});
+      const stages=[];
+      for(let phase=0;phase<4;phase++){
+        if(await page.locator('#godaccept').isVisible())await page.locator('#godaccept').click();
+        await page.locator('#v68-auto-manual').click();
+        await page.locator('#v68-shortcut-gear').click();
+        if(await page.locator('#openall').isEnabled())await page.locator('#openall').click();
+        for(let n=0;n<11&&await page.locator('#godaccept').isVisible();n++)await page.locator('#godaccept').click();
+        await closeLibrary(page);
+        for(let n=0;n<20&&await page.locator('#upgrade').isEnabled();n++)await page.locator('#upgrade').click();
+        await page.locator('#v68-auto-main').click();await page.clock.runFor(30000);
+        const current=await state(page);stages.push({seconds:(phase+1)*30,level:current.lv,wins:current.wins,opened:current.opened,money:current.n});
+        assert.ok(Number.isFinite(current.n)&&Number.isFinite(current.lv));
+      }
+      assert.ok(stages.at(-1).level>=3);assert.ok(stages.at(-1).wins>=3);
+      assert.ok(stages.every((row,i)=>i===0||row.wins>=stages[i-1].wins));
+      console.log('Fresh balance play:',JSON.stringify(stages));
+    });
     await check('fresh dream: existing default theme and seven-step exploration reward once', async page => {
       await chooseWorld(page, 'dream');
       assert.equal((await state(page)).theme, 'dream');
@@ -463,7 +512,7 @@ async function main() {
       await page.evaluate(()=>__infinityTest.patch({wins:5,bosses:{},lv:25,boxes:0,coins:0}));
       await config(page,{combat:true,explore:false,boss:true,reward:false});
       await page.locator('#v68-auto-main').click();
-      await page.clock.runFor(4000);
+      for(let tick=0;tick<30&&(await state(page)).pendingBossReward===0;tick++)await page.clock.runFor(500);
       const cleared=await state(page);
       assert.equal(cleared.wins,6);
       assert.equal(cleared.bosses['6'],true);
