@@ -29,9 +29,11 @@ window.__infinityTest = {
   start: () => v68AutoStart(), pause: reason => v68AutoPause(reason), manual: () => v68AutoManual(),
   initAuto: () => v68AutoInit(), autoTick: (t,dt) => v68AutoTick(t,dt), battleTick: (t,dt) => v68FightTick(t,dt),
   openPanel: key => v68OpenPanel(key),
-  buyBuilding: (id,count=1) => v76BuyBuilding(id,count), quoteBuilding: (id,count) => v79BuildingQuote(id,count), gainBoxes: () => boxGain(), buildingCost: id => v76BuildingCost(id),
+  buyBuilding: (id,count=1) => v76BuyBuilding(id,count), quoteBuilding: (id,count) => v79BuildingQuote(id,count), gainBoxes: () => boxGain(), buildingCost: id => v76BuildingCost(id), enemyStats: (stage,boss=false,metal=false) => v83EnemyStats(stage,boss,metal),
   hudRows: () => v78HUDRows(), hudUpdate: fields => v78HUDUpdate(fields),
   buildingRates: () => ({attack:v78BuildingAttack(),healing:v78BuildingHealing(),sparkle:v78BuildingSparkle(),money:v76BuildingMoney(),boxes:v76BuildingBoxes(),paper:v76BuildingPaper(),scrap:v76BuildingScrap()}),
+  ascCatalog: () => V84_CATALOG, ascTiers: () => V84_TIERS, ascGrant: id => v84Grant(id), ascEquip: id => v84Equip(id), ascRoll: () => v84Roll(), ascPower: () => v84Power(), ascWords: words => {let index=0;v84Word=()=>{if(index>=words.length)throw Error('Unexpected ascendant random draw');return words[index++];};}, ascPatch: fields => {Object.assign(s.v84Ascendant,fields);s.v84Ascendant.revision++;},
+  rareCatalog: () => V82_CATALOG, rareGrant: (kind,id) => v82Grant(kind,id), rareRoll: kind => v82Roll(kind), rareRandom: n => {v82Random=()=>n;}, rarePatch: fields => {Object.assign(s.v82Rare,fields);s.v82Rare.revision++;}, rarePower: () => v82Power(), rareEquip: id => v82Equip(id), rareBattle: () => v82BattleDrop(),
   boxCoinRoll: () => v72BoxCoinRoll(), openBox: () => openOne(),
   balance: () => ({income:income(),cost:lvCost(),combat:v74CombatStats(),synergy:synergyBonus(),rebirth:v74Rebirth()}),
   save: () => save(), draw: () => draw(), income: () => income(), step: dt => step(dt),
@@ -70,6 +72,7 @@ function fixture(extra = {}) {
 async function main() {
   fs.mkdirSync(artifacts, {recursive: true});
   const server = http.createServer((req, res) => {
+    if(req.url.split('?')[0]==='/art/starry-night.jpg'){res.writeHead(200,{'Content-Type':'image/jpeg'});res.end(fs.readFileSync(path.join(root,'art/starry-night.jpg')));return;}
     if (req.url === '/favicon.ico') {res.writeHead(204);res.end();return;}
     try {
       const html = instrument(fs.readFileSync(source, 'utf8'));
@@ -132,6 +135,7 @@ async function main() {
     assert.equal((await state(page)).dualWorld.active, world);
   }
   async function config(page, settings) {await page.evaluate(value => __infinityTest.configure(value), settings);}
+  async function waitImage(image){for(let i=0;i<100;i++){if(await image.evaluate(n=>n.complete&&n.naturalWidth>0))return;await new Promise(resolve=>setTimeout(resolve,20));}assert.fail('Artwork image did not decode');}
   async function openTown(page) {
     const town=page.locator('#v78-town');if(!await town.evaluate(n=>n.open))await town.locator(':scope > summary').click();
     await town.locator(':scope > summary').scrollIntoViewIfNeeded();
@@ -283,11 +287,36 @@ async function main() {
       assert.ok(values.duplicates.income/values.first.income<4,'100x duplicate count must not create a millionfold output');
       assert.ok(values.duplicates.income>values.first.income,'Duplicates still improve production');
       assert.ok(values.duplicates.combat.hp/values.first.combat.hp<2);
-      assert.ok(values.first.cost/values.first.income>10&&values.first.cost/values.first.income<60);
+      assert.ok(values.first.cost/values.first.income>3&&values.first.cost/values.first.income<30);
       assert.ok(values.reborn.rebirth>1&&values.reborn.rebirth<5);
       assert.equal(values.state.owned['0'],10000,'Owned quantities are retained');assert.equal(values.state.lv,178);
       assert.ok(Object.values(values.first.combat).every(Number.isFinite));
     },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('v83 preserves opening enemies and stages scale independently of player wealth', async page => {
+      const rows=await page.evaluate(()=>[1,5,15,30,31,75,150,300].map(stage=>({stage,normal:__infinityTest.enemyStats(stage),boss:__infinityTest.enemyStats(stage,true)})));
+      for(const r of rows){
+        if(r.stage<=30){assert.equal(r.normal.hp,Math.ceil(18*(1+.2*(r.stage-1))**1.8));assert.equal(r.normal.atk,Math.ceil(2*(1+.14*(r.stage-1))**1.75));}
+        assert.ok(r.boss.hp>=r.normal.hp*2.9);assert.ok(r.boss.atk>=r.normal.atk);
+      }
+      await page.evaluate(()=>__infinityTest.patch({lv:1000,n:1e99}));
+      assert.deepEqual(await page.evaluate(()=>__infinityTest.enemyStats(150)),rows.find(r=>r.stage===150).normal);
+      assert.ok(rows.at(-1).normal.hp>Math.ceil(18*(1+.2*299)**1.8)*3);
+    });
+    await check('v83 building costs grow after ten, bulk uses full prices and old levels survive', async page => {
+      const result=await page.evaluate(()=>{const b=__infinityTest.state().v76Buildings;b.levels.dojo=100;__infinityTest.patch({v76Buildings:b,n:1e100});const first=__infinityTest.buildingCost('dojo'),before=__infinityTest.state().n;const quote=__infinityTest.quoteBuilding('dojo',10);const bought=__infinityTest.buyBuilding('dojo',10);__infinityTest.save();return {first,quote,bought,before,state:__infinityTest.state()};});
+      assert.ok(result.first>1e15);assert.ok(result.quote>10*result.first);assert.equal(result.bought,true);assert.equal(result.state.v76Buildings.levels.dojo,110);
+      // Use a representable balance for exact deduction, rather than losing a tiny price in 1e100.
+      await page.evaluate(()=>{const b=__infinityTest.state().v76Buildings;b.levels.dojo=25;__infinityTest.patch({v76Buildings:b});__infinityTest.patch({n:__infinityTest.quoteBuilding('dojo',10)*2});});
+      const charged=await page.evaluate(()=>{const q=__infinityTest.quoteBuilding('dojo',10),before=__infinityTest.state().n;__infinityTest.buyBuilding('dojo',10);__infinityTest.save();return {q,before,after:__infinityTest.state().n};});assert.equal(charged.after,charged.before-charged.q);
+      await page.reload({waitUntil:'load'});assert.equal((await state(page)).v76Buildings.levels.dojo,35);
+      await page.evaluate(()=>{const b=__infinityTest.state().v76Buildings;b.levels.dojo=10000;__infinityTest.patch({v76Buildings:b,n:Number.MAX_VALUE});});assert.equal(await page.evaluate(()=>__infinityTest.buyBuilding('dojo')),false);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('v83 late upgrade prices stay increasing with gentler growth and preserve assets', async page => {
+      const result=await page.evaluate(()=>[1,25,149,150,151,300,500].map(lv=>{__infinityTest.patch({lv,n:12345});return {lv,cost:__infinityTest.balance().cost,n:__infinityTest.state().n};}));
+      for(const row of result){assert.equal(row.n,12345);if(row.lv<=150)assert.equal(row.cost,Math.floor(12*1.43**(row.lv-1)));}
+      for(let i=1;i<result.length;i++)assert.ok(result[i].cost>result[i-1].cost);
+      const late=result.find(r=>r.lv===300);assert.ok(late.cost<12*1.43**299/100);assert.ok(late.cost>result.find(r=>r.lv===150).cost);
+    });
     await check('fresh level1 can finish its first normal battle with the real turn loop', async page => {
       await chooseWorld(page,'classic');
       await page.evaluate(()=>{Math.random=()=>.5;});
@@ -499,6 +528,91 @@ async function main() {
       await page.locator('#v77-tactic').scrollIntoViewIfNeeded();
       await page.screenshot({path:path.join(artifacts,'tactics-classic-320.png')});
     },{context:{viewport:{width:320,height:568}},seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('rare catalogs add 100 functional items each without altering legacy inventories',async page=>{
+      const data=await page.evaluate(()=>__infinityTest.rareCatalog());for(const kind of ['gear','card','trophy']){assert.equal(data[kind].length,100);assert.equal(new Set(data[kind].map(x=>x.name)).size,100);assert.deepEqual([...new Set(data[kind].map(x=>x.tier))],[0,1,2,3]);}
+      const before=await state(page),base=await page.evaluate(()=>__infinityTest.balance());await page.evaluate(()=>__infinityTest.rareGrant('gear',0));const next=await page.evaluate(()=>__infinityTest.balance());assert.ok(next.income>base.income);assert.equal(next.combat.hp,base.combat.hp);assert.equal(next.combat.attack,base.combat.attack);assert.deepEqual((await state(page)).owned,before.owned);assert.deepEqual((await state(page)).cards,before.cards);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('rare tiers unlock by progress and pity grants common and ultra rewards correctly',async page=>{
+      const result=await page.evaluate(()=>{const out=[];for(const stage of [1,30,75,150]){__infinityTest.rarePatch({highest:stage});__infinityTest.rareRandom(0);__infinityTest.rareRoll('gear');out.push(__infinityTest.state().v82Rare.last.id);}__infinityTest.rarePatch({highest:1,misses:{gear:499,card:0,trophy:0}});__infinityTest.rareRandom(.999);__infinityTest.rareRoll('gear');const common=__infinityTest.state().v82Rare;__infinityTest.rarePatch({highest:150,ultra:{gear:0,card:249999,trophy:0}});__infinityTest.rareRoll('card');return {out,common,ultra:__infinityTest.state().v82Rare};});
+      assert.deepEqual(result.out,[0,25,50,75]);assert.equal(result.common.last.id,24);assert.equal(result.common.misses.gear,0);assert.equal(result.ultra.last.id,99);assert.equal(result.ultra.ultra.card,0);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('rare tier ticket boundaries match the disclosed exact base odds',async page=>{
+      const result=await page.evaluate(()=>{const out=[];for(const ticket of [0,1,10,11,110,111,1110,1111]){__infinityTest.rarePatch({highest:150,misses:{gear:0,card:0,trophy:0},ultra:{gear:0,card:0,trophy:0},last:null});__infinityTest.rareRandom(ticket/4294967296);__infinityTest.rareRoll('gear');const last=__infinityTest.state().v82Rare.last;out.push(last?Math.floor(last.id/25):-1);}return out;});
+      assert.deepEqual(result,[3,2,2,1,1,0,0,-1]);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('rare draws occur once per box even with extra gear and do not spend absent boxes',async page=>{
+      await page.evaluate(()=>{Math.random=()=>.5;__infinityTest.rareRandom(.999);__infinityTest.patch({boxes:1,owned:{109:1}});__infinityTest.openBox();});let after=await state(page);assert.equal(after.v82Rare.rolls.gear,1);assert.equal(after.v82Rare.rolls.card,1);assert.equal(after.owned['21'],11);
+      assert.equal(await page.evaluate(()=>__infinityTest.openBox()),false);after=await state(page);assert.equal(after.v82Rare.rolls.gear,1);assert.equal(after.v82Rare.rolls.card,1);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('rare equipment slots and collection sets have real effects and stable controls',async page=>{
+      await page.evaluate(()=>{for(const id of [0,1,2,3])__infinityTest.rareGrant('gear',id);});let data=await state(page);assert.deepEqual(data.v82Rare.equipped,[0,1,2]);assert.equal(await page.evaluate(()=>__infinityTest.rareEquip(3)),false);assert.ok((await page.evaluate(()=>__infinityTest.rarePower())).sets>=1);
+      await page.evaluate(()=>{__infinityTest.rareEquip(1);__infinityTest.rareEquip(3);});assert.deepEqual((await state(page)).v82Rare.equipped,[0,2,3]);
+      await page.locator('#v68-shortcut-gear').click();await page.locator('#v82-open-rare').click();assert.equal(await page.locator('#v82-items article').count(),100);await page.locator('#v82-items button').first().focus();await page.clock.runFor(1500);assert.equal(await page.locator('#v82-items button').first().evaluate(n=>n===document.activeElement),true);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('rare trophy rolls cannot repeat for one victory and collections survive rebirth',async page=>{
+      await page.evaluate(()=>{__infinityTest.rareRandom(0);__infinityTest.patch({lv:25});__infinityTest.rareGrant('gear',0);__infinityTest.rareGrant('card',1);const st=__infinityTest.balance().combat;__infinityTest.setFight({e:{stage:150,hp:1,atk:0,boss:false,metal:false,mech:''},hp:st.hp,max:st.hp,ehp:1,last:Date.now(),active:true});__infinityTest.turnBattle();__infinityTest.rareBattle();});const before=await state(page);assert.equal(before.v82Rare.rolls.trophy,1);assert.equal(before.v82Rare.counts.trophy['75'],1);await page.clock.runFor(500);
+      page.once('dialog',d=>d.accept());await page.locator('#v81-rebirth').click();assert.deepEqual((await state(page)).v82Rare.counts,before.v82Rare.counts);await page.reload({waitUntil:'load'});assert.deepEqual((await state(page)).v82Rare.counts,before.v82Rare.counts);assert.equal((await state(page)).v82Rare.highest,150);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('ascendant adds 30 real dual-stat items, one slot and retains legacy inventories',async page=>{
+      const before=await state(page),base=await page.evaluate(()=>__infinityTest.balance());
+      const catalog=await page.evaluate(()=>__infinityTest.ascCatalog());assert.equal(catalog.length,30);assert.equal(new Set(catalog.map(item=>item.name)).size,30);assert.ok(catalog.every(item=>item.main!==item.sub));
+      await page.evaluate(()=>__infinityTest.ascGrant(0));const first=await page.evaluate(()=>__infinityTest.balance());assert.ok(Math.abs(first.income/base.income-10)<1e-10);assert.ok(Math.abs(first.combat.attack/base.combat.attack-3)<1e-10);assert.equal(first.combat.hp,base.combat.hp);
+      await page.evaluate(()=>__infinityTest.ascGrant(20));assert.equal((await state(page)).v84Ascendant.equipped,0,'A better drop must not overwrite the selected item');
+      await page.evaluate(()=>__infinityTest.ascEquip(20));const top=await page.evaluate(()=>__infinityTest.balance());assert.ok(Math.abs(top.income/base.income-160)<1e-10);assert.ok(Math.abs(top.combat.attack/base.combat.attack-40)<1e-10);
+      await page.evaluate(()=>__infinityTest.ascGrant(20));const duplicate=await page.evaluate(()=>__infinityTest.ascPower());assert.ok(duplicate.production>160&&duplicate.production<180);
+      assert.deepEqual((await state(page)).owned,before.owned);assert.deepEqual((await state(page)).v82Rare,before.v82Rare);
+      await page.evaluate(()=>__infinityTest.ascEquip(20));assert.equal((await state(page)).v84Ascendant.equipped,null);assert.equal(await page.evaluate(()=>__infinityTest.ascEquip(29)),false);assert.equal((await page.evaluate(()=>__infinityTest.balance())).income,base.income);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('ascendant unlocks per grade and exact ticket boundaries preserve disclosed odds',async page=>{
+      const result=await page.evaluate(()=>{
+        const out=[];for(const highest of [299,300,599,600,999,1000]){__infinityTest.rarePatch({highest});__infinityTest.ascPatch({misses:[0,0,0],last:null});__infinityTest.ascWords(highest<300?[]:[0,9]);__infinityTest.ascRoll();out.push(__infinityTest.state().v84Ascendant.last?.id??null);}
+        const tickets=[];for(const word of [0,1,10,11,110,111]){__infinityTest.ascPatch({misses:[0,0,0],last:null});__infinityTest.ascWords([word,0]);__infinityTest.ascRoll();tickets.push(__infinityTest.state().v84Ascendant.last?.id??null);}
+        __infinityTest.ascPatch({misses:[0,0,0],last:null});__infinityTest.ascWords([4294967295,111]);const rejected=__infinityTest.ascRoll();return {out,tickets,rejected};
+      });
+      assert.deepEqual(result.out,[null,9,9,19,19,29]);assert.deepEqual(result.tickets,[20,10,10,0,0,null]);assert.equal(result.rejected,false,'Rejected uint32 must draw again rather than bias the ticket');
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('ascendant pity counts only eligible boxes and higher grades satisfy lower guarantees',async page=>{
+      await page.evaluate(()=>{__infinityTest.rarePatch({highest:300});__infinityTest.ascPatch({misses:[1999998,0,0]});__infinityTest.ascWords([99999999,99999999,8]);__infinityTest.ascRoll();});let saved=await state(page);assert.equal(saved.v84Ascendant.last,null);assert.deepEqual(saved.v84Ascendant.misses,[1999999,0,0]);
+      await page.evaluate(()=>__infinityTest.ascRoll());saved=await state(page);assert.equal(saved.v84Ascendant.last.id,8);assert.deepEqual(saved.v84Ascendant.misses,[0,0,0]);
+      await page.evaluate(()=>{__infinityTest.rarePatch({highest:1000});__infinityTest.ascPatch({misses:[1999999,19999999,199999999]});__infinityTest.ascWords([99999999,4]);__infinityTest.ascRoll();});saved=await state(page);assert.equal(saved.v84Ascendant.last.id,24);assert.deepEqual(saved.v84Ascendant.misses,[0,0,0]);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('ascendant draws once per consumed box, never per bonus gear or card pack',async page=>{
+      await page.evaluate(()=>{Math.random=()=>.5;__infinityTest.rareRandom(.999);__infinityTest.rarePatch({highest:1000});__infinityTest.ascWords([111]);__infinityTest.patch({boxes:1,owned:{109:1}});__infinityTest.openBox();});let saved=await state(page);assert.equal(saved.v84Ascendant.rolls,1);assert.equal(saved.owned['21'],11);assert.equal(saved.v84Ascendant.last,null);
+      assert.equal(await page.evaluate(()=>__infinityTest.openBox()),false);assert.equal((await state(page)).v84Ascendant.rolls,1);
+      await page.evaluate(()=>__infinityTest.rareRoll('card'));assert.equal((await state(page)).v84Ascendant.rolls,1);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('ascendant box award is saved immediately with its consumed box and existing rewards',async page=>{
+      await page.evaluate(()=>{Math.random=()=>.5;__infinityTest.rareRandom(.999);__infinityTest.rarePatch({highest:1000});__infinityTest.ascWords([0,2]);__infinityTest.patch({boxes:1,owned:{109:1}});__infinityTest.openBox();});
+      const before=await state(page);assert.equal(before.boxes,0);assert.equal(before.v84Ascendant.counts['22'],1);assert.equal(before.v84Ascendant.equipped,22);assert.equal(before.owned['21'],11);
+      await page.reload({waitUntil:'load'});const after=await state(page);assert.equal(after.boxes,0);assert.equal(after.v84Ascendant.counts['22'],1);assert.equal(after.v84Ascendant.equipped,22);assert.equal(after.owned['21'],11);assert.equal(after.v84Ascendant.rolls,1);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('ascendant collection, chosen slot and pity persist through rebirth, world switch and reload',async page=>{
+      await page.evaluate(()=>{__infinityTest.patch({lv:25});__infinityTest.rarePatch({highest:1000});__infinityTest.ascGrant(0);__infinityTest.ascGrant(21);__infinityTest.ascEquip(21);__infinityTest.ascPatch({misses:[123,456,789],rolls:999});__infinityTest.save();});const before=(await state(page)).v84Ascendant;
+      page.once('dialog',d=>d.accept());await page.locator('#v81-rebirth').click();assert.deepEqual((await state(page)).v84Ascendant,before);
+      await page.evaluate(()=>__infinityTest.switchWorld('dream'));await page.reload({waitUntil:'load'});const next=(await state(page)).v84Ascendant;assert.deepEqual(next.counts,before.counts);assert.equal(next.equipped,21);assert.deepEqual(next.misses,[123,456,789]);assert.equal(next.rolls,999);assert.equal((await state(page)).v82Rare.highest,1000);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('ascendant malformed saves normalize without granting items or resetting other assets',async page=>{
+      const saved=await state(page),asc=saved.v84Ascendant;assert.deepEqual(asc.counts,{'0':2});assert.equal(asc.equipped,null);assert.deepEqual(asc.misses,[0,0,20]);assert.equal(saved.n,12345);assert.equal(saved.customHistory.note,'unknown fields survive');assert.equal(asc.note,'keep');
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1,v84Ascendant:{counts:{0:2,30:1,'-1':3,1:-2,2:'bad'},equipped:30,misses:[-1,'bad',20.5],note:'keep'}}))}});
+    await check('ascendant collection is readable at 320px and equipment controls retain focus',async page=>{
+      await page.evaluate(()=>{__infinityTest.rarePatch({highest:1000});__infinityTest.ascGrant(20);});await page.locator('#v68-shortcut-gear').click();await page.locator('#v84-open').click();assert.equal(await page.locator('.v84-item').count(),30);assert.match(await page.locator('#v68-pane-ascendant').innerText(),/100,000,000/);assert.match(await page.locator('#v84-pity-2').innerText(),/2億/);
+      const button=page.locator('.v84-item button').nth(20);await button.focus();await page.clock.runFor(1500);assert.equal(await button.evaluate(n=>n===document.activeElement),true);const box=await button.boundingBox();assert.ok(box.height>=44);assert.ok(box.x>=0&&box.x+box.width<=320);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+      await page.screenshot({path:path.join(artifacts,'ascendant-320.png')});
+    },{context:{viewport:{width:320,height:568}},seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('museum bundled public-domain painting loads with external services unavailable',async page=>{
+      await page.locator('#v68-shortcut-menu').click();await page.locator('#artMuseumBtn').click();await page.locator('#artMuseumRedeem').click();assert.equal((await state(page)).artOffers.some(o=>o.id==='moma-starry-night'),true);
+      await page.locator('.art-buy').first().click();await page.locator('.art-empty-slot:enabled').first().click();const image=page.locator('.art-gallery-frame img').first();await image.scrollIntoViewIfNeeded();await waitImage(image);assert.ok(await image.evaluate(n=>n.naturalWidth>0));assert.equal((await state(page)).artCollection['moma-starry-night'].title,'星月夜');await page.screenshot({path:path.join(artifacts,'museum-bundled.png')});
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1,coins:100000,artMuseumWelcome:true,artTickets:1}))}});
+    await check('museum repairs failed MET images and cached owned paintings survive offline reload',async page=>{
+      const jpeg=fs.readFileSync(path.join(root,'art/starry-night.jpg'));let offline=false;
+      await page.route('https://images.metmuseum.org/**',route=>offline||route.request().url().includes('broken')?route.abort():route.fulfill({status:200,headers:{'Content-Type':'image/jpeg','Access-Control-Allow-Origin':'*'},body:jpeg}));
+      await page.route('https://collectionapi.metmuseum.org/public/collection/v1/objects/1',route=>route.fulfill({json:{isPublicDomain:true,primaryImageSmall:'https://images.metmuseum.org/repaired.jpg'},headers:{'Access-Control-Allow-Origin':'*'}}));
+      await page.locator('#v68-shortcut-menu').click();await page.locator('#artMuseumBtn').click();const retry=page.locator('.art-image-status button').first();await retry.waitFor({state:'visible'});await retry.click();await waitImage(page.locator('.art-gallery-frame img').first());
+      assert.equal((await state(page)).artCollection['met-1'].image,'https://images.metmuseum.org/repaired.jpg');assert.equal((await state(page)).artCollection['met-1'].purchasedFor,777);
+      for(let i=0;i<100;i++){if(await page.evaluate(async()=>{const c=await caches.open('001-art-images-v82');return (await c.keys()).length>0;}))break;await new Promise(r=>setTimeout(r,20));}
+      assert.equal(await page.evaluate(async()=>{const c=await caches.open('001-art-images-v82');return (await c.keys()).length>0;}),true);
+      offline=true;await page.reload({waitUntil:'load'});await page.locator('#v68-shortcut-menu').click();await page.locator('#artMuseumBtn').click();await waitImage(page.locator('.art-gallery-frame img').first());assert.equal((await state(page)).artRooms[0].slots[0].id,'met-1');
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1,artV56Migrated:true,artMuseumWelcome:true,artTickets:0,artCollection:{'met-1':{id:'met-1',museum:'met',title:'保存済み作品',artist:'作者',date:'1900',image:'https://images.metmuseum.org/broken.jpg',source:'https://www.metmuseum.org/art/collection/search/1',purchasedFor:777}},artRooms:[{id:'studio',slots:[{id:'met-1',frame:'oak'},null,null,null,null,null]}],artRoomActive:'studio',artFramesOwned:['bare','oak']}))}});
     await check('151 species have unique identities and searchable drops without losing old trophies',async page=>{
       const all=await page.evaluate(()=>__infinityTest.catalog());assert.equal(all.length,151);for(const key of ['id','name','drop'])assert.equal(new Set(all.map(x=>x[key])).size,151);
       assert.equal((await state(page)).v80Relics.counts.ashkeeper,4);
@@ -695,7 +809,7 @@ async function main() {
       const repeated=await state(page);assert.equal(repeated.boxes,after.boxes);assert.equal(repeated.paper,after.paper);assert.equal(repeated.empty,after.empty);
     },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1,autoPlayPaused:true,rebirth:0,research:{opening:0,recycling:0,balance:0},v76Buildings:{levels:{market:0,factory:1,scrap:1,press:1},paperFraction:0,scrapFraction:0}}))}});
     await check('buildings grow beyond old caps and numeric precision guards never charge for invalid upgrades', async page => {
-      await page.evaluate(()=>{const b=__infinityTest.state().v76Buildings;for(const key of Object.keys(b.levels))b.levels[key]=25;__infinityTest.patch({n:1e20,v76Buildings:b});});
+      await page.evaluate(()=>{const b=__infinityTest.state().v76Buildings;for(const key of Object.keys(b.levels))b.levels[key]=25;__infinityTest.patch({v76Buildings:b});__infinityTest.patch({n:__infinityTest.quoteBuilding('market',100)*2});});
       const before=await page.evaluate(()=>__infinityTest.buildingRates());
       assert.equal(await page.evaluate(()=>__infinityTest.buyBuilding('market',100)),true);assert.equal((await state(page)).v76Buildings.levels.market,125);
       assert.ok((await page.evaluate(()=>__infinityTest.buildingRates())).money>before.money);
