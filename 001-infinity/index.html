@@ -439,6 +439,7 @@ function v78HUDRows(){
  for(const [key,label,value]of [['knowledge','恒久既読数',v80ReadCount()],['permanentProduction','恒久生産',((v80Permanent('production')-1)*100).toFixed(3)+'%'],['permanentAttack','恒久攻撃',((v80Permanent('attack')-1)*100).toFixed(3)+'%'],['permanentHP','恒久最大HP',((v80Permanent('hp')-1)*100).toFixed(3)+'%'],['permanentHealing','恒久HP回復',((v80Permanent('healing')-1)*100).toFixed(3)+'%'],['trophyCount','固有戦利品の累計',sum(s.v80Relics?.counts)],['enemyName','敵の名前',fight?v80EnemySpec().name:'待機']])add('恒久強化',key,label,value);
  for(const [key,label,value]of [['battleMode','次戦のモード',s.v81Hunt?.enabled?'狩り':'攻略'],['huntTarget','狩りの対象',v81HuntTarget().spec.name],['huntWins','狩り勝利 今世/累計',(s.v81Hunt?.runKills||0)+' / '+(s.v81Hunt?.kills||0)]])add('狩り',key,label,value);
  const rare=s.v82Rare,power=v82Power();if(rare)for(const [key,label,value]of [['rareGear','秘蔵装備種類',Object.keys(rare.counts.gear).length+' / 100'],['rareCards','星譜カード種類',Object.keys(rare.counts.card).length+' / 100'],['rareTrophies','境界秘宝種類',Object.keys(rare.counts.trophy).length+' / 100'],['rareSlots','秘蔵装備枠',rare.equipped.length+' / 3'],['rareProduction','秘蔵の生産補正',((power.production-1)*100).toFixed(2)+'%'],['rareAttack','秘蔵の攻撃補正',((power.attack-1)*100).toFixed(2)+'%'],['rareHP','秘蔵の最大HP補正',((power.hp-1)*100).toFixed(2)+'%'],['rareHealing','秘蔵の回復補正',((power.healing-1)*100).toFixed(2)+'%'],['rareSets','収集共鳴',power.sets],['rarePeak','最高到達階層',rare.highest],['rareGearPity','秘蔵装備の天井',rare.misses.gear+' / 500'],['rareCardPity','星譜カードの天井',rare.misses.card+' / 500'],['rareTrophyPity','境界秘宝の天井',rare.misses.trophy+' / 500']])add('秘蔵コレクション',key,label,value);
+ const asc=s.v84Ascendant;if(asc){for(let i=0;i<3;i++){add('超越装備','ascCount'+i,V84_TIERS[i].name+'の所持種類',V84_CATALOG.filter(item=>item.tier===i&&asc.counts[item.id]).length+' / 10');add('超越装備','ascPity'+i,V84_TIERS[i].name+'天井',prettyNum(asc.misses[i])+' / '+prettyNum(V84_TIERS[i].odds*2));}add('超越装備','ascSlot','超越専用枠',V84_CATALOG[asc.equipped]?.name||'未装備');add('超越装備','ascBoxes','超越対象の開封箱',prettyNum(asc.rolls));}
  return rows;
 }
 function v78HUDConfig(){return s.v78HUD&&Array.isArray(s.v78HUD.fields)?s.v78HUD:v78HUDDefaults;}
@@ -740,6 +741,70 @@ function v82InitRare(pane){
  const open=v68Node('button','v82-open-rare','✧ 秘蔵コレクション 300種');open.type='button';open.onclick=()=>v68OpenPanel('rare');$('boxpanel').querySelector('h3').after(open);const notice=v68Node('div','v82-rare-notice');notice.setAttribute('role','status');notice.hidden=true;document.body.appendChild(notice);
 }
 
+// v84: high-volume box chase, independent of the original 300 collectibles.
+const V84_TIERS=[{name:'超越',stage:300,odds:1000000,main:9,sub:2},{name:'因果外',stage:600,odds:10000000,main:39,sub:9},{name:'無窮至宝',stage:1000,odds:100000000,main:159,sub:39}];
+const V84_NAMES=[['千年航路の羅針盤','星喰らいの王剣','不落銀河の外殻','再生する黎明','虚空交易の天秤','因果縫いの針','星海を抱く器','帰還者の灯火','王なき戴冠','眠れる恒星の種'],['存在しない市場の鍵','過去を断つ終剣','絶対境界の聖壁','時を戻す心臓','運命売買の契約書','神殺しの糸車','世界を支える骨','忘却を拒む燈台','因果律の処刑台','死のない庭園'],['無窮経済の零冠','全宇宙最後の一閃','終焉を拒む世界殻','零から生まれる命','無限書庫の原典','創世神の裁縫針','未誕生宇宙の胎','永劫回帰の太陽','名もなき全能者の剣','あらゆる終わりの向こう']];
+const V84_PAIRS=[[0,1],[1,2],[2,3],[3,1],[0,2],[1,3],[2,0],[3,0],[1,0],[3,2]];
+const V84_CATALOG=V84_NAMES.flatMap((names,tier)=>names.map((name,i)=>({id:tier*10+i,tier,name,main:V82_TYPES[V84_PAIRS[i][0]],sub:V82_TYPES[V84_PAIRS[i][1]]})));
+{
+ const old=s.v84Ascendant&&typeof s.v84Ascendant==='object'&&!Array.isArray(s.v84Ascendant)?s.v84Ascendant:{},counts={};
+ for(const item of V84_CATALOG){const n=Number(old.counts?.[item.id]);if(Number.isFinite(n)&&n>=1)counts[item.id]=Math.min(Number.MAX_SAFE_INTEGER,Math.floor(n));}
+ const safe=n=>Number.isFinite(n)&&n>0?Math.min(Number.MAX_SAFE_INTEGER,Math.floor(n)):0;
+ s.v84Ascendant={...old,version:1,counts,misses:V84_TIERS.map((_,i)=>safe(old.misses?.[i])),rolls:safe(old.rolls),equipped:Number.isInteger(old.equipped)&&counts[old.equipped]?old.equipped:null,last:V84_CATALOG[old.last?.id]&&Number.isFinite(old.last?.at)?old.last:null,revision:0};
+}
+const v84RandomBuffer=new Uint32Array(1);
+function v84Word(){crypto.getRandomValues(v84RandomBuffer);return v84RandomBuffer[0];}
+function v84Ticket(size){const limit=Math.floor(4294967296/size)*size;let word;do{word=v84Word();}while(word>=limit);return word%size;}
+function v84Power(){
+ const out={production:1,attack:1,hp:1,healing:1},state=s.v84Ascendant,item=V84_CATALOG[state?.equipped];if(!item||!state.counts[item.id])return out;
+ const tier=V84_TIERS[item.tier],scale=1+.1*Math.log2(state.counts[item.id]);out[item.main]+=tier.main*scale;out[item.sub]+=tier.sub*scale;return out;
+}
+function v84Grant(id){
+ const state=s.v84Ascendant,item=V84_CATALOG[id];if(!item)return false;
+ state.counts[id]=Math.min(Number.MAX_SAFE_INTEGER,(state.counts[id]||0)+1);
+ if(state.equipped===null)state.equipped=id;
+ for(let i=0;i<=item.tier;i++)state.misses[i]=0;
+ state.last={id,at:Date.now()};state.revision++;return true;
+}
+function v84Roll(){
+ const state=s.v84Ascendant,highest=Math.max(s.v82Rare.highest,s.wins+1),eligible=V84_TIERS.reduce((n,t,i)=>highest>=t.stage?i:n,-1);if(eligible<0)return false;
+ state.rolls=Math.min(Number.MAX_SAFE_INTEGER,state.rolls+1);
+ for(let i=0;i<=eligible;i++)state.misses[i]=Math.min(Number.MAX_SAFE_INTEGER,state.misses[i]+1);
+ let ticket=v84Ticket(100000000),tier=-1;
+ for(let i=eligible;i>=0;i--){const weight=100000000/V84_TIERS[i].odds;if(ticket<weight){tier=i;break;}ticket-=weight;}
+ // A higher grade satisfies lower-grade guarantees; locked grades never gain pity.
+ for(let i=0;i<=eligible;i++)if(state.misses[i]>=V84_TIERS[i].odds*2)tier=Math.max(tier,i);
+ if(tier<0)return false;
+ const id=tier*10+v84Ticket(10);v84Grant(id);v59Log('relic','◆ '+V84_TIERS[tier].name+'装備発見',V84_CATALOG[id].name+' / 箱・装備 → 超越装備で能力と装備を確認');return true;
+}
+function v84Equip(id){
+ const state=s.v84Ascendant;if(!V84_CATALOG[id]||!state.counts[id])return false;
+ state.equipped=state.equipped===id?null:id;state.revision++;save();draw();return true;
+}
+let v84Signature='';const v84Rows=new Map();
+function v84Render(){
+ const state=s.v84Ascendant;if(!state)return;const item=V84_CATALOG[state.last?.id],notice=$('v82-rare-notice');
+ if(item&&notice&&Date.now()>=state.last.at&&Date.now()-state.last.at<15000){notice.hidden=false;notice.textContent='◆ '+V84_TIERS[item.tier].name+'「'+item.name+'」発見！ 箱・装備 → 超越装備で確認';notice.dataset.ascendant='true';}else if(notice)delete notice.dataset.ascendant;
+ const pane=v68Panes.get('ascendant');if(!pane||pane.hidden)return;
+ const highest=Math.max(s.v82Rare.highest,s.wins+1),signature=JSON.stringify([state.revision,state.misses,highest]);if(signature===v84Signature)return;v84Signature=signature;
+ $('v84-summary').textContent='上位装備 '+Object.keys(state.counts).length+'/30 · 専用1枠：'+(V84_CATALOG[state.equipped]?.name||'未装備')+' · 対象箱 '+prettyNum(state.rolls)+'個';
+ for(let i=0;i<V84_TIERS.length;i++){const tier=V84_TIERS[i];$('v84-pity-'+i).textContent=tier.name+'：'+(highest<tier.stage?tier.stage+'階到達で解放（現在 '+highest+'階）':prettyNum(state.misses[i])+' / '+prettyNum(tier.odds*2)+'箱で同等級以上を保証');}
+ for(const item of V84_CATALOG){const refs=v84Rows.get(item.id),tier=V84_TIERS[item.tier],n=state.counts[item.id]||0,scale=n?1+.1*Math.log2(n):1;
+  refs.value.textContent='所持 '+prettyNum(n)+' · '+V80_STAT_NAMES[item.main]+' ＋'+(tier.main*scale*100).toFixed(1)+'% / '+V80_STAT_NAMES[item.sub]+' ＋'+(tier.sub*scale*100).toFixed(1)+'%（装備時）';
+  refs.button.disabled=!n;refs.button.textContent=state.equipped===item.id?'装備解除':state.equipped===null?'装備する':'この装備へ切替';refs.button.setAttribute('aria-pressed',String(state.equipped===item.id));
+ }
+}
+function v84Init(pane){
+ pane.appendChild(v68Node('p',null,'大量開封向けの超越装備30種。既存装備とは別の専用1枠で、主能力と副能力を同時に強化します。初回のみ空き枠へ自動装備し、その後は選んで切替。所持品・装備・天井は転生後も保持します。'));
+ pane.appendChild(v68Node('p',null,'解放後、消費した箱1個につき上位抽選1回。追加装備＋10でも抽選は増えません。表示確率は等級全体で、各10種は均等。未解放分の確率を他等級へ振り替えません。天井は解放後に開けた箱だけを数え、同等級以上の取得でリセット。カードパック・戦闘勝利からは出ません。'));
+ pane.appendChild(v68Node('p',null,'能力は既存の秘蔵補正とは別に乗算。重複は効果量×(1＋0.1×log₂個数)で強化。例：初回の主能力は超越×10、因果外×40、無窮至宝×160。開封速度別の計算目安は1,000箱/秒なら平均約17分・2.8時間・27.8時間（天井を含めない基礎確率の計算。等級内いずれか、保証時間ではありません）。'));
+ pane.appendChild(v68Node('p','v84-summary'));
+ for(let i=0;i<V84_TIERS.length;i++){const tier=V84_TIERS[i];pane.appendChild(v68Node('p','v84-pity-'+i));const title=v68Node('h3',null,tier.name+' · '+tier.stage+'階解放 · 基礎確率1/'+tier.odds.toLocaleString()+'（等級合計）');pane.appendChild(title);
+  for(const item of V84_CATALOG.filter(item=>item.tier===i)){const card=v68Node('article');card.className='v76-building-card v84-item';card.dataset.tier=String(i);card.appendChild(v68Node('h4',null,item.name));card.appendChild(v68Node('small',null,'個別の基礎確率 1/'+(tier.odds*10).toLocaleString()));const value=v68Node('p'),button=v68Node('button');button.type='button';button.setAttribute('aria-label',item.name+'の装備切替');button.onclick=()=>v84Equip(item.id);card.append(value,button);pane.appendChild(card);v84Rows.set(item.id,{value,button});}
+ }
+ const button=v68Node('button','v84-open','◆ 超越装備 · 100万〜1億分の1');button.type='button';button.onclick=()=>v68OpenPanel('ascendant');$('v82-open-rare').after(button);
+}
+
 const icons=['⚙️','🗝️','🌙','👁️','🦋','🗡️','💎','🕯️','⚡','🪞','🪐','🌹','🧿','🦇','🔮','🦴','🧬','🔥','❄️','🕳️','👑','🪬','🌌','⛓️','📜','🦉','☄️','🪦','🐍','🦷','🧭','🧪','🌱','🛡️','🧲','⌛','🪙'];const first=['終焉','虚無','深淵','逆理','堕天','原罪','黄昏','永劫','断罪','忘却','禁忌','冥界','零式','因果','幽世','無貌','輪廻','神殺','蒼穹','血盟','幻影','滅却','星葬','混沌','天罰','残響','無限','漆黒','夢蝕','絶対','幽冥','失楽','境界','創世','破戒','黙示','偽神'];const second=['の観測者','の聖骸','の魔眼','の残滓','の継承者','の方舟','の断章','の執行者','の契約','の心臓','の墓標','の王冠','の鍵','の審判','の逆説','の詠唱','の器','の記憶','の刃','の胎動','の預言','の歯車','の使徒','の黙示録','の終止符','の迷宮','の原典','の翼','の残月','の聖痕','の異端者','の理','の扉','の偽典','の残火','の名残','の座標'];const flavors=['神はまだ、自分が死んだことを知らない。','祈りは届いた。ただし宛先が違った。','世界の終わりに最初の嘘だけが残る。','名を呼べば、呼んだ者の名が消える。','その剣は敵ではなく因果を斬る。','救済はいつも破滅より一秒遅い。','禁じられたのは力ではない。記憶だ。','勝者のいない戦争が今も続いている。','扉の向こうで、誰かが待っている。','天使は翼を捨てて自由を得た。','永遠は祝福ではない。終わらない刑罰だ。','未来を見た者から順に過去へ消える。','真実を知った瞬間、世界は偽物になる。','契約書の最後には空白の署名がある。','一度だけ鳴る鐘が百年を奪った。','心臓の代わりに小さな宇宙が脈打つ。','最も深い闇は光の形をしている。','その王国では敗北こそが戴冠だった。','眠る星の夢に我々は住んでいる。','記録されなかった英雄だけが神話になった。','最後のページにはまだ生まれぬ君の名。','零を数え終えたとき無限が始まった。','願いは叶う。代償は願った後に決まる。','誰も覚えていない罪だけが赦されない。','神託は正しかった。解釈が間違っていた。','壊れた時計は終末の時刻だけを指す。','この世に存在しない色で血が流れた。','鍵穴の形をした傷が胸に残っている。','死者の手紙は明日の日付で届いた。','その影は持ち主より先に生まれた。','運命に逆らった者が運命そのものになった。','世界を救うには世界の定義を変えよ。','誰にも見られぬ月は何色に輝くのか。','神々が沈黙した夜、機械だけが祈った。','忘れられるために彼は永遠を選んだ。','王は玉座を捨て玉座だけが王を名乗った。','これが最後の奇跡なら誰にも渡さない。'];const rar=['普通','上質','希少','伝説','神話','神の加護'],color=['#40475b','#146450','#25599a','#713c9c','#ae7922','#8a165f'];const tierCounts=[42,29,19,12,5,11],tierWeights=[749800,195000,45000,9000,900,300];const GOD_IDS=Array.from({length:11},(_,i)=>107+i);const gear=Array.from({length:118},(_,i)=>{let t=0,k=i;while(k>=tierCounts[t])k-=tierCounts[t++];let god=i>=107;return{id:i,t,emoji:god?['🌌','👁️','🪽','👑','🧿','🪐','🔱','🦋','🕳️','🪞','☀️'][i-107]:icons[i%37],name:god?['全能神の零冠','因果律の簒奪者','無限増殖の熾天使','世界再起動の玉座','確率を喰らう眼','星間航路の羅針盤','三叉の勝利宣言','蝶の逆説','虚無の採掘者','鏡像世界の主','暁の最後の祈り'][i-107]:first[i%37]+second[(i*7)%37],effect:god?['生産×2・戦闘HP×3','戦闘攻撃×3・ボスジェム×2','箱獲得×3・開封追加＋10','生産×3・攻撃無効化90%','生産×1.25','箱獲得＋3','生産×1.25','生産×1.2','生産×1.2','生産×1.2・HP×2','箱獲得＋5'][i-107]:['生産','HP回復','被ダメージ軽減','箱発見','イベント時間'][i%5]+' +'+(5*(t+1))+'%',god}});const cards=Array.from({length:111},(_,i)=>({emoji:icons[i%37],name:first[i%37]+second[(i*7+Math.floor(i/37)*11)%37],flavor:flavors[(i*17+Math.floor(i/37)*7)%37],rar:Math.min(5,Math.floor(i/19))}));const shop=[['power','永久生産 +25%',2],['vital','永久生命 +30%',2],['ward','攻撃無効 +12%',3],['echo','追加装備 +10%',4],['loot','箱獲得 +12%',3],['mondrian','🟥 コンポジション風テーマ',8],['ukiyo','🌊 浮世絵風テーマ',8],['rinpa','🟡 琳派風テーマ',8],['icon','✨ 聖像画風テーマ',8],['rococo','🌸 ロココ風テーマ',8]];let msg='',opening=false,filter=false,fight=null,spawnAt=Date.now()+5000,eventEnd=0,eventType='',eventVisible=false;const lvCost=()=>Math.min(Number.MAX_VALUE,Math.floor(12*1.43**Math.min(149,s.lv-1)*1.38**Math.max(0,Math.min(1000,s.lv-1)-149))),shopLv=id=>s.shop[id]||0,has=id=>!!s.owned[id]&&!s.disabled[id],god=id=>has(107+id),cost=(id,base)=>Math.ceil(base*1.8**shopLv(id));// v74: retain owned counts; derived strength grows with diminishing returns.
 function v74Copies(value){const n=Number(value);return !Number.isFinite(n)||n<=0?0:n<=1?n:1+Math.log2(n);}
 function v74Rebirth(){const n=Number(s.rebirth);return 1+.5*Math.log2(1+(Number.isFinite(n)?Math.max(0,n):0));}
@@ -748,8 +813,8 @@ function v74CombatStats(){
  const level=Math.max(0,Number(s.lv)-1),trade=gearTrade();
  const rebirth=1+.3*(v74Rebirth()-1);
  const baseHP=24*(1+.18*level)**1.35;
- return {hp:baseHP*Math.sqrt(trade.hp*(1+.3*shopLv('vital'))*(1+.08*(s.research.balance||0)))*(god(0)?3:1)*(god(9)?2:1)*rebirth*v79BuildingHP()*v80Permanent('hp')*v82Power().hp,
- attack:5*(1+.16*level)**1.3*Math.sqrt(trade.attack*(1+storyBonus().attack)*(1+cardSet().attack))*(god(1)?3:1)*rebirth*v78BuildingAttack()*v80Permanent('attack')*v82Power().attack,healing:baseHP*.03*Math.sqrt(trade.healing*(1+bonuses()[1]/100))*rebirth*v78BuildingHealing()*v80Permanent('healing')*v82Power().healing};
+ return {hp:baseHP*Math.sqrt(trade.hp*(1+.3*shopLv('vital'))*(1+.08*(s.research.balance||0)))*(god(0)?3:1)*(god(9)?2:1)*rebirth*v79BuildingHP()*v80Permanent('hp')*v82Power().hp*v84Power().hp,
+ attack:5*(1+.16*level)**1.3*Math.sqrt(trade.attack*(1+storyBonus().attack)*(1+cardSet().attack))*(god(1)?3:1)*rebirth*v78BuildingAttack()*v80Permanent('attack')*v82Power().attack*v84Power().attack,healing:baseHP*.03*Math.sqrt(trade.healing*(1+bonuses()[1]/100))*rebirth*v78BuildingHealing()*v80Permanent('healing')*v82Power().healing*v84Power().healing};
 }
 function bonuses(){let b=[0,0,0,0,0];for(let i=0;i<107;i++)if(has(i))b[i%5]+=5*(gear[i].t+1)*v74Copies(s.owned[i]);return b}// v14: 尖った装備。各系統は強い代わりに代償を持つ。OFFで効果も代償も停止。
 const gearTraits=[
@@ -772,7 +837,7 @@ function synergyBonus(){let b={production:1,hp:1,attack:1,boxes:0,healing:1};for
 function renderSynergy(){let root=$('synergyStatus');if(!root)return;let list=synergyState().effects.filter(e=>e.stacks);root.innerHTML=list.length?'<div class="synergy-heading">✧ 共鳴発動 '+list.length+'系統</div>'+list.map(e=>'<span class="synergy-pill" style="--res-color:'+e.color+';border-color:'+e.color+'88;background:'+e.color+'18">'+e.name+' <b>×'+e.stacks+'</b> <small>'+e.desc+'</small></span>').join(''):'<span class="small">✧ 異なる系統の装備をONにすると共鳴。2系統それぞれ2ポイントで発動。所持数は維持され、重複と共鳴の効果は段階が上がるほど緩やかに伸びます。</span>'}
 function gearTrade(){let b={production:1,hp:1,attack:1,boxes:0,drain:1,healing:1};for(let i=0;i<107;i++){if(!has(i))continue;let g=gear[i],n=Math.min(12,Number(s.owned[i])||0),strength=Math.min(2.5,(g.t+1)*.045*n);switch(i%5){case 0:b.production+=strength*1.8;b.drain+=strength*.8;break;case 1:b.hp+=strength*2.5;b.production*=1/(1+strength*.25);break;case 2:b.attack+=strength*2.2;b.drain+=strength*.65;break;case 3:b.boxes+=strength*.35;b.production*=1/(1+strength*.3);break;case 4:b.healing+=strength*1.5;b.attack*=1/(1+strength*.28);break}}let sy=synergyBonus();b.production*=sy.production;b.hp*=sy.hp;b.attack*=sy.attack;b.boxes+=sy.boxes;b.healing*=sy.healing*v63RestBonus();return b}
 function returnMultiplier(){return Date.now()<s.returnBonusUntil?2:1}
-function income(){let b=bonuses(),trade=gearTrade(),m=2.7;let st=storyBonus();return v82Power().production*v80Permanent('production')*v76BuildingMoney()*trade.production*v74Rebirth()*worldBonus().production*1.24**Math.min(1000,s.lv-1)*1.65**Math.floor(Math.min(1000,s.lv-1)/5)*(1+b[0]/100)*(1+.25*shopLv('power'))*(1+st.production)*(st.endingA?5:1)*(1+forgePower())*(1+.12*(s.research.opening||0)+.06*(s.research.balance||0))*(1+cardSet().production)*v74DivineProduction()*m*returnMultiplier()*Math.max(.6,1-s.curse*.08)*v63IncomeBonus()*(Date.now()<s.boostUntil?s.boost:1)*(Date.now()<s.chaosUntil?s.chaos:1)}// v29: cumulative offline efficiency. 11min=100%, 2h=44%, 12h=11%.
+function income(){let b=bonuses(),trade=gearTrade(),m=2.7;let st=storyBonus();return v84Power().production*v82Power().production*v80Permanent('production')*v76BuildingMoney()*trade.production*v74Rebirth()*worldBonus().production*1.24**Math.min(1000,s.lv-1)*1.65**Math.floor(Math.min(1000,s.lv-1)/5)*(1+b[0]/100)*(1+.25*shopLv('power'))*(1+st.production)*(st.endingA?5:1)*(1+forgePower())*(1+.12*(s.research.opening||0)+.06*(s.research.balance||0))*(1+cardSet().production)*v74DivineProduction()*m*returnMultiplier()*Math.max(.6,1-s.curse*.08)*v63IncomeBonus()*(Date.now()<s.boostUntil?s.boost:1)*(Date.now()<s.chaosUntil?s.chaos:1)}// v29: cumulative offline efficiency. 11min=100%, 2h=44%, 12h=11%.
 function bgInstant(min,boost=false){const floor=boost?.22:.11;if(min<=11)return 1;if(min<=120)return 1-.56*(min-11)/109;if(min<=720)return .44-(.44-floor)*(min-120)/600;return floor}
 function bgEffectiveSeconds(seconds,boost=false){let m=Math.min(1440,Math.max(0,seconds/60)),v=0;const seg=(a,b,fa,fb)=>Math.max(0,b-a)*(fa+fb)/2;if(m<=11)return m*60;v=11;if(m<=120)return (v+seg(11,m,1,bgInstant(m,boost)))*60;v+=109*(1+.44)/2;if(m<=720)return (v+seg(120,m,.44,bgInstant(m,boost)))*60;v+=600*(.44+(boost?.22:.11))/2;return (v+(m-720)*(boost?.22:.11))*60}
 function bgBoost(){return !!(s.owned&&s.owned[112]>0&&!s.disabled[112])}
@@ -873,12 +938,12 @@ function v72BoxCoinReward(stats){
  s.coins+=1;s.boxCoinTotal=Math.max(0,Number(s.boxCoinTotal)||0)+1;s.boxCoinLast=Date.now();
  if(stats)stats.coins=(stats.coins||0)+1;
 }
-function pick(){let r=Math.floor(Math.random()*1000000),a=0,t=0;for(let i=0;i<6;i++){a+=tierWeights[i];if(r<a){t=i;break}}let start=tierCounts.slice(0,t).reduce((a,b)=>a+b,0);return start+Math.floor(Math.random()*tierCounts[t])}function openOne(stats){expireTimed();if(s.boxes<1)return false;s.boxes--;let v23NewDiscovery=false;let urgent=false;if(s.timed.length){s.timed.sort((a,b)=>a-b);let remaining=s.timed[0]-Date.now();urgent=remaining>0&&remaining<=5000;s.timed.shift()}let count=1+(Math.random()<Math.min(.9,shopLv('echo')*.1)?1:0)+(god(2)?10:0);for(let j=0;j<count;j++){let i=pick();if((urgent||s.curse)&&i<42&&Math.random()<(urgent?.22:0)+s.curse*.055){i=42+Math.floor(Math.random()*48)}let newItem=!s.discoveredGear[i];if(newItem){v23NewDiscovery=true;v63Action('gear');}s.owned[i]=(s.owned[i]||0)+1;s.discoveredGear[i]=true;applySavedPreferenceOnDrop(i);if(stats){stats.r[gear[i].t]++;if(newItem)stats.new++;if(urgent)stats.urgent=(stats.urgent||0)+1}if(gear[i].t>=3)s.lastRare=gear[i].emoji+' '+gear[i].name;if(gear[i].god){msg='✨ 神の加護：'+gear[i].name+' 降臨！';s.godQueue.push(i)}}if(!v23NewDiscovery){if(s.autoRecycle){s.paper+=1+storyBonus().paper+(s.research.recycling||0)+cardSet().paper}else{s.empty++}}s.opened++;v63Action('box');if(typeof window.artOnBoxOpen==='function')window.artOnBoxOpen();v72BoxCoinReward(stats);v82Roll('gear');v82Roll('card');
+function pick(){let r=Math.floor(Math.random()*1000000),a=0,t=0;for(let i=0;i<6;i++){a+=tierWeights[i];if(r<a){t=i;break}}let start=tierCounts.slice(0,t).reduce((a,b)=>a+b,0);return start+Math.floor(Math.random()*tierCounts[t])}function openOne(stats){expireTimed();if(s.boxes<1)return false;s.boxes--;let v23NewDiscovery=false;let urgent=false;if(s.timed.length){s.timed.sort((a,b)=>a-b);let remaining=s.timed[0]-Date.now();urgent=remaining>0&&remaining<=5000;s.timed.shift()}let count=1+(Math.random()<Math.min(.9,shopLv('echo')*.1)?1:0)+(god(2)?10:0);for(let j=0;j<count;j++){let i=pick();if((urgent||s.curse)&&i<42&&Math.random()<(urgent?.22:0)+s.curse*.055){i=42+Math.floor(Math.random()*48)}let newItem=!s.discoveredGear[i];if(newItem){v23NewDiscovery=true;v63Action('gear');}s.owned[i]=(s.owned[i]||0)+1;s.discoveredGear[i]=true;applySavedPreferenceOnDrop(i);if(stats){stats.r[gear[i].t]++;if(newItem)stats.new++;if(urgent)stats.urgent=(stats.urgent||0)+1}if(gear[i].t>=3)s.lastRare=gear[i].emoji+' '+gear[i].name;if(gear[i].god){msg='✨ 神の加護：'+gear[i].name+' 降臨！';s.godQueue.push(i)}}if(!v23NewDiscovery){if(s.autoRecycle){s.paper+=1+storyBonus().paper+(s.research.recycling||0)+cardSet().paper}else{s.empty++}}s.opened++;v63Action('box');if(typeof window.artOnBoxOpen==='function')window.artOnBoxOpen();v72BoxCoinReward(stats);v82Roll('gear');v82Roll('card');const v84New=v84Roll();
 // v25: milestone opportunities are 1/2 challenges, never guaranteed drops.
 // Queue one challenge per reached milestone; auto-opening can continue without losing opportunities.
 if(s.opened%250===0&&cards.some((c,i)=>!(s.cards[i]>0)))s.dopaCardPending=Math.min(1000000,(s.dopaCardPending||0)+1);
 if(s.opened%6000===0&&GOD_IDS.some(id=>!s.discoveredGear[id]))s.dopaGodPending=Math.min(1000000,(s.dopaGodPending||0)+1);
-return true}function boxGain(){let n=1+(Math.random()<Math.min(.9,shopLv('loot')*.12+(.08*(s.research.opening||0)+cardSet().boxes))?1:0);if(god(2))n*=3;if(god(5))n+=3;if(god(10))n+=5;const extra=v79BuildingLoot();if(extra>0)n+=Math.floor(extra)+(Math.random()<extra%1?1:0);let bonusChance=Math.min(.8,gearTrade().boxes);if(Math.random()<bonusChance)n++;if(Math.random()<worldBonus().extraBox)n++;if(v63Active()==='dream'&&Math.random()<.11)n++;s.boxes+=n;if(Math.random()<worldBonus().timedChance&&!s.autoOpen){let m=Math.max(1,Math.floor(n*.5));for(let i=0;i<m;i++)s.timed.push(Date.now()+(30+storyBonus().time)*1000);msg='⏳ 時限箱 '+m+'個 · 30秒以内に開封';}if(s.autoOpen&&!opening){for(let i=0;i<Math.min(n,120);i++)openOne()}return n}function openBatch(limit){if(opening||!s.boxes)return;opening=true;let total=Math.min(limit,s.boxes),done=0,stats={r:[0,0,0,0,0,0],new:0,urgent:0};function batch(){let take=Math.min(100,total-done),actual=0;for(let i=0;i<take;i++)if(openOne(stats))actual++;done+=actual;$('boxresult').textContent='開封中 '+done.toLocaleString()+'/'+total.toLocaleString();if(done<total&&actual)setTimeout(batch,0);else{opening=false;$('boxresult').textContent='🎁 '+done+'連 · 新規'+stats.new+'種 · 残り5秒ボーナス'+stats.urgent+'回 / '+rar.map((n,i)=>n+':'+stats.r[i]).join('・')+' / ✦ジェム＋'+(stats.coins||0);if(s.lastRare)msg='✨ '+s.lastRare;renderGear();draw();save();showGod()}}batch()}function allOpen(){openBatch(s.boxes)}function yin(){let t=Date.now(),r=Math.random();if(r<.4){s.boost=3;s.boostUntil=t+30000;return'☯ 生産3倍 30秒'}if(r<.7){s.n+=income()*30;return'☯ 拾得金 30秒分獲得'}s.n+=income()*120;return'☯ 120秒分獲得'}function double(){s.chaos=5;s.chaosUntil=Date.now()+45000;return'‡ 生産5倍 45秒'}function enemy(){
+if(v84New)save();return true}function boxGain(){let n=1+(Math.random()<Math.min(.9,shopLv('loot')*.12+(.08*(s.research.opening||0)+cardSet().boxes))?1:0);if(god(2))n*=3;if(god(5))n+=3;if(god(10))n+=5;const extra=v79BuildingLoot();if(extra>0)n+=Math.floor(extra)+(Math.random()<extra%1?1:0);let bonusChance=Math.min(.8,gearTrade().boxes);if(Math.random()<bonusChance)n++;if(Math.random()<worldBonus().extraBox)n++;if(v63Active()==='dream'&&Math.random()<.11)n++;s.boxes+=n;if(Math.random()<worldBonus().timedChance&&!s.autoOpen){let m=Math.max(1,Math.floor(n*.5));for(let i=0;i<m;i++)s.timed.push(Date.now()+(30+storyBonus().time)*1000);msg='⏳ 時限箱 '+m+'個 · 30秒以内に開封';}if(s.autoOpen&&!opening){for(let i=0;i<Math.min(n,120);i++)openOne()}return n}function openBatch(limit){if(opening||!s.boxes)return;opening=true;let total=Math.min(limit,s.boxes),done=0,stats={r:[0,0,0,0,0,0],new:0,urgent:0};function batch(){let take=Math.min(100,total-done),actual=0;for(let i=0;i<take;i++)if(openOne(stats))actual++;done+=actual;$('boxresult').textContent='開封中 '+done.toLocaleString()+'/'+total.toLocaleString();if(done<total&&actual)setTimeout(batch,0);else{opening=false;$('boxresult').textContent='🎁 '+done+'連 · 新規'+stats.new+'種 · 残り5秒ボーナス'+stats.urgent+'回 / '+rar.map((n,i)=>n+':'+stats.r[i]).join('・')+' / ✦ジェム＋'+(stats.coins||0);if(s.lastRare)msg='✨ '+s.lastRare;renderGear();draw();save();showGod()}}batch()}function allOpen(){openBatch(s.boxes)}function yin(){let t=Date.now(),r=Math.random();if(r<.4){s.boost=3;s.boostUntil=t+30000;return'☯ 生産3倍 30秒'}if(r<.7){s.n+=income()*30;return'☯ 拾得金 30秒分獲得'}s.n+=income()*120;return'☯ 120秒分獲得'}function double(){s.chaos=5;s.chaosUntil=Date.now()+45000;return'‡ 生産5倍 45秒'}function enemy(){
  if(s.v81Hunt.enabled)return v81HuntEnemy();
  let stage=s.wins+1,boss=s.wins>0&&s.wins%5===0&&!s.bosses[s.wins],metal=!boss&&Math.random()<.04;
  const e={stage,boss,metal,mech:boss?['🩸 回復阻害','⛓️ 装備封印','☯️ 陰陽反転'][(Math.floor(s.wins/5)-1)%3]:'',...v83EnemyStats(stage,boss,metal)};
@@ -2977,7 +3042,7 @@ function v68OpenPanel(key='menu'){
  if(key==='dreamjournal')v77RenderDreamExtras();
  if(key==='hud')v78RenderHUD(true);
  if(key==='permanent')v80RenderPermanent();
- if(key==='rare')v82RenderRare();
+ if(key==='rare')v82RenderRare();if(key==='ascendant')v84Render();
  if(key==='settings')$('v54Guide').open=true;
  if(!dialog.open)dialog.showModal();
  $('v68-library-body').scrollTop=0;
@@ -2992,7 +3057,7 @@ function v68InitUI(){
  const main=document.querySelector('main');if(!main)return;
  const originalChildren=Array.from(main.children);
  document.body.classList.add('v68-ui');
- document.querySelector('.v32brand').title='成長調整版 v83：序盤維持・建物投資と後半戦闘の釣り合い';
+ document.querySelector('.v32brand').title='超越装備版 v84：大量開封向けの上位装備30種';
  const wallet=v68Node('section','v69-wallet');wallet.setAttribute('aria-label','所持金と毎秒収入');
  wallet.innerHTML='<span id="v69-wallet-label">所持金</span><span id="v69-wallet-coins" title="永久商店・美術館で使う別のジェム"></span>';
  const stats=v68Node('div','v68-stats');stats.setAttribute('aria-label','現在の冒険の状態');
@@ -3014,7 +3079,7 @@ function v68InitUI(){
  const menuHint=v68Node('p',null,'冒険を止めて、装備・物語・記録をゆっくり確認できます。');menuHint.className='small';menu.append(menuHint);
  v68Move('v54nav',menu);v68Move('v62-diary-access',menu);
  const menuLinks=v68Node('div','v68-menu-links');menuLinks.className='v68-menu-grid';
- const links=[['rare','✧ 秘蔵コレクション300種'],['permanent','✧ 恒久強化・固有戦利品'],['hud','📊 ステータス表示設定'],['buildings','🏘 建物・生産'],['dreamjournal','📒 夢の旅の記録'],['progress','🌗 実績・世界進捗'],['save','💾 セーブ・バックアップ'],['settings','⚙️ 遊び方・音・設定'],['rebirth','🌌 輪廻・再構築'],['logs','📜 戦況・世界の時刻'],['dopa','🎰 ドパチャレンジ'],['extras','✦ その他の操作']];
+ const links=[['ascendant','◆ 超越装備30種'],['rare','✧ 秘蔵コレクション300種'],['permanent','✧ 恒久強化・固有戦利品'],['hud','📊 ステータス表示設定'],['buildings','🏘 建物・生産'],['dreamjournal','📒 夢の旅の記録'],['progress','🌗 実績・世界進捗'],['save','💾 セーブ・バックアップ'],['settings','⚙️ 遊び方・音・設定'],['rebirth','🌌 輪廻・再構築'],['logs','📜 戦況・世界の時刻'],['dopa','🎰 ドパチャレンジ'],['extras','✦ その他の操作']];
  for(const [key,label]of links){const b=v68Node('button','v68-menu-'+key,label);b.type='button';b.onclick=()=>v68OpenPanel(key);menuLinks.appendChild(b);}
  menu.appendChild(menuLinks);
  const oldSave=$('savetoggle');if(oldSave)menu.appendChild(oldSave);
@@ -3038,7 +3103,7 @@ function v68InitUI(){
  const savePane=pane('save','セーブ・バックアップ');v68Move('savepanel',savePane);
  const town=v68Node('details','v78-town');town.open=innerHeight>=700;
  const townTitle=v68Node('summary',null,'🏘 街づくり · 10種');townTitle.tabIndex=0;town.appendChild(townTitle);v76InitBuildings(town);
- const rare=pane('rare','秘蔵コレクション・レア300種');v82InitRare(rare);
+ const rare=pane('rare','秘蔵コレクション・レア300種');v82InitRare(rare);v84Init(pane('ascendant','超越装備・大量開封の至宝'));
  const permanent=pane('permanent','恒久強化・固有戦利品');v80InitPermanent(permanent);
  const hudSettings=pane('hud','ステータス表示設定');
  const journal=pane('dreamjournal','夢の旅の記録');journal.appendChild(v68Node('div','v77-dream-journal'));
@@ -3116,7 +3181,7 @@ function v68InitUI(){
 }
 function v68RenderUI(){
  if(!v68UIReady)return;
- v76RenderBuildings();v77RenderCombat();v77RenderDreamExtras();v78RenderHUD();v80RenderPermanent();v81RenderHunt();v82RenderRare();
+ v76RenderBuildings();v77RenderCombat();v77RenderDreamExtras();v78RenderHUD();v80RenderPermanent();v81RenderHunt();v82RenderRare();v84Render();
  const boxCount='🎁 ルートボックス　所持 '+prettyNum(Math.floor(s.boxes))+'個';
  const boxHeading=$('boxpanel').querySelector('h3');if(boxHeading.textContent!==boxCount)boxHeading.textContent=boxCount;
  const gearTitle='装備・ルートボックス（'+prettyNum(Math.floor(s.boxes))+'個）';v68Panes.get('gear').dataset.title=gearTitle;
@@ -4108,3 +4173,5 @@ body.v68-ui #v82-items [data-rarity="3"]{border:2px solid var(--accent);box-shad
 #artMuseumPanel .art-image-status button{min-height:44px;font-size:14px;width:100%}
 #artMuseumPanel .art-gallery-frame img{min-height:80px;max-height:240px;object-fit:contain}
 </style></body></html>
+
+<style>body.v68-ui #v84-open,body.v68-ui .v84-item button{min-height:44px;font-size:14px;width:100%;white-space:normal}body.v68-ui .v84-item h4{font-size:16px;margin:8px 0}body.v68-ui .v84-item[data-tier="2"]{border:3px solid var(--accent)}#v82-rare-notice[data-ascendant="true"]{border-width:3px;font-weight:bold}</style>

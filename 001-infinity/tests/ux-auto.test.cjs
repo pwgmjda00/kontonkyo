@@ -32,6 +32,7 @@ window.__infinityTest = {
   buyBuilding: (id,count=1) => v76BuyBuilding(id,count), quoteBuilding: (id,count) => v79BuildingQuote(id,count), gainBoxes: () => boxGain(), buildingCost: id => v76BuildingCost(id), enemyStats: (stage,boss=false,metal=false) => v83EnemyStats(stage,boss,metal),
   hudRows: () => v78HUDRows(), hudUpdate: fields => v78HUDUpdate(fields),
   buildingRates: () => ({attack:v78BuildingAttack(),healing:v78BuildingHealing(),sparkle:v78BuildingSparkle(),money:v76BuildingMoney(),boxes:v76BuildingBoxes(),paper:v76BuildingPaper(),scrap:v76BuildingScrap()}),
+  ascCatalog: () => V84_CATALOG, ascTiers: () => V84_TIERS, ascGrant: id => v84Grant(id), ascEquip: id => v84Equip(id), ascRoll: () => v84Roll(), ascPower: () => v84Power(), ascWords: words => {let index=0;v84Word=()=>{if(index>=words.length)throw Error('Unexpected ascendant random draw');return words[index++];};}, ascPatch: fields => {Object.assign(s.v84Ascendant,fields);s.v84Ascendant.revision++;},
   rareCatalog: () => V82_CATALOG, rareGrant: (kind,id) => v82Grant(kind,id), rareRoll: kind => v82Roll(kind), rareRandom: n => {v82Random=()=>n;}, rarePatch: fields => {Object.assign(s.v82Rare,fields);s.v82Rare.revision++;}, rarePower: () => v82Power(), rareEquip: id => v82Equip(id), rareBattle: () => v82BattleDrop(),
   boxCoinRoll: () => v72BoxCoinRoll(), openBox: () => openOne(),
   balance: () => ({income:income(),cost:lvCost(),combat:v74CombatStats(),synergy:synergyBonus(),rebirth:v74Rebirth()}),
@@ -552,6 +553,52 @@ async function main() {
       await page.evaluate(()=>{__infinityTest.rareRandom(0);__infinityTest.patch({lv:25});__infinityTest.rareGrant('gear',0);__infinityTest.rareGrant('card',1);const st=__infinityTest.balance().combat;__infinityTest.setFight({e:{stage:150,hp:1,atk:0,boss:false,metal:false,mech:''},hp:st.hp,max:st.hp,ehp:1,last:Date.now(),active:true});__infinityTest.turnBattle();__infinityTest.rareBattle();});const before=await state(page);assert.equal(before.v82Rare.rolls.trophy,1);assert.equal(before.v82Rare.counts.trophy['75'],1);await page.clock.runFor(500);
       page.once('dialog',d=>d.accept());await page.locator('#v81-rebirth').click();assert.deepEqual((await state(page)).v82Rare.counts,before.v82Rare.counts);await page.reload({waitUntil:'load'});assert.deepEqual((await state(page)).v82Rare.counts,before.v82Rare.counts);assert.equal((await state(page)).v82Rare.highest,150);
     },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('ascendant adds 30 real dual-stat items, one slot and retains legacy inventories',async page=>{
+      const before=await state(page),base=await page.evaluate(()=>__infinityTest.balance());
+      const catalog=await page.evaluate(()=>__infinityTest.ascCatalog());assert.equal(catalog.length,30);assert.equal(new Set(catalog.map(item=>item.name)).size,30);assert.ok(catalog.every(item=>item.main!==item.sub));
+      await page.evaluate(()=>__infinityTest.ascGrant(0));const first=await page.evaluate(()=>__infinityTest.balance());assert.ok(Math.abs(first.income/base.income-10)<1e-10);assert.ok(Math.abs(first.combat.attack/base.combat.attack-3)<1e-10);assert.equal(first.combat.hp,base.combat.hp);
+      await page.evaluate(()=>__infinityTest.ascGrant(20));assert.equal((await state(page)).v84Ascendant.equipped,0,'A better drop must not overwrite the selected item');
+      await page.evaluate(()=>__infinityTest.ascEquip(20));const top=await page.evaluate(()=>__infinityTest.balance());assert.ok(Math.abs(top.income/base.income-160)<1e-10);assert.ok(Math.abs(top.combat.attack/base.combat.attack-40)<1e-10);
+      await page.evaluate(()=>__infinityTest.ascGrant(20));const duplicate=await page.evaluate(()=>__infinityTest.ascPower());assert.ok(duplicate.production>160&&duplicate.production<180);
+      assert.deepEqual((await state(page)).owned,before.owned);assert.deepEqual((await state(page)).v82Rare,before.v82Rare);
+      await page.evaluate(()=>__infinityTest.ascEquip(20));assert.equal((await state(page)).v84Ascendant.equipped,null);assert.equal(await page.evaluate(()=>__infinityTest.ascEquip(29)),false);assert.equal((await page.evaluate(()=>__infinityTest.balance())).income,base.income);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('ascendant unlocks per grade and exact ticket boundaries preserve disclosed odds',async page=>{
+      const result=await page.evaluate(()=>{
+        const out=[];for(const highest of [299,300,599,600,999,1000]){__infinityTest.rarePatch({highest});__infinityTest.ascPatch({misses:[0,0,0],last:null});__infinityTest.ascWords(highest<300?[]:[0,9]);__infinityTest.ascRoll();out.push(__infinityTest.state().v84Ascendant.last?.id??null);}
+        const tickets=[];for(const word of [0,1,10,11,110,111]){__infinityTest.ascPatch({misses:[0,0,0],last:null});__infinityTest.ascWords([word,0]);__infinityTest.ascRoll();tickets.push(__infinityTest.state().v84Ascendant.last?.id??null);}
+        __infinityTest.ascPatch({misses:[0,0,0],last:null});__infinityTest.ascWords([4294967295,111]);const rejected=__infinityTest.ascRoll();return {out,tickets,rejected};
+      });
+      assert.deepEqual(result.out,[null,9,9,19,19,29]);assert.deepEqual(result.tickets,[20,10,10,0,0,null]);assert.equal(result.rejected,false,'Rejected uint32 must draw again rather than bias the ticket');
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('ascendant pity counts only eligible boxes and higher grades satisfy lower guarantees',async page=>{
+      await page.evaluate(()=>{__infinityTest.rarePatch({highest:300});__infinityTest.ascPatch({misses:[1999998,0,0]});__infinityTest.ascWords([99999999,99999999,8]);__infinityTest.ascRoll();});let saved=await state(page);assert.equal(saved.v84Ascendant.last,null);assert.deepEqual(saved.v84Ascendant.misses,[1999999,0,0]);
+      await page.evaluate(()=>__infinityTest.ascRoll());saved=await state(page);assert.equal(saved.v84Ascendant.last.id,8);assert.deepEqual(saved.v84Ascendant.misses,[0,0,0]);
+      await page.evaluate(()=>{__infinityTest.rarePatch({highest:1000});__infinityTest.ascPatch({misses:[1999999,19999999,199999999]});__infinityTest.ascWords([99999999,4]);__infinityTest.ascRoll();});saved=await state(page);assert.equal(saved.v84Ascendant.last.id,24);assert.deepEqual(saved.v84Ascendant.misses,[0,0,0]);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('ascendant draws once per consumed box, never per bonus gear or card pack',async page=>{
+      await page.evaluate(()=>{Math.random=()=>.5;__infinityTest.rareRandom(.999);__infinityTest.rarePatch({highest:1000});__infinityTest.ascWords([111]);__infinityTest.patch({boxes:1,owned:{109:1}});__infinityTest.openBox();});let saved=await state(page);assert.equal(saved.v84Ascendant.rolls,1);assert.equal(saved.owned['21'],11);assert.equal(saved.v84Ascendant.last,null);
+      assert.equal(await page.evaluate(()=>__infinityTest.openBox()),false);assert.equal((await state(page)).v84Ascendant.rolls,1);
+      await page.evaluate(()=>__infinityTest.rareRoll('card'));assert.equal((await state(page)).v84Ascendant.rolls,1);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('ascendant box award is saved immediately with its consumed box and existing rewards',async page=>{
+      await page.evaluate(()=>{Math.random=()=>.5;__infinityTest.rareRandom(.999);__infinityTest.rarePatch({highest:1000});__infinityTest.ascWords([0,2]);__infinityTest.patch({boxes:1,owned:{109:1}});__infinityTest.openBox();});
+      const before=await state(page);assert.equal(before.boxes,0);assert.equal(before.v84Ascendant.counts['22'],1);assert.equal(before.v84Ascendant.equipped,22);assert.equal(before.owned['21'],11);
+      await page.reload({waitUntil:'load'});const after=await state(page);assert.equal(after.boxes,0);assert.equal(after.v84Ascendant.counts['22'],1);assert.equal(after.v84Ascendant.equipped,22);assert.equal(after.owned['21'],11);assert.equal(after.v84Ascendant.rolls,1);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('ascendant collection, chosen slot and pity persist through rebirth, world switch and reload',async page=>{
+      await page.evaluate(()=>{__infinityTest.patch({lv:25});__infinityTest.rarePatch({highest:1000});__infinityTest.ascGrant(0);__infinityTest.ascGrant(21);__infinityTest.ascEquip(21);__infinityTest.ascPatch({misses:[123,456,789],rolls:999});__infinityTest.save();});const before=(await state(page)).v84Ascendant;
+      page.once('dialog',d=>d.accept());await page.locator('#v81-rebirth').click();assert.deepEqual((await state(page)).v84Ascendant,before);
+      await page.evaluate(()=>__infinityTest.switchWorld('dream'));await page.reload({waitUntil:'load'});const next=(await state(page)).v84Ascendant;assert.deepEqual(next.counts,before.counts);assert.equal(next.equipped,21);assert.deepEqual(next.misses,[123,456,789]);assert.equal(next.rolls,999);assert.equal((await state(page)).v82Rare.highest,1000);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('ascendant malformed saves normalize without granting items or resetting other assets',async page=>{
+      const saved=await state(page),asc=saved.v84Ascendant;assert.deepEqual(asc.counts,{'0':2});assert.equal(asc.equipped,null);assert.deepEqual(asc.misses,[0,0,20]);assert.equal(saved.n,12345);assert.equal(saved.customHistory.note,'unknown fields survive');assert.equal(asc.note,'keep');
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1,v84Ascendant:{counts:{0:2,30:1,'-1':3,1:-2,2:'bad'},equipped:30,misses:[-1,'bad',20.5],note:'keep'}}))}});
+    await check('ascendant collection is readable at 320px and equipment controls retain focus',async page=>{
+      await page.evaluate(()=>{__infinityTest.rarePatch({highest:1000});__infinityTest.ascGrant(20);});await page.locator('#v68-shortcut-gear').click();await page.locator('#v84-open').click();assert.equal(await page.locator('.v84-item').count(),30);assert.match(await page.locator('#v68-pane-ascendant').innerText(),/100,000,000/);assert.match(await page.locator('#v84-pity-2').innerText(),/2億/);
+      const button=page.locator('.v84-item button').nth(20);await button.focus();await page.clock.runFor(1500);assert.equal(await button.evaluate(n=>n===document.activeElement),true);const box=await button.boundingBox();assert.ok(box.height>=44);assert.ok(box.x>=0&&box.x+box.width<=320);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+      await page.screenshot({path:path.join(artifacts,'ascendant-320.png')});
+    },{context:{viewport:{width:320,height:568}},seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
     await check('museum bundled public-domain painting loads with external services unavailable',async page=>{
       await page.locator('#v68-shortcut-menu').click();await page.locator('#artMuseumBtn').click();await page.locator('#artMuseumRedeem').click();assert.equal((await state(page)).artOffers.some(o=>o.id==='moma-starry-night'),true);
       await page.locator('.art-buy').first().click();await page.locator('.art-empty-slot:enabled').first().click();const image=page.locator('.art-gallery-frame img').first();await image.scrollIntoViewIfNeeded();await waitImage(image);assert.ok(await image.evaluate(n=>n.naturalWidth>0));assert.equal((await state(page)).artCollection['moma-starry-night'].title,'星月夜');await page.screenshot({path:path.join(artifacts,'museum-bundled.png')});
