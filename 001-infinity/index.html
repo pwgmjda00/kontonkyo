@@ -433,6 +433,7 @@ function v78HUDRows(){
  for(const [key,label,value]of [['boost','生産ブースト残り',remaining(s.boostUntil)],['chaos','混沌ブースト残り',remaining(s.chaosUntil)],['return','復帰ボーナス残り',remaining(s.returnBonusUntil)],['curse','呪い',s.curse],['incomeLink','世界の生産連動',fmt(v63IncomeBonus())+'倍'],['healingLink','世界の回復連動',fmt(v63RestBonus())+'倍'],['auto','自動進行',v68AutoRuntime.running?'進行中':v68AutoRuntime.paused?'一時停止':'停止'],['speed','進行速度','×'+s.v68Auto.speed],['autoOpen','箱の自動開封',s.autoOpen?'ON':'OFF'],['autoRecycle','自動古紙回収',s.autoRecycle?'ON':'OFF'],['activeTime','操作時間 /分',fmt((s.runActiveSeconds||0)/60)],['awayTime','放置時間 /分',fmt((s.runAwaySeconds||0)/60)]])add('効果・進行',key,label,value);
  for(const [key,label,value]of [['knowledge','恒久既読数',v80ReadCount()],['permanentProduction','恒久生産',((v80Permanent('production')-1)*100).toFixed(3)+'%'],['permanentAttack','恒久攻撃',((v80Permanent('attack')-1)*100).toFixed(3)+'%'],['permanentHP','恒久最大HP',((v80Permanent('hp')-1)*100).toFixed(3)+'%'],['permanentHealing','恒久HP回復',((v80Permanent('healing')-1)*100).toFixed(3)+'%'],['trophyCount','固有戦利品の累計',sum(s.v80Relics?.counts)],['enemyName','敵の名前',fight?v80EnemySpec().name:'待機']])add('恒久強化',key,label,value);
  for(const [key,label,value]of [['battleMode','次戦のモード',s.v81Hunt?.enabled?'狩り':'攻略'],['huntTarget','狩りの対象',v81HuntTarget().spec.name],['huntWins','狩り勝利 今世/累計',(s.v81Hunt?.runKills||0)+' / '+(s.v81Hunt?.kills||0)]])add('狩り',key,label,value);
+ const rare=s.v82Rare,power=v82Power();if(rare)for(const [key,label,value]of [['rareGear','秘蔵装備種類',Object.keys(rare.counts.gear).length+' / 100'],['rareCards','星譜カード種類',Object.keys(rare.counts.card).length+' / 100'],['rareTrophies','境界秘宝種類',Object.keys(rare.counts.trophy).length+' / 100'],['rareSlots','秘蔵装備枠',rare.equipped.length+' / 3'],['rareProduction','秘蔵の生産補正',((power.production-1)*100).toFixed(2)+'%'],['rareAttack','秘蔵の攻撃補正',((power.attack-1)*100).toFixed(2)+'%'],['rareHP','秘蔵の最大HP補正',((power.hp-1)*100).toFixed(2)+'%'],['rareHealing','秘蔵の回復補正',((power.healing-1)*100).toFixed(2)+'%'],['rareSets','収集共鳴',power.sets],['rarePeak','最高到達階層',rare.highest],['rareGearPity','秘蔵装備の天井',rare.misses.gear+' / 500'],['rareCardPity','星譜カードの天井',rare.misses.card+' / 500'],['rareTrophyPity','境界秘宝の天井',rare.misses.trophy+' / 500']])add('秘蔵コレクション',key,label,value);
  return rows;
 }
 function v78HUDConfig(){return s.v78HUD&&Array.isArray(s.v78HUD.fields)?s.v78HUD:v78HUDDefaults;}
@@ -656,6 +657,78 @@ function v80InitPermanent(pane){
  const drop=v68Node('p','v80-enemy-drop');$('foe').after(drop);const notice=v68Node('p','v80-drop-notice');notice.setAttribute('role','status');notice.hidden=true;$('v77-enemy-intent').before(notice);
 }
 
+// Additional collections keep all legacy item IDs and completion conditions unchanged.
+const V82_FAMILIES=['灰星','霧銀','黒樹','砂暦','月鏡','星骸','深海','白夜','天環','零界'];
+const V82_TIERS=[{name:'星遺',stage:1,odds:250},{name:'虚構',stage:30,odds:2500},{name:'界外',stage:75,odds:25000},{name:'不可思議',stage:150,odds:250000}];
+const V82_TYPES=['production','attack','hp','healing'];
+const V82_MOTIFS={gear:['帰還剣','星織り衣','記憶冠','時環','門盾','航海靴','逆理杖','永夜時計','帰路の針','越境翼'],card:['旅人','門守','錬金師','夢見鳥','時計師','灯台守','星詠み','航海士','王の影','世界樹'],trophy:['種子','結晶','聖印','楽譜','化石','香炉','羽根','花弁','真珠','心臓']};
+const V82_CATALOG=Object.fromEntries(Object.entries(V82_MOTIFS).map(([kind,motifs])=>[kind,Array.from({length:100},(_,i)=>({id:i,name:V82_FAMILIES[Math.floor(i/10)]+'の'+motifs[i%10],family:Math.floor(i/10),tier:Math.floor(i/25),stat:V82_TYPES[i%4]}))]));
+{
+ const old=s.v82Rare&&typeof s.v82Rare==='object'?s.v82Rare:{},counts={},misses={},ultra={},rolls={};
+ for(const kind of ['gear','card','trophy']){counts[kind]={};for(let i=0;i<100;i++){const n=Number(old.counts?.[kind]?.[i]);if(Number.isFinite(n)&&n>0)counts[kind][i]=Math.min(Number.MAX_SAFE_INTEGER,Math.floor(n));}for(const [target,key]of [[misses,'misses'],[ultra,'ultra'],[rolls,'rolls']])target[kind]=Math.max(0,Math.min(Number.MAX_SAFE_INTEGER,Math.floor(Number(old[key]?.[kind])||0)));}
+ s.v82Rare={...old,version:1,counts,misses,ultra,rolls,equipped:[...new Set((Array.isArray(old.equipped)?old.equipped:[]).filter(i=>Number.isInteger(i)&&i>=0&&i<100&&counts.gear[i]>0))].slice(0,3),highest:Math.max(1,Number.isFinite(old.highest)?Math.floor(old.highest):0,s.wins+1),revision:0};
+}
+let v82CachedState=null,v82CachedRevision=-1,v82CachedPower=null,v82CollectionSignature='',v82RenderedSelection='';const v82RowRefs=new Map();
+function v82Power(){
+ const state=s.v82Rare;if(!state)return {production:1,attack:1,hp:1,healing:1,sets:0};
+ if(v82CachedState===state&&v82CachedRevision===state.revision)return v82CachedPower;
+ const power={production:1,attack:1,hp:1,healing:1,sets:0};
+ for(const kind of ['gear','card','trophy']){
+  const families=Array(10).fill(0);
+  for(const item of V82_CATALOG[kind]){const n=state.counts[kind][item.id]||0;if(!n)continue;families[item.family]++;
+   if(kind==='gear'&&!state.equipped.includes(item.id))continue;
+   const base=(kind==='gear'?[.25,.6,1.5,4]:kind==='card'?[.005,.02,.06,.2]:[.01,.025,.075,.25])[item.tier];power[item.stat]+=base*(1+.25*Math.log2(n));
+  }
+  for(const count of families){const bonus=count>=10?.4:count>=6?.15:count>=3?.05:0;if(bonus){power.sets++;for(const stat of V82_TYPES)power[stat]+=bonus;}}
+ }
+ v82CachedState=state;v82CachedRevision=state.revision;v82CachedPower=power;return power;
+}
+function v82Random(){const word=new Uint32Array(1);crypto.getRandomValues(word);return word[0]/4294967296;}
+function v82Grant(kind,id){
+ const state=s.v82Rare,item=V82_CATALOG[kind]?.[id];if(!item)return false;
+ state.counts[kind][id]=Math.min(Number.MAX_SAFE_INTEGER,(state.counts[kind][id]||0)+1);
+ if(kind==='gear'&&state.equipped.length<3&&!state.equipped.includes(id))state.equipped.push(id);
+ state.revision++;state.last={kind,id,at:Date.now()};return true;
+}
+function v82Roll(kind){
+ const state=s.v82Rare;state.highest=Math.max(state.highest,s.wins+1);state.rolls[kind]++;state.misses[kind]++;
+ const eligible=V82_TIERS.reduce((n,t,i)=>state.highest>=t.stage?i:n,0),factor=kind==='trophy'?2.5:1;
+ if(eligible===3)state.ultra[kind]++;
+ const denominator=kind==='trophy'?100000:250000,limit=Math.floor(4294967296/denominator)*denominator;let word;do{word=Math.floor(v82Random()*4294967296);}while(word>=limit);
+ let tier=-1,r=word%denominator;for(let i=eligible;i>=0;i--){const weight=[1000,100,10,1][i];if(r<weight){tier=i;break;}r-=weight;}
+ if(eligible===3&&state.ultra[kind]>=V82_TIERS[3].odds/factor)tier=3;
+ else if(tier<0&&state.misses[kind]>=500)tier=0;
+ if(tier<0)return false;
+ const id=tier*25+Math.floor(v82Random()*25);v82Grant(kind,id);state.misses[kind]=0;if(tier===3)state.ultra[kind]=0;return true;
+}
+function v82BattleDrop(){if(fight?.active||!fight||fight.hp<=0||fight.ehp>0||fight.v82Resolved)return;fight.v82Resolved=true;s.v82Rare.highest=Math.max(s.v82Rare.highest,fight.e.stage);if(v82Roll('trophy')){v59Log('relic','✧ 秘宝発見',V82_CATALOG.trophy[s.v82Rare.last.id].name+' / 恒久効果と収集共鳴');save();}}
+function v82Equip(id){const state=s.v82Rare;if(!state.counts.gear[id])return false;const index=state.equipped.indexOf(id);if(index>=0)state.equipped.splice(index,1);else{if(state.equipped.length>=3)return false;state.equipped.push(id);}state.revision++;save();draw();return true;}
+function v82RenderRare(){
+ const pane=v68Panes.get('rare'),notice=$('v82-rare-notice');if(!notice)return;
+ const state=s.v82Rare;if(!state)return;const last=state.last,recent=last&&Date.now()>=last.at&&Date.now()-last.at<10000;
+ notice.hidden=!recent;if(recent){const item=V82_CATALOG[last.kind]?.[last.id];if(item)notice.textContent='✧ '+V82_TIERS[item.tier].name+' '+item.name+'！ 「秘蔵コレクション」で効果を確認';}
+ if(!pane||pane.hidden)return;
+ const kind=$('v82-category').value,query=$('v82-search').value.trim(),signature=JSON.stringify([kind,query,state.revision,state.highest,state.misses[kind],state.ultra[kind]]);if(signature===v82CollectionSignature)return;v82CollectionSignature=signature;
+ const unique=Object.keys(state.counts[kind]).length,power=v82Power();$('v82-rare-summary').textContent='収集 '+unique+'/100 · 最高到達 '+state.highest+'階 · レア天井 '+state.misses[kind]+'/500 · 不可思議天井 '+state.ultra[kind]+'/'+(kind==='trophy'?100000:250000)+'（150階到達後） · 共鳴 '+power.sets+'組';
+ const root=$('v82-items'),selection=kind+'|'+query;
+ if(selection!==v82RenderedSelection){v82RenderedSelection=selection;root.replaceChildren();v82RowRefs.clear();
+  for(const item of V82_CATALOG[kind]){if(query&&!((item.name+V82_TIERS[item.tier].name).includes(query)))continue;
+   const tier=V82_TIERS[item.tier],card=v68Node('article');card.className='v76-building-card';card.dataset.rarity=String(item.tier);card.appendChild(v68Node('h3',null,tier.name+' · '+item.name));const value=v68Node('p');card.appendChild(value);card.appendChild(v68Node('small',null,tier.stage+'階で解放 · 基礎確率 1/'+(tier.odds/(kind==='trophy'?2.5:1))+'（等級合計・各25種）'));
+   let button=null;if(kind==='gear'){button=v68Node('button');button.onclick=()=>v82Equip(item.id);card.appendChild(button);}root.appendChild(card);v82RowRefs.set(item.id,{value,button});
+  }
+ }
+ for(const [id,refs]of v82RowRefs){const item=V82_CATALOG[kind][id],n=state.counts[kind][id]||0,base=(kind==='gear'?[.25,.6,1.5,4]:kind==='card'?[.005,.02,.06,.2]:[.01,.025,.075,.25])[item.tier],text='所持 '+n+' / '+V80_STAT_NAMES[item.stat]+' ＋'+(100*base*(n?1+.25*Math.log2(n):1)).toFixed(2)+'%'+(kind==='gear'?'（装備時）':'（恒久）');
+  if(refs.value.textContent!==text)refs.value.textContent=text;if(refs.button){const equipped=state.equipped.includes(id),label=equipped?'装備解除':state.equipped.length>=3?'3枠使用中':'装備する';if(refs.button.textContent!==label)refs.button.textContent=label;refs.button.disabled=!n||(!equipped&&state.equipped.length>=3);}
+ }
+}
+function v82InitRare(pane){
+ pane.appendChild(v68Node('p',null,'秘蔵装備・星譜カード・境界秘宝を各100種。箱1個で装備とカードを各1抽選、カードパックでもカードを1抽選。秘宝は勝利時に1抽選。既存の排出はそのままです。'));
+ pane.appendChild(v68Node('p',null,'装備は追加3枠で使用し、最初の空き枠へ自動装備。全て転生後も保持。重複は対数で強化され、同系統3/6/10種の収集で全能力＋5/15/40%。等級は1/30/75/150階で解放、500回レアなしで星遺確定。不可思議の天井は150階到達後の対象抽選を数えます。'));
+ const select=v68Node('select','v82-category');select.setAttribute('aria-label','秘蔵コレクションの種類');for(const [value,label]of [['gear','秘蔵装備100'],['card','星譜カード100'],['trophy','境界秘宝100']]){const o=v68Node('option',null,label);o.value=value;select.appendChild(o);}select.onchange=()=>v82RenderRare();pane.appendChild(select);
+ const search=v68Node('input','v82-search');search.type='search';search.placeholder='名前・等級で検索';search.setAttribute('aria-label','レアアイテムを検索');search.oninput=()=>v82RenderRare();pane.append(search,v68Node('p','v82-rare-summary'),v68Node('div','v82-items'));
+ const open=v68Node('button','v82-open-rare','✧ 秘蔵コレクション 300種');open.type='button';open.onclick=()=>v68OpenPanel('rare');$('boxpanel').querySelector('h3').after(open);const notice=v68Node('div','v82-rare-notice');notice.setAttribute('role','status');notice.hidden=true;document.body.appendChild(notice);
+}
+
 const icons=['⚙️','🗝️','🌙','👁️','🦋','🗡️','💎','🕯️','⚡','🪞','🪐','🌹','🧿','🦇','🔮','🦴','🧬','🔥','❄️','🕳️','👑','🪬','🌌','⛓️','📜','🦉','☄️','🪦','🐍','🦷','🧭','🧪','🌱','🛡️','🧲','⌛','🪙'];const first=['終焉','虚無','深淵','逆理','堕天','原罪','黄昏','永劫','断罪','忘却','禁忌','冥界','零式','因果','幽世','無貌','輪廻','神殺','蒼穹','血盟','幻影','滅却','星葬','混沌','天罰','残響','無限','漆黒','夢蝕','絶対','幽冥','失楽','境界','創世','破戒','黙示','偽神'];const second=['の観測者','の聖骸','の魔眼','の残滓','の継承者','の方舟','の断章','の執行者','の契約','の心臓','の墓標','の王冠','の鍵','の審判','の逆説','の詠唱','の器','の記憶','の刃','の胎動','の預言','の歯車','の使徒','の黙示録','の終止符','の迷宮','の原典','の翼','の残月','の聖痕','の異端者','の理','の扉','の偽典','の残火','の名残','の座標'];const flavors=['神はまだ、自分が死んだことを知らない。','祈りは届いた。ただし宛先が違った。','世界の終わりに最初の嘘だけが残る。','名を呼べば、呼んだ者の名が消える。','その剣は敵ではなく因果を斬る。','救済はいつも破滅より一秒遅い。','禁じられたのは力ではない。記憶だ。','勝者のいない戦争が今も続いている。','扉の向こうで、誰かが待っている。','天使は翼を捨てて自由を得た。','永遠は祝福ではない。終わらない刑罰だ。','未来を見た者から順に過去へ消える。','真実を知った瞬間、世界は偽物になる。','契約書の最後には空白の署名がある。','一度だけ鳴る鐘が百年を奪った。','心臓の代わりに小さな宇宙が脈打つ。','最も深い闇は光の形をしている。','その王国では敗北こそが戴冠だった。','眠る星の夢に我々は住んでいる。','記録されなかった英雄だけが神話になった。','最後のページにはまだ生まれぬ君の名。','零を数え終えたとき無限が始まった。','願いは叶う。代償は願った後に決まる。','誰も覚えていない罪だけが赦されない。','神託は正しかった。解釈が間違っていた。','壊れた時計は終末の時刻だけを指す。','この世に存在しない色で血が流れた。','鍵穴の形をした傷が胸に残っている。','死者の手紙は明日の日付で届いた。','その影は持ち主より先に生まれた。','運命に逆らった者が運命そのものになった。','世界を救うには世界の定義を変えよ。','誰にも見られぬ月は何色に輝くのか。','神々が沈黙した夜、機械だけが祈った。','忘れられるために彼は永遠を選んだ。','王は玉座を捨て玉座だけが王を名乗った。','これが最後の奇跡なら誰にも渡さない。'];const rar=['普通','上質','希少','伝説','神話','神の加護'],color=['#40475b','#146450','#25599a','#713c9c','#ae7922','#8a165f'];const tierCounts=[42,29,19,12,5,11],tierWeights=[749800,195000,45000,9000,900,300];const GOD_IDS=Array.from({length:11},(_,i)=>107+i);const gear=Array.from({length:118},(_,i)=>{let t=0,k=i;while(k>=tierCounts[t])k-=tierCounts[t++];let god=i>=107;return{id:i,t,emoji:god?['🌌','👁️','🪽','👑','🧿','🪐','🔱','🦋','🕳️','🪞','☀️'][i-107]:icons[i%37],name:god?['全能神の零冠','因果律の簒奪者','無限増殖の熾天使','世界再起動の玉座','確率を喰らう眼','星間航路の羅針盤','三叉の勝利宣言','蝶の逆説','虚無の採掘者','鏡像世界の主','暁の最後の祈り'][i-107]:first[i%37]+second[(i*7)%37],effect:god?['生産×2・戦闘HP×3','戦闘攻撃×3・ボスジェム×2','箱獲得×3・開封追加＋10','生産×3・攻撃無効化90%','生産×1.25','箱獲得＋3','生産×1.25','生産×1.2','生産×1.2','生産×1.2・HP×2','箱獲得＋5'][i-107]:['生産','HP回復','被ダメージ軽減','箱発見','イベント時間'][i%5]+' +'+(5*(t+1))+'%',god}});const cards=Array.from({length:111},(_,i)=>({emoji:icons[i%37],name:first[i%37]+second[(i*7+Math.floor(i/37)*11)%37],flavor:flavors[(i*17+Math.floor(i/37)*7)%37],rar:Math.min(5,Math.floor(i/19))}));const shop=[['power','永久生産 +25%',2],['vital','永久生命 +30%',2],['ward','攻撃無効 +12%',3],['echo','追加装備 +10%',4],['loot','箱獲得 +12%',3],['mondrian','🟥 コンポジション風テーマ',8],['ukiyo','🌊 浮世絵風テーマ',8],['rinpa','🟡 琳派風テーマ',8],['icon','✨ 聖像画風テーマ',8],['rococo','🌸 ロココ風テーマ',8]];let msg='',opening=false,filter=false,fight=null,spawnAt=Date.now()+5000,eventEnd=0,eventType='',eventVisible=false;const lvCost=()=>Math.min(Number.MAX_VALUE,Math.floor(12*1.43**Math.min(1000,s.lv-1))),shopLv=id=>s.shop[id]||0,has=id=>!!s.owned[id]&&!s.disabled[id],god=id=>has(107+id),cost=(id,base)=>Math.ceil(base*1.8**shopLv(id));// v74: retain owned counts; derived strength grows with diminishing returns.
 function v74Copies(value){const n=Number(value);return !Number.isFinite(n)||n<=0?0:n<=1?n:1+Math.log2(n);}
 function v74Rebirth(){const n=Number(s.rebirth);return 1+.5*Math.log2(1+(Number.isFinite(n)?Math.max(0,n):0));}
@@ -664,8 +737,8 @@ function v74CombatStats(){
  const level=Math.max(0,Number(s.lv)-1),trade=gearTrade();
  const rebirth=1+.3*(v74Rebirth()-1);
  const baseHP=24*(1+.18*level)**1.35;
- return {hp:baseHP*Math.sqrt(trade.hp*(1+.3*shopLv('vital'))*(1+.08*(s.research.balance||0)))*(god(0)?3:1)*(god(9)?2:1)*rebirth*v79BuildingHP()*v80Permanent('hp'),
- attack:5*(1+.16*level)**1.3*Math.sqrt(trade.attack*(1+storyBonus().attack)*(1+cardSet().attack))*(god(1)?3:1)*rebirth*v78BuildingAttack()*v80Permanent('attack'),healing:baseHP*.03*Math.sqrt(trade.healing*(1+bonuses()[1]/100))*rebirth*v78BuildingHealing()*v80Permanent('healing')};
+ return {hp:baseHP*Math.sqrt(trade.hp*(1+.3*shopLv('vital'))*(1+.08*(s.research.balance||0)))*(god(0)?3:1)*(god(9)?2:1)*rebirth*v79BuildingHP()*v80Permanent('hp')*v82Power().hp,
+ attack:5*(1+.16*level)**1.3*Math.sqrt(trade.attack*(1+storyBonus().attack)*(1+cardSet().attack))*(god(1)?3:1)*rebirth*v78BuildingAttack()*v80Permanent('attack')*v82Power().attack,healing:baseHP*.03*Math.sqrt(trade.healing*(1+bonuses()[1]/100))*rebirth*v78BuildingHealing()*v80Permanent('healing')*v82Power().healing};
 }
 function bonuses(){let b=[0,0,0,0,0];for(let i=0;i<107;i++)if(has(i))b[i%5]+=5*(gear[i].t+1)*v74Copies(s.owned[i]);return b}// v14: 尖った装備。各系統は強い代わりに代償を持つ。OFFで効果も代償も停止。
 const gearTraits=[
@@ -688,7 +761,7 @@ function synergyBonus(){let b={production:1,hp:1,attack:1,boxes:0,healing:1};for
 function renderSynergy(){let root=$('synergyStatus');if(!root)return;let list=synergyState().effects.filter(e=>e.stacks);root.innerHTML=list.length?'<div class="synergy-heading">✧ 共鳴発動 '+list.length+'系統</div>'+list.map(e=>'<span class="synergy-pill" style="--res-color:'+e.color+';border-color:'+e.color+'88;background:'+e.color+'18">'+e.name+' <b>×'+e.stacks+'</b> <small>'+e.desc+'</small></span>').join(''):'<span class="small">✧ 異なる系統の装備をONにすると共鳴。2系統それぞれ2ポイントで発動。所持数は維持され、重複と共鳴の効果は段階が上がるほど緩やかに伸びます。</span>'}
 function gearTrade(){let b={production:1,hp:1,attack:1,boxes:0,drain:1,healing:1};for(let i=0;i<107;i++){if(!has(i))continue;let g=gear[i],n=Math.min(12,Number(s.owned[i])||0),strength=Math.min(2.5,(g.t+1)*.045*n);switch(i%5){case 0:b.production+=strength*1.8;b.drain+=strength*.8;break;case 1:b.hp+=strength*2.5;b.production*=1/(1+strength*.25);break;case 2:b.attack+=strength*2.2;b.drain+=strength*.65;break;case 3:b.boxes+=strength*.35;b.production*=1/(1+strength*.3);break;case 4:b.healing+=strength*1.5;b.attack*=1/(1+strength*.28);break}}let sy=synergyBonus();b.production*=sy.production;b.hp*=sy.hp;b.attack*=sy.attack;b.boxes+=sy.boxes;b.healing*=sy.healing*v63RestBonus();return b}
 function returnMultiplier(){return Date.now()<s.returnBonusUntil?2:1}
-function income(){let b=bonuses(),trade=gearTrade(),m=2.7;let st=storyBonus();return v80Permanent('production')*v76BuildingMoney()*trade.production*v74Rebirth()*worldBonus().production*1.24**Math.min(1000,s.lv-1)*1.65**Math.floor(Math.min(1000,s.lv-1)/5)*(1+b[0]/100)*(1+.25*shopLv('power'))*(1+st.production)*(st.endingA?5:1)*(1+forgePower())*(1+.12*(s.research.opening||0)+.06*(s.research.balance||0))*(1+cardSet().production)*v74DivineProduction()*m*returnMultiplier()*Math.max(.6,1-s.curse*.08)*v63IncomeBonus()*(Date.now()<s.boostUntil?s.boost:1)*(Date.now()<s.chaosUntil?s.chaos:1)}// v29: cumulative offline efficiency. 11min=100%, 2h=44%, 12h=11%.
+function income(){let b=bonuses(),trade=gearTrade(),m=2.7;let st=storyBonus();return v82Power().production*v80Permanent('production')*v76BuildingMoney()*trade.production*v74Rebirth()*worldBonus().production*1.24**Math.min(1000,s.lv-1)*1.65**Math.floor(Math.min(1000,s.lv-1)/5)*(1+b[0]/100)*(1+.25*shopLv('power'))*(1+st.production)*(st.endingA?5:1)*(1+forgePower())*(1+.12*(s.research.opening||0)+.06*(s.research.balance||0))*(1+cardSet().production)*v74DivineProduction()*m*returnMultiplier()*Math.max(.6,1-s.curse*.08)*v63IncomeBonus()*(Date.now()<s.boostUntil?s.boost:1)*(Date.now()<s.chaosUntil?s.chaos:1)}// v29: cumulative offline efficiency. 11min=100%, 2h=44%, 12h=11%.
 function bgInstant(min,boost=false){const floor=boost?.22:.11;if(min<=11)return 1;if(min<=120)return 1-.56*(min-11)/109;if(min<=720)return .44-(.44-floor)*(min-120)/600;return floor}
 function bgEffectiveSeconds(seconds,boost=false){let m=Math.min(1440,Math.max(0,seconds/60)),v=0;const seg=(a,b,fa,fb)=>Math.max(0,b-a)*(fa+fb)/2;if(m<=11)return m*60;v=11;if(m<=120)return (v+seg(11,m,1,bgInstant(m,boost)))*60;v+=109*(1+.44)/2;if(m<=720)return (v+seg(120,m,.44,bgInstant(m,boost)))*60;v+=600*(.44+(boost?.22:.11))/2;return (v+(m-720)*(boost?.22:.11))*60}
 function bgBoost(){return !!(s.owned&&s.owned[112]>0&&!s.disabled[112])}
@@ -789,7 +862,7 @@ function v72BoxCoinReward(stats){
  s.coins+=1;s.boxCoinTotal=Math.max(0,Number(s.boxCoinTotal)||0)+1;s.boxCoinLast=Date.now();
  if(stats)stats.coins=(stats.coins||0)+1;
 }
-function pick(){let r=Math.floor(Math.random()*1000000),a=0,t=0;for(let i=0;i<6;i++){a+=tierWeights[i];if(r<a){t=i;break}}let start=tierCounts.slice(0,t).reduce((a,b)=>a+b,0);return start+Math.floor(Math.random()*tierCounts[t])}function openOne(stats){expireTimed();if(s.boxes<1)return false;s.boxes--;let v23NewDiscovery=false;let urgent=false;if(s.timed.length){s.timed.sort((a,b)=>a-b);let remaining=s.timed[0]-Date.now();urgent=remaining>0&&remaining<=5000;s.timed.shift()}let count=1+(Math.random()<Math.min(.9,shopLv('echo')*.1)?1:0)+(god(2)?10:0);for(let j=0;j<count;j++){let i=pick();if((urgent||s.curse)&&i<42&&Math.random()<(urgent?.22:0)+s.curse*.055){i=42+Math.floor(Math.random()*48)}let newItem=!s.discoveredGear[i];if(newItem){v23NewDiscovery=true;v63Action('gear');}s.owned[i]=(s.owned[i]||0)+1;s.discoveredGear[i]=true;applySavedPreferenceOnDrop(i);if(stats){stats.r[gear[i].t]++;if(newItem)stats.new++;if(urgent)stats.urgent=(stats.urgent||0)+1}if(gear[i].t>=3)s.lastRare=gear[i].emoji+' '+gear[i].name;if(gear[i].god){msg='✨ 神の加護：'+gear[i].name+' 降臨！';s.godQueue.push(i)}}if(!v23NewDiscovery){if(s.autoRecycle){s.paper+=1+storyBonus().paper+(s.research.recycling||0)+cardSet().paper}else{s.empty++}}s.opened++;v63Action('box');if(typeof window.artOnBoxOpen==='function')window.artOnBoxOpen();v72BoxCoinReward(stats);
+function pick(){let r=Math.floor(Math.random()*1000000),a=0,t=0;for(let i=0;i<6;i++){a+=tierWeights[i];if(r<a){t=i;break}}let start=tierCounts.slice(0,t).reduce((a,b)=>a+b,0);return start+Math.floor(Math.random()*tierCounts[t])}function openOne(stats){expireTimed();if(s.boxes<1)return false;s.boxes--;let v23NewDiscovery=false;let urgent=false;if(s.timed.length){s.timed.sort((a,b)=>a-b);let remaining=s.timed[0]-Date.now();urgent=remaining>0&&remaining<=5000;s.timed.shift()}let count=1+(Math.random()<Math.min(.9,shopLv('echo')*.1)?1:0)+(god(2)?10:0);for(let j=0;j<count;j++){let i=pick();if((urgent||s.curse)&&i<42&&Math.random()<(urgent?.22:0)+s.curse*.055){i=42+Math.floor(Math.random()*48)}let newItem=!s.discoveredGear[i];if(newItem){v23NewDiscovery=true;v63Action('gear');}s.owned[i]=(s.owned[i]||0)+1;s.discoveredGear[i]=true;applySavedPreferenceOnDrop(i);if(stats){stats.r[gear[i].t]++;if(newItem)stats.new++;if(urgent)stats.urgent=(stats.urgent||0)+1}if(gear[i].t>=3)s.lastRare=gear[i].emoji+' '+gear[i].name;if(gear[i].god){msg='✨ 神の加護：'+gear[i].name+' 降臨！';s.godQueue.push(i)}}if(!v23NewDiscovery){if(s.autoRecycle){s.paper+=1+storyBonus().paper+(s.research.recycling||0)+cardSet().paper}else{s.empty++}}s.opened++;v63Action('box');if(typeof window.artOnBoxOpen==='function')window.artOnBoxOpen();v72BoxCoinReward(stats);v82Roll('gear');v82Roll('card');
 // v25: milestone opportunities are 1/2 challenges, never guaranteed drops.
 // Queue one challenge per reached milestone; auto-opening can continue without losing opportunities.
 if(s.opened%250===0&&cards.some((c,i)=>!(s.cards[i]>0)))s.dopaCardPending=Math.min(1000000,(s.dopaCardPending||0)+1);
@@ -799,7 +872,7 @@ return true}function boxGain(){let n=1+(Math.random()<Math.min(.9,shopLv('loot')
  let stage=s.wins+1,boss=s.wins>0&&s.wins%5===0&&!s.bosses[s.wins],metal=!boss&&Math.random()<.04;
  const e={stage,boss,metal,mech:boss?['🩸 回復阻害','⛓️ 装備封印','☯️ 陰陽反転'][(Math.floor(s.wins/5)-1)%3]:'',hp:Math.ceil(18*(1+.2*(stage-1))**1.8*(boss?3:metal?2.5:1)),atk:Math.ceil(2*(1+.14*(stage-1))**1.75*(boss?1.6:1))};
  const spec=v80EnemySpec(e);e.species=spec.id;e.pattern=spec.pattern??(stage-1)%3;return e;
-}function startFight(){if(s.pendingBossReward){msg='🐉 先にボスの戦利品を選ぼう';$('battlepanel').classList.remove('hide');renderBossChoice();draw();return}if(fight&&fight.active){msg='⚔️ 戦闘中。決着を待とう';draw();return}let e=enemy(),hp=Math.max(1,v74CombatStats().hp);fight={e,hp,max:hp,ehp:e.hp,last:Date.now(),active:true};v57Roll('battle');v59Log('start','⚔️ 第'+e.stage+'戦・出撃',v57Get('battle')?.title||'新しい戦いが始まった');$('v59-finale').hidden=true;$('battlepanel').classList.remove('v59-burst');$('battlepanel').classList.remove('hide');draw()}function fightTick(t){
+}function startFight(){if(s.pendingBossReward){msg='🐉 先にボスの戦利品を選ぼう';$('battlepanel').classList.remove('hide');renderBossChoice();draw();return}if(fight&&fight.active){msg='⚔️ 戦闘中。決着を待とう';draw();return}let e=enemy(),hp=Math.max(1,v74CombatStats().hp);s.v82Rare.highest=Math.max(s.v82Rare.highest,e.stage);fight={e,hp,max:hp,ehp:e.hp,last:Date.now(),active:true};v57Roll('battle');v59Log('start','⚔️ 第'+e.stage+'戦・出撃',v57Get('battle')?.title||'新しい戦いが始まった');$('v59-finale').hidden=true;$('battlepanel').classList.remove('v59-burst');$('battlepanel').classList.remove('hide');draw()}function fightTick(t){
  if(!fight||!fight.active)return;
  let steps=Math.min(5,Math.floor((t-fight.last)/1000));fight.last+=steps*1000;
  for(let i=0;i<steps&&fight.active;i++){
@@ -818,7 +891,7 @@ return true}function boxGain(){let n=1+(Math.random()<Math.min(.9,shopLv('loot')
    if(e.boss){let coin=(3+Math.ceil(e.stage/5))*(god(1)?2:1)+v79BuildingGems();s.coins+=coin;s.bosses[e.stage]=true;s.relics[Math.ceil(e.stage/5)]=true;s.pendingBossReward=e.stage;renderBossChoice();msg='🐉 ボス撃破 ✦+'+coin+' 🎁'+amount+' · 追加報酬を選ぼう';v59Log('boss','🐉 BOSS CLEAR ・ 第'+e.stage+'戦',note+' / ✦+'+coin+' / 追加報酬を選択');v59Flash('boss','ボスを倒した！ 戦利品を選ぼう');}
    else if(e.metal){msg='🩶 メタル撃破 🎁'+amount+' '+yin()+' '+double();v59Log('win','🩶 METAL CLEAR ・ 第'+e.stage+'戦',note+' / ボーナス発生');v59Flash('win','メタル撃破！ 特殊ボーナス獲得');}
    else{msg='⚔️ 勝利 🎁'+amount;v59Log('win','🏆 VICTORY ・ 第'+e.stage+'戦',note+' / 次の戦いが解放');v59Flash('win','勝利！ 箱と資産を獲得');}
-   v80DropRelic();v57BattleResult(true);break;
+   v80DropRelic();v82BattleDrop();v57BattleResult(true);break;
   }
   let blocked=Math.random()<Math.min(.9,shopLv('ward')*.12+(god(3)?.9:0));
   let received=blocked?0:fight.e.atk*intent.power*tactic.damage*(1-Math.min(.25,Math.sqrt(bonuses()[2])*.01))*(fight.e.mech?.includes('反転')&&s.mode==='fast'?2:1);
@@ -1006,7 +1079,7 @@ function applyRecommendedBuild(mode){
 }
 document.querySelectorAll('[data-build]').forEach(b=>b.onclick=()=>applyRecommendedBuild(b.dataset.build));
 $('buildUndo').onclick=()=>{if(previousGearSelection===null)return;s.disabled={...previousGearSelection};s.activeSavedBuild=null;renderCustomBuilds();previousGearSelection=null;$('buildUndo').disabled=true;$('buildHint').textContent='直前の装備ON/OFFに戻した。';renderGear();draw();save()};
-renderCustomBuilds();$('allOn').onclick=()=>{v57Roll('gear');previousGearSelection={...s.disabled};s.disabled={};s.activeSavedBuild=null;renderCustomBuilds();$('buildUndo').disabled=false;$('buildHint').textContent='全装備をONにした。戻すこともできる。';renderGear();draw();save()};$('attack').onclick=startFight;$('pack').onclick=()=>{if(s.coins<3)return;s.coins-=3;let a=[];for(let i=0;i<3;i++){let id=Math.floor(Math.random()*111);s.cards[id]=(s.cards[id]||0)+1;a.push(cards[id].name)}$('packresult').textContent=a.join(' / ');renderCards();draw();save()};$('event').onclick=()=>{let kind=eventType;if(kind==='yin')msg=yin();else if(kind==='double')msg=double();else if(kind==='gift'){boxGain();msg='🎁 箱獲得'}else{s.empty++;msg='† 廃材を回収 · 空き箱＋1'}eventVisible=false;$('event').classList.add('hide');spawnAt=Date.now()+12000+Math.random()*13000;draw();save()};function step(sec){
+renderCustomBuilds();$('allOn').onclick=()=>{v57Roll('gear');previousGearSelection={...s.disabled};s.disabled={};s.activeSavedBuild=null;renderCustomBuilds();$('buildUndo').disabled=false;$('buildHint').textContent='全装備をONにした。戻すこともできる。';renderGear();draw();save()};$('attack').onclick=startFight;$('pack').onclick=()=>{if(s.coins<3)return;s.coins-=3;let a=[];for(let i=0;i<3;i++){let id=Math.floor(Math.random()*111);s.cards[id]=(s.cards[id]||0)+1;a.push(cards[id].name)}v82Roll('card');$('packresult').textContent=a.join(' / ');renderCards();draw();save()};$('event').onclick=()=>{let kind=eventType;if(kind==='yin')msg=yin();else if(kind==='double')msg=double();else if(kind==='gift'){boxGain();msg='🎁 箱獲得'}else{s.empty++;msg='† 廃材を回収 · 空き箱＋1'}eventVisible=false;$('event').classList.add('hide');spawnAt=Date.now()+12000+Math.random()*13000;draw();save()};function step(sec){
  if(!Number.isFinite(sec)||sec<=0)return;
  const elapsed=Math.min(86400,sec);expeditionTick(elapsed);v76BuildingTick(elapsed);
  const guard=fight?.active&&/封印|反転/.test(fight.e.mech||'');
@@ -1878,7 +1951,7 @@ setInterval(()=>{if((s.dopaCardPending||0)||(s.dopaGodPending||0))renderDopa()},
 // v56: The Museum of Things You Bought. Virtual acquisitions only; no physical ownership transfer.
 (function(){'use strict';
 const by=id=>document.getElementById(id);
-const museumNames={aic:'シカゴ美術館',cma:'クリーブランド美術館',met:'メトロポリタン美術館',smk:'デンマーク国立美術館（SMK）'};
+const museumNames={aic:'シカゴ美術館',cma:'クリーブランド美術館',met:'メトロポリタン美術館',smk:'デンマーク国立美術館（SMK）',moma:'ニューヨーク近代美術館（内蔵公開絵画）'};
 const ROOM_DEFS=[
  {id:'studio',name:'最初の展示室',subtitle:'コンクリートと白い壁',price:0,slots:6},
  {id:'salon',name:'緋色のサロン',subtitle:'ビロードと深い木目',price:333,slots:6},
@@ -1908,9 +1981,41 @@ const classOfWork=cost=>cost>=7777?'至宝':cost>=1777?'逸品':cost>=777?'名�
 const max=(n)=>Math.max(0,Math.floor(Number(n)||0));
 const make=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=String(text);return e;};
 function escText(str){return String(str||'');}
-function validImage(url){try{const u=new URL(url);return u.protocol==='https:'&&['www.artic.edu','openaccess-cdn.clevelandart.org','images.metmuseum.org','collectionapi.metmuseum.org','iip-thumb.smk.dk'].includes(u.hostname)}catch(e){return false}}
+function validImage(url){if(url&&url===V82_BUILTIN_ART.image)return true;try{const u=new URL(url);return u.protocol==='https:'&&['www.artic.edu','openaccess-cdn.clevelandart.org','images.metmuseum.org','collectionapi.metmuseum.org','iip-thumb.smk.dk','iiif.smk.dk','images.smk.dk','api.smk.dk'].includes(u.hostname)}catch(e){return false}}
 function safeRecord(r){if(!r||typeof r!=='object')return null;let o={id:String(r.id||'').slice(0,60),museum:String(r.museum||''),title:String(r.title||'無題').slice(0,190),artist:String(r.artist||'作者不詳').slice(0,140),date:String(r.date||'年代不詳').slice(0,70),image:String(r.image||''),source:String(r.source||'')};return o.id&&museumNames[o.museum]&&validImage(o.image)?o:null;}
-function insertImage(el,o){if(!validImage(o.image))return;const img=make('img');img.src=o.image;img.loading='lazy';img.decoding='async';img.referrerPolicy='no-referrer';img.alt=o.title+' ／ '+o.artist;img.onerror=()=>{img.remove();if(!el.querySelector('.art-noimage'))el.append(make('small','art-noimage','画像未取得。題名・作者は保存済み。'))};el.append(img);}
+const V82_BUILTIN_ART={id:'moma-starry-night',museum:'moma',title:'星月夜',artist:'フィンセント・ファン・ゴッホ',date:'1889年',image:'./art/starry-night.jpg',source:'https://www.moma.org/collection/works/79802'};
+const v82ArtCaching=new Set(),v82CachedURLs=new Map();
+function v82ArtCacheKey(o){return new URL('./.art-image-cache/'+encodeURIComponent(o.id),location.href).href;}
+async function v82CachedArt(o){try{if(!globalThis.caches)return null;const cache=await caches.open('001-art-images-v82'),response=await cache.match(v82ArtCacheKey(o));return response?await response.blob():null;}catch{return null;}}
+async function v82StoreArt(o,url){
+ if(v82ArtCaching.has(o.id)||!s.artCollection[o.id]||url===V82_BUILTIN_ART.image)return;v82ArtCaching.add(o.id);
+ try{if(!globalThis.caches)return;const response=await fetch(url,{mode:'cors',credentials:'omit',referrerPolicy:'no-referrer',signal:AbortSignal.timeout(8000)});if(!response.ok)return;const blob=await response.blob();if(!blob.type.startsWith('image/')||blob.size>2500000||!blob.size)return;
+ const cache=await caches.open('001-art-images-v82');await cache.put(v82ArtCacheKey(o),new Response(blob,{headers:{'Content-Type':blob.type}}));const keys=await cache.keys();for(const key of keys.slice(0,Math.max(0,keys.length-24)))await cache.delete(key);
+ }catch{}finally{v82ArtCaching.delete(o.id);}
+}
+async function v82RepairArt(o){
+ let image='';
+ if(o.id===V82_BUILTIN_ART.id)image=V82_BUILTIN_ART.image;
+ else if(/^met-\d+$/.test(o.id)){const data=await fetchBound('https://collectionapi.metmuseum.org/public/collection/v1/objects/'+o.id.slice(4),7000);image=data.primaryImageSmall||data.primaryImage;}
+ else if(/^aic-\d+$/.test(o.id)){const data=await fetchBound('https://api.artic.edu/api/v1/artworks/'+o.id.slice(4)+'?fields=id,image_id',7000);if(data.data?.image_id)image='https://www.artic.edu/iiif/2/'+encodeURIComponent(data.data.image_id)+'/full/600,/0/default.jpg';}
+ else if(/^cma-\d+$/.test(o.id)){const data=await fetchBound('https://openaccess-api.clevelandart.org/api/artworks/'+o.id.slice(4),7000);image=data.data?.images?.web?.url||data.data?.images?.print?.url;}
+ else if(o.id.startsWith('smk-')){const data=await fetchBound('https://api.smk.dk/api/v1/art/?object_number='+encodeURIComponent(o.id.slice(4)),7000);image=data.items?.[0]?.image_thumbnail;}
+ if(validImage(image)){o.image=image;if(s.artCollection[o.id])s.artCollection[o.id].image=image;persist();return image;}return validImage(o.image)?o.image:'';
+}
+function insertImage(el,o){
+ const img=make('img');img.loading=el.classList.contains('art-gallery-frame')?'eager':'lazy';img.decoding='async';img.referrerPolicy='no-referrer';img.alt=o.title+' ／ '+o.artist;
+ let objectUrl=null,status=null,repairing=false;
+ const clear=()=>{if(status){status.remove();status=null;}if(objectUrl){URL.revokeObjectURL(objectUrl);v82CachedURLs.delete(objectUrl);objectUrl=null;}};
+ const failure=()=>{
+  if(objectUrl){URL.revokeObjectURL(objectUrl);v82CachedURLs.delete(objectUrl);objectUrl=null;}
+  if(status)return;status=make('div','art-image-status');status.appendChild(make('small','','画像を読み込めませんでした。作品と配置は保存されています。'));
+  const retry=make('button','','画像を再取得');retry.type='button';retry.onclick=async event=>{event.preventDefault();event.stopPropagation();if(repairing)return;repairing=true;retry.disabled=true;retry.textContent='再取得中…';try{const image=await v82RepairArt(o);if(image){status.remove();status=null;img.src=image;}else throw Error('No image');}catch{retry.textContent='もう一度試す';retry.disabled=false;}finally{repairing=false;}};status.appendChild(retry);
+  const target=el.tagName==='BUTTON'?el.parentElement:el;if(target)target.appendChild(status);
+ };
+ img.onload=()=>{const cached=!!objectUrl;clear();if(!cached)v82StoreArt(o,o.image);};img.onerror=failure;el.appendChild(img);
+ (async()=>{const blob=await v82CachedArt(o);if(blob?.size){objectUrl=URL.createObjectURL(blob);v82CachedURLs.set(objectUrl,img);img.src=objectUrl;}else if(validImage(o.image))img.src=o.image;else failure();})();
+}
+
 function persist(){save();}
 if(!s.artCollection||typeof s.artCollection!=='object')s.artCollection={};
 s.artTickets=max(s.artTickets);s.artMeter=max(s.artMeter);s.artShards=max(s.artShards);s.artWins=max(s.artWins);s.artDuplicates=max(s.artDuplicates);
@@ -1950,7 +2055,13 @@ function addPool(rows){const ids=new Set([...s.artQueue,...s.artOffers].map(x=>x
 async function fetchBound(url,timeout=11000){const c=new AbortController(),timer=setTimeout(()=>c.abort(),timeout);try{const r=await fetch(url,{signal:c.signal,mode:'cors',cache:'default'});if(!r.ok)throw Error('HTTP '+r.status);return r.json()}finally{clearTimeout(timer)}}
 async function loadAic(){const pageNum=1+Math.floor(Math.random()*1450);const j=await fetchBound('https://api.artic.edu/api/v1/artworks?limit=100&page='+pageNum+'&fields=id,title,artist_title,date_display,is_public_domain,image_id');return (j.data||[]).filter(o=>o.is_public_domain===true&&o.image_id).map(o=>({id:'aic-'+o.id,museum:'aic',title:o.title,artist:o.artist_title||'作者不詳',date:o.date_display||'',image:'https://www.artic.edu/iiif/2/'+encodeURIComponent(o.image_id)+'/full/600,/0/default.jpg',source:'https://www.artic.edu/artworks/'+o.id}));}
 async function loadCma(){const skip=100*Math.floor(Math.random()*360),j=await fetchBound('https://openaccess-api.clevelandart.org/api/artworks/?cc0&has_image=1&limit=100&skip='+skip);return (j.data||[]).filter(o=>String(o.share_license_status).toUpperCase()==='CC0'&&o.images?.web?.url).map(o=>({id:'cma-'+o.id,museum:'cma',title:o.title,artist:(o.creators||[]).map(x=>x.description||x.name||'').filter(Boolean).join(' / ')||'作者不詳',date:o.creation_date||o.creation_date_earliest||'',image:o.images.web.url,source:o.url||'https://www.clevelandart.org/art/'+o.id}));}
-async function loadMet(){const terms=['landscape','portrait','sunflowers','moon','birds','flowers','water','print','painting','sculpture','Japanese','winter','drawing','ceramics','architecture','women','ocean','tea','flowers'];const q=encodeURIComponent(terms[Math.floor(Math.random()*terms.length)]),offset=100*Math.floor(Math.random()*75);let j=await fetchBound('https://collectionapi.metmuseum.org/public/collection/v1.1/search?hasImages=true&q='+q+'&offset='+offset+'&limit=100');let ids=Array.isArray(j.objectIDs)?j.objectIDs:[];if(!ids.length&&offset){j=await fetchBound('https://collectionapi.metmuseum.org/public/collection/v1.1/search?hasImages=true&q='+q+'&limit=100');ids=Array.isArray(j.objectIDs)?j.objectIDs:[];}const rows=[];for(let k=0;k<Math.min(10,ids.length);k++){const id=ids[Math.floor(Math.random()*ids.length)];try{const a=await fetchBound('https://collectionapi.metmuseum.org/public/collection/v1/objects/'+id,7000);if(a.isPublicDomain===true&&(a.primaryImageSmall||a.primaryImage))rows.push({id:'met-'+id,museum:'met',title:a.title,artist:a.artistDisplayName||a.culture||'作者不詳',date:a.objectDate||'',image:a.primaryImageSmall||a.primaryImage,source:a.objectURL||'https://www.metmuseum.org/art/collection/search/'+id})}catch(e){}}return rows;}
+async function loadMet(){
+ const terms=['landscape','portrait','flowers','moon','birds','Japanese','winter'],q=encodeURIComponent(terms[Math.floor(Math.random()*terms.length)]);
+ const search=await fetchBound('https://collectionapi.metmuseum.org/public/collection/v1/search?hasImages=true&q='+q,7000),ids=Array.isArray(search.objectIDs)?search.objectIDs:[];
+ const sample=[...new Set(Array.from({length:Math.min(4,ids.length)},()=>ids[Math.floor(Math.random()*ids.length)]))];
+ const results=await Promise.allSettled(sample.map(id=>fetchBound('https://collectionapi.metmuseum.org/public/collection/v1/objects/'+id,7000)));
+ return results.filter(r=>r.status==='fulfilled').map(r=>r.value).filter(o=>o.isPublicDomain===true&&(o.primaryImageSmall||o.primaryImage)).map(o=>({id:'met-'+o.objectID,museum:'met',title:o.title,artist:o.artistDisplayName||o.culture||'作者不詳',date:o.objectDate||'',image:o.primaryImageSmall||o.primaryImage,source:o.objectURL||'https://www.metmuseum.org/art/collection/search/'+o.objectID}));
+}
 async function loadSmk(){
  // Statens Museum for Kunst: its public-domain flag also covers the freely reusable photograph.
  const offset=100*Math.floor(Math.random()*340);
@@ -1963,10 +2074,10 @@ async function loadSmk(){
    image:o.image_thumbnail,source:'https://open.smk.dk/en/artwork/image/'+encodeURIComponent(o.object_number)
  }));
 }
-async function loadOneMuseum(force=false){if(loading||!force&&Date.now()-lastFetch<8000)return false;loading=true;lastFetch=Date.now();const loaders=[loadCma,loadAic,loadMet,loadSmk];let success=false,errs=[];for(let i=0;i<4;i++){try{const rows=await loaders[(turn++)%loaders.length]();if(rows.length){addPool(rows);success=true;networkError='';break}}catch(e){errs.push(String(e.message||e))}}loading=false;if(!success){networkError='接続先から画像を取得できませんでした。買付券と購入済みの作品は残ります。';setStatus(networkError)}persist();renderMuseum();return success;}
+async function loadOneMuseum(force=false){if(loading||!force&&Date.now()-lastFetch<8000)return false;loading=true;lastFetch=Date.now();const loaders=[loadCma,loadAic,loadMet,loadSmk];let success=false,errs=[];for(let i=0;i<4;i++){try{const rows=await loaders[(turn++)%loaders.length]();if(rows.length){addPool(rows);success=true;networkError='';break}}catch(e){errs.push(String(e.message||e))}}loading=false;if(!success){networkError='外部コレクションへ接続できませんでした。内蔵作品・保存済み画像を利用できます。買付券と購入作品は保持しています。';setStatus(networkError)}persist();renderMuseum();return success;}
 function showToast(o,text){const toast=by('artDiscoveryToast');by('artToastImage').replaceChildren();insertImage(by('artToastImage'),o);by('artToastCaption').textContent=text;by('artToastTitle').textContent=o.title;by('artToastMuseum').textContent=museumNames[o.museum]||'公開コレクション';toast.classList.remove('hide');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.add('hide'),7000);}
 function grantOffers(count){const added=[];let attempt=0;while(s.artQueue.length&&added.length<count&&s.artOffers.length<OFFER_LIMIT&&attempt++<120){let idx=Math.floor(Math.random()*s.artQueue.length),o=s.artQueue.splice(idx,1)[0];if(!o||s.artCollection[o.id]||s.artOffers.some(a=>a.id===o.id))continue;s.artOffers.unshift(o);added.push(o)}return added;}
-async function revealTicket(){if(busy||s.artTickets<=0)return;busy=true;by('artMuseumRedeem').disabled=true;setStatus('所蔵館へ作品を照会しています…');try{if(s.artQueue.length<5)await loadOneMuseum(true);if(!s.artQueue.length){setStatus('公開コレクションを読み込めません。買付券は消費していません。');return;}const added=grantOffers(5);if(added.length){s.artTickets--;setStatus('新しい買付候補 '+added.length+'点が届いた。買うかどうかは自由。');showToast(added[0],'✦ 新しい買付候補が届いた');}else setStatus('買付候補が満杯です。展示候補を購入すると、新しい仕入れができます。');}finally{busy=false;persist();renderMuseum();}}
+async function revealTicket(){if(busy||s.artTickets<=0)return;busy=true;by('artMuseumRedeem').disabled=true;setStatus('所蔵館へ作品を照会しています…');try{if(!s.artQueue.length)await loadOneMuseum(true);if(!s.artQueue.length){setStatus('公開コレクションを読み込めません。買付券は消費していません。');return;}const added=grantOffers(5);if(added.length){s.artTickets--;setStatus('新しい買付候補 '+added.length+'点が届いた。買うかどうかは自由。');showToast(added[0],'✦ 新しい買付候補が届いた');}else setStatus('買付候補が満杯です。展示候補を購入すると、新しい仕入れができます。');}finally{busy=false;persist();renderMuseum();}}
 window.artOnBoxOpen=function(){s.artMeter=max(s.artMeter)+1;if(Math.random()<1/77||s.artMeter>=77){s.artMeter=0;s.artTickets=max(s.artTickets)+1;}};
 function buyOffer(id){const index=s.artOffers.findIndex(o=>o.id===id);if(index<0)return;const o=s.artOffers[index],price=costOfWork(o);if(s.coins<price){setStatus('✦'+price+' 必要。あと '+Math.ceil(price-s.coins)+' ✦。ボス戦などでジェムを貯めよう。');return;}
  s.coins-=price;s.artOffers.splice(index,1);s.artCollection[id]={...o,at:Date.now(),copies:1,frame:0,purchasedFor:price};s.artWins++;s.artShards+=2;s.artPendingHang=id;setStatus('収蔵完了：'+o.title+' ／ ✦'+price+'　配置する壁を選んでください。');showToast(o,'✓ 買い付け成立');persist();renderMuseum();draw();}
@@ -1996,7 +2107,7 @@ function buildCard(o,market){const card=make('article','art-work');const cover=m
 function renderMarket(){const root=by('artMarketGrid');root.replaceChildren();const list=s.artOffers.filter(o=>!s.artCollection[o.id]);let pages=Math.max(1,Math.ceil(list.length/MARKET_PAGE_SIZE));marketPage=Math.min(Math.max(0,marketPage),pages-1);by('artMarketPage').textContent=(marketPage+1)+' / '+pages;by('artMarketPrev').disabled=marketPage===0;by('artMarketNext').disabled=marketPage>=pages-1;
  if(!list.length){root.append(make('p','art-empty-message','買付候補はまだない。箱から買付券を手に入れ、「新しい買付候補を見る」を押そう。'));return;}for(const o of list.slice(marketPage*MARKET_PAGE_SIZE,(marketPage+1)*MARKET_PAGE_SIZE))root.append(buildCard(o,true));}
 function renderGrid(){const root=by('artMuseumGrid');root.replaceChildren();const term=by('artMuseumSearch').value.trim().toLowerCase(),m=by('artMuseumSource').value;const all=Object.values(s.artCollection).filter(o=>(m==='all'||o.museum===m)&&(!term||[o.title,o.artist,o.date,museumNames[o.museum]].join(' ').toLowerCase().includes(term))).sort((a,b)=>(b.at||0)-(a.at||0));const pages=Math.max(1,Math.ceil(all.length/PAGE_SIZE));page=Math.min(Math.max(0,page),pages-1);by('artMuseumPage').textContent=(page+1)+' / '+pages;by('artMuseumPrev').disabled=page<=0;by('artMuseumNext').disabled=page>=pages-1;if(!all.length){root.append(make('p','art-empty-message',Object.keys(s.artCollection).length?'条件に合う作品はない。':'まだ購入した作品はない。買付市場から探そう。'));return;}for(const o of all.slice(page*PAGE_SIZE,(page+1)*PAGE_SIZE))root.append(buildCard(o,false));}
-function renderMuseum(){if(!ready)return;artStatus();if(!by('artMuseumPanel').classList.contains('hide')){renderRoomTabs();renderRoom();renderRoomShop();renderFrames();renderMarket();renderGrid()}}
+function renderMuseum(){for(const [url,img]of v82CachedURLs)if(!img.isConnected){URL.revokeObjectURL(url);v82CachedURLs.delete(url);}if(!ready)return;artStatus();if(!by('artMuseumPanel').classList.contains('hide')){renderRoomTabs();renderRoom();renderRoomShop();renderFrames();renderMarket();renderGrid()}}
 function toggleMuseum(open){const panel=by('artMuseumPanel'),next=open===undefined?panel.classList.contains('hide'):open;panel.classList.toggle('hide',!next);by('artMuseumBtn').setAttribute('aria-expanded',String(next));if(next){renderMuseum();panel.scrollIntoView({behavior:'smooth',block:'start'});if(s.artQueue.length<20&&!loading)loadOneMuseum();}}
 by('artToastOpen').onclick=()=>{by('artDiscoveryToast').classList.add('hide');toggleMuseum(true)};by('artToastDismiss').onclick=()=>by('artDiscoveryToast').classList.add('hide');
 by('artMuseumBtn').onclick=()=>toggleMuseum();by('artMuseumClose').onclick=()=>toggleMuseum(false);by('artMuseumBtn').setAttribute('aria-expanded','false');by('artMuseumBtn').setAttribute('aria-controls','artMuseumPanel');
@@ -2006,6 +2117,7 @@ by('artMuseumSearch').oninput=()=>{page=0;renderGrid()};by('artMuseumSource').on
 by('artMuseumCancelHang').onclick=()=>{s.artPendingHang=null;persist();renderMuseum()};
 // Existing v55 welcome tickets are retained. Give one to brand-new museums, once only.
 if(!s.artMuseumWelcome){s.artMuseumWelcome=true;s.artTickets++;persist()}
+if(s.artCollection[V82_BUILTIN_ART.id])s.artCollection[V82_BUILTIN_ART.id].image=V82_BUILTIN_ART.image;addPool([V82_BUILTIN_ART]);const localOption=make('option','','ニューヨーク近代美術館（内蔵）');localOption.value='moma';by('artMuseumSource').appendChild(localOption);
 ready=true;renderMuseum();
 let lastShownCoins=Number(s.coins)||0;
 setInterval(()=>{if(!ready||by('artMuseumPanel').classList.contains('hide'))return;const now=Number(s.coins)||0;
@@ -2854,6 +2966,7 @@ function v68OpenPanel(key='menu'){
  if(key==='dreamjournal')v77RenderDreamExtras();
  if(key==='hud')v78RenderHUD(true);
  if(key==='permanent')v80RenderPermanent();
+ if(key==='rare')v82RenderRare();
  if(key==='settings')$('v54Guide').open=true;
  if(!dialog.open)dialog.showModal();
  $('v68-library-body').scrollTop=0;
@@ -2868,7 +2981,7 @@ function v68InitUI(){
  const main=document.querySelector('main');if(!main)return;
  const originalChildren=Array.from(main.children);
  document.body.classList.add('v68-ui');
- document.querySelector('.v32brand').title='狩り拡張版 v81：敵151種・固定強さの狩り・所持箱数・メイン転生';
+ document.querySelector('.v32brand').title='レア拡張版 v82：秘蔵装備・カード・秘宝各100種と画廊の画像改善';
  const wallet=v68Node('section','v69-wallet');wallet.setAttribute('aria-label','所持金と毎秒収入');
  wallet.innerHTML='<span id="v69-wallet-label">所持金</span><span id="v69-wallet-coins" title="永久商店・美術館で使う別のジェム"></span>';
  const stats=v68Node('div','v68-stats');stats.setAttribute('aria-label','現在の冒険の状態');
@@ -2890,7 +3003,7 @@ function v68InitUI(){
  const menuHint=v68Node('p',null,'冒険を止めて、装備・物語・記録をゆっくり確認できます。');menuHint.className='small';menu.append(menuHint);
  v68Move('v54nav',menu);v68Move('v62-diary-access',menu);
  const menuLinks=v68Node('div','v68-menu-links');menuLinks.className='v68-menu-grid';
- const links=[['permanent','✧ 恒久強化・固有戦利品'],['hud','📊 ステータス表示設定'],['buildings','🏘 建物・生産'],['dreamjournal','📒 夢の旅の記録'],['progress','🌗 実績・世界進捗'],['save','💾 セーブ・バックアップ'],['settings','⚙️ 遊び方・音・設定'],['rebirth','🌌 輪廻・再構築'],['logs','📜 戦況・世界の時刻'],['dopa','🎰 ドパチャレンジ'],['extras','✦ その他の操作']];
+ const links=[['rare','✧ 秘蔵コレクション300種'],['permanent','✧ 恒久強化・固有戦利品'],['hud','📊 ステータス表示設定'],['buildings','🏘 建物・生産'],['dreamjournal','📒 夢の旅の記録'],['progress','🌗 実績・世界進捗'],['save','💾 セーブ・バックアップ'],['settings','⚙️ 遊び方・音・設定'],['rebirth','🌌 輪廻・再構築'],['logs','📜 戦況・世界の時刻'],['dopa','🎰 ドパチャレンジ'],['extras','✦ その他の操作']];
  for(const [key,label]of links){const b=v68Node('button','v68-menu-'+key,label);b.type='button';b.onclick=()=>v68OpenPanel(key);menuLinks.appendChild(b);}
  menu.appendChild(menuLinks);
  const oldSave=$('savetoggle');if(oldSave)menu.appendChild(oldSave);
@@ -2914,6 +3027,7 @@ function v68InitUI(){
  const savePane=pane('save','セーブ・バックアップ');v68Move('savepanel',savePane);
  const town=v68Node('details','v78-town');town.open=innerHeight>=700;
  const townTitle=v68Node('summary',null,'🏘 街づくり · 10種');townTitle.tabIndex=0;town.appendChild(townTitle);v76InitBuildings(town);
+ const rare=pane('rare','秘蔵コレクション・レア300種');v82InitRare(rare);
  const permanent=pane('permanent','恒久強化・固有戦利品');v80InitPermanent(permanent);
  const hudSettings=pane('hud','ステータス表示設定');
  const journal=pane('dreamjournal','夢の旅の記録');journal.appendChild(v68Node('div','v77-dream-journal'));
@@ -2991,7 +3105,7 @@ function v68InitUI(){
 }
 function v68RenderUI(){
  if(!v68UIReady)return;
- v76RenderBuildings();v77RenderCombat();v77RenderDreamExtras();v78RenderHUD();v80RenderPermanent();v81RenderHunt();
+ v76RenderBuildings();v77RenderCombat();v77RenderDreamExtras();v78RenderHUD();v80RenderPermanent();v81RenderHunt();v82RenderRare();
  const boxCount='🎁 ルートボックス　所持 '+prettyNum(Math.floor(s.boxes))+'個';
  const boxHeading=$('boxpanel').querySelector('h3');if(boxHeading.textContent!==boxCount)boxHeading.textContent=boxCount;
  const gearTitle='装備・ルートボックス（'+prettyNum(Math.floor(s.boxes))+'個）';v68Panes.get('gear').dataset.title=gearTitle;
@@ -3972,4 +4086,14 @@ body.v68-ui #v81-enemy-search{width:100%;box-sizing:border-box;min-height:44px;f
 body.v68-ui #v68-pane-permanent article[hidden]{display:none}
 body.v68-ui #v68-shortcut-gear>span{max-width:100%;white-space:nowrap;display:flex;align-items:baseline;gap:2px}
 body.v68-ui #v81-box-nav-count{min-width:0;overflow:hidden;text-overflow:ellipsis}
+body.v68-ui #v82-items small{font-size:14px}
+body.v68-ui #v82-items button,body.v68-ui #v82-open-rare{min-height:44px;font-size:14px;width:100%}
+body.v68-ui #v82-category,body.v68-ui #v82-search{min-height:44px;font-size:16px;max-width:100%;box-sizing:border-box;margin:5px 0}
+body.v68-ui #v82-items [data-rarity="3"]{border:2px solid var(--accent);box-shadow:0 0 0 1px var(--fg)}
+#v82-rare-notice{position:fixed;z-index:210;top:var(--v68-toast-top,250px);left:5%;width:90%;min-height:44px;background:var(--panel);color:var(--fg);border:2px solid var(--accent);font-size:14px;box-sizing:border-box}
+#v82-rare-notice[hidden]{display:none}
+#v82-rare-notice{pointer-events:none;padding:7px;border-radius:8px}
+#artMuseumPanel .art-image-status{font-size:14px;line-height:1.5;color:var(--fg);background:var(--panel);padding:6px;border-radius:6px}
+#artMuseumPanel .art-image-status button{min-height:44px;font-size:14px;width:100%}
+#artMuseumPanel .art-gallery-frame img{min-height:80px;max-height:240px;object-fit:contain}
 </style></body></html>

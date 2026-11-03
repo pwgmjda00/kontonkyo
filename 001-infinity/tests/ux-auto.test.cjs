@@ -32,6 +32,7 @@ window.__infinityTest = {
   buyBuilding: (id,count=1) => v76BuyBuilding(id,count), quoteBuilding: (id,count) => v79BuildingQuote(id,count), gainBoxes: () => boxGain(), buildingCost: id => v76BuildingCost(id),
   hudRows: () => v78HUDRows(), hudUpdate: fields => v78HUDUpdate(fields),
   buildingRates: () => ({attack:v78BuildingAttack(),healing:v78BuildingHealing(),sparkle:v78BuildingSparkle(),money:v76BuildingMoney(),boxes:v76BuildingBoxes(),paper:v76BuildingPaper(),scrap:v76BuildingScrap()}),
+  rareCatalog: () => V82_CATALOG, rareGrant: (kind,id) => v82Grant(kind,id), rareRoll: kind => v82Roll(kind), rareRandom: n => {v82Random=()=>n;}, rarePatch: fields => {Object.assign(s.v82Rare,fields);s.v82Rare.revision++;}, rarePower: () => v82Power(), rareEquip: id => v82Equip(id), rareBattle: () => v82BattleDrop(),
   boxCoinRoll: () => v72BoxCoinRoll(), openBox: () => openOne(),
   balance: () => ({income:income(),cost:lvCost(),combat:v74CombatStats(),synergy:synergyBonus(),rebirth:v74Rebirth()}),
   save: () => save(), draw: () => draw(), income: () => income(), step: dt => step(dt),
@@ -70,6 +71,7 @@ function fixture(extra = {}) {
 async function main() {
   fs.mkdirSync(artifacts, {recursive: true});
   const server = http.createServer((req, res) => {
+    if(req.url.split('?')[0]==='/art/starry-night.jpg'){res.writeHead(200,{'Content-Type':'image/jpeg'});res.end(fs.readFileSync(path.join(root,'art/starry-night.jpg')));return;}
     if (req.url === '/favicon.ico') {res.writeHead(204);res.end();return;}
     try {
       const html = instrument(fs.readFileSync(source, 'utf8'));
@@ -132,6 +134,7 @@ async function main() {
     assert.equal((await state(page)).dualWorld.active, world);
   }
   async function config(page, settings) {await page.evaluate(value => __infinityTest.configure(value), settings);}
+  async function waitImage(image){for(let i=0;i<100;i++){if(await image.evaluate(n=>n.complete&&n.naturalWidth>0))return;await new Promise(resolve=>setTimeout(resolve,20));}assert.fail('Artwork image did not decode');}
   async function openTown(page) {
     const town=page.locator('#v78-town');if(!await town.evaluate(n=>n.open))await town.locator(':scope > summary').click();
     await town.locator(':scope > summary').scrollIntoViewIfNeeded();
@@ -499,6 +502,45 @@ async function main() {
       await page.locator('#v77-tactic').scrollIntoViewIfNeeded();
       await page.screenshot({path:path.join(artifacts,'tactics-classic-320.png')});
     },{context:{viewport:{width:320,height:568}},seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('rare catalogs add 100 functional items each without altering legacy inventories',async page=>{
+      const data=await page.evaluate(()=>__infinityTest.rareCatalog());for(const kind of ['gear','card','trophy']){assert.equal(data[kind].length,100);assert.equal(new Set(data[kind].map(x=>x.name)).size,100);assert.deepEqual([...new Set(data[kind].map(x=>x.tier))],[0,1,2,3]);}
+      const before=await state(page),base=await page.evaluate(()=>__infinityTest.balance());await page.evaluate(()=>__infinityTest.rareGrant('gear',0));const next=await page.evaluate(()=>__infinityTest.balance());assert.ok(next.income>base.income);assert.equal(next.combat.hp,base.combat.hp);assert.equal(next.combat.attack,base.combat.attack);assert.deepEqual((await state(page)).owned,before.owned);assert.deepEqual((await state(page)).cards,before.cards);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('rare tiers unlock by progress and pity grants common and ultra rewards correctly',async page=>{
+      const result=await page.evaluate(()=>{const out=[];for(const stage of [1,30,75,150]){__infinityTest.rarePatch({highest:stage});__infinityTest.rareRandom(0);__infinityTest.rareRoll('gear');out.push(__infinityTest.state().v82Rare.last.id);}__infinityTest.rarePatch({highest:1,misses:{gear:499,card:0,trophy:0}});__infinityTest.rareRandom(.999);__infinityTest.rareRoll('gear');const common=__infinityTest.state().v82Rare;__infinityTest.rarePatch({highest:150,ultra:{gear:0,card:249999,trophy:0}});__infinityTest.rareRoll('card');return {out,common,ultra:__infinityTest.state().v82Rare};});
+      assert.deepEqual(result.out,[0,25,50,75]);assert.equal(result.common.last.id,24);assert.equal(result.common.misses.gear,0);assert.equal(result.ultra.last.id,99);assert.equal(result.ultra.ultra.card,0);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('rare tier ticket boundaries match the disclosed exact base odds',async page=>{
+      const result=await page.evaluate(()=>{const out=[];for(const ticket of [0,1,10,11,110,111,1110,1111]){__infinityTest.rarePatch({highest:150,misses:{gear:0,card:0,trophy:0},ultra:{gear:0,card:0,trophy:0},last:null});__infinityTest.rareRandom(ticket/4294967296);__infinityTest.rareRoll('gear');const last=__infinityTest.state().v82Rare.last;out.push(last?Math.floor(last.id/25):-1);}return out;});
+      assert.deepEqual(result,[3,2,2,1,1,0,0,-1]);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('rare draws occur once per box even with extra gear and do not spend absent boxes',async page=>{
+      await page.evaluate(()=>{Math.random=()=>.5;__infinityTest.rareRandom(.999);__infinityTest.patch({boxes:1,owned:{109:1}});__infinityTest.openBox();});let after=await state(page);assert.equal(after.v82Rare.rolls.gear,1);assert.equal(after.v82Rare.rolls.card,1);assert.equal(after.owned['21'],11);
+      assert.equal(await page.evaluate(()=>__infinityTest.openBox()),false);after=await state(page);assert.equal(after.v82Rare.rolls.gear,1);assert.equal(after.v82Rare.rolls.card,1);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('rare equipment slots and collection sets have real effects and stable controls',async page=>{
+      await page.evaluate(()=>{for(const id of [0,1,2,3])__infinityTest.rareGrant('gear',id);});let data=await state(page);assert.deepEqual(data.v82Rare.equipped,[0,1,2]);assert.equal(await page.evaluate(()=>__infinityTest.rareEquip(3)),false);assert.ok((await page.evaluate(()=>__infinityTest.rarePower())).sets>=1);
+      await page.evaluate(()=>{__infinityTest.rareEquip(1);__infinityTest.rareEquip(3);});assert.deepEqual((await state(page)).v82Rare.equipped,[0,2,3]);
+      await page.locator('#v68-shortcut-gear').click();await page.locator('#v82-open-rare').click();assert.equal(await page.locator('#v82-items article').count(),100);await page.locator('#v82-items button').first().focus();await page.clock.runFor(1500);assert.equal(await page.locator('#v82-items button').first().evaluate(n=>n===document.activeElement),true);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('rare trophy rolls cannot repeat for one victory and collections survive rebirth',async page=>{
+      await page.evaluate(()=>{__infinityTest.rareRandom(0);__infinityTest.patch({lv:25});__infinityTest.rareGrant('gear',0);__infinityTest.rareGrant('card',1);const st=__infinityTest.balance().combat;__infinityTest.setFight({e:{stage:150,hp:1,atk:0,boss:false,metal:false,mech:''},hp:st.hp,max:st.hp,ehp:1,last:Date.now(),active:true});__infinityTest.turnBattle();__infinityTest.rareBattle();});const before=await state(page);assert.equal(before.v82Rare.rolls.trophy,1);assert.equal(before.v82Rare.counts.trophy['75'],1);await page.clock.runFor(500);
+      page.once('dialog',d=>d.accept());await page.locator('#v81-rebirth').click();assert.deepEqual((await state(page)).v82Rare.counts,before.v82Rare.counts);await page.reload({waitUntil:'load'});assert.deepEqual((await state(page)).v82Rare.counts,before.v82Rare.counts);assert.equal((await state(page)).v82Rare.highest,150);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('museum bundled public-domain painting loads with external services unavailable',async page=>{
+      await page.locator('#v68-shortcut-menu').click();await page.locator('#artMuseumBtn').click();await page.locator('#artMuseumRedeem').click();assert.equal((await state(page)).artOffers.some(o=>o.id==='moma-starry-night'),true);
+      await page.locator('.art-buy').first().click();await page.locator('.art-empty-slot:enabled').first().click();const image=page.locator('.art-gallery-frame img').first();await image.scrollIntoViewIfNeeded();await waitImage(image);assert.ok(await image.evaluate(n=>n.naturalWidth>0));assert.equal((await state(page)).artCollection['moma-starry-night'].title,'星月夜');await page.screenshot({path:path.join(artifacts,'museum-bundled.png')});
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1,coins:100000,artMuseumWelcome:true,artTickets:1}))}});
+    await check('museum repairs failed MET images and cached owned paintings survive offline reload',async page=>{
+      const jpeg=fs.readFileSync(path.join(root,'art/starry-night.jpg'));let offline=false;
+      await page.route('https://images.metmuseum.org/**',route=>offline||route.request().url().includes('broken')?route.abort():route.fulfill({status:200,headers:{'Content-Type':'image/jpeg','Access-Control-Allow-Origin':'*'},body:jpeg}));
+      await page.route('https://collectionapi.metmuseum.org/public/collection/v1/objects/1',route=>route.fulfill({json:{isPublicDomain:true,primaryImageSmall:'https://images.metmuseum.org/repaired.jpg'},headers:{'Access-Control-Allow-Origin':'*'}}));
+      await page.locator('#v68-shortcut-menu').click();await page.locator('#artMuseumBtn').click();const retry=page.locator('.art-image-status button').first();await retry.waitFor({state:'visible'});await retry.click();await waitImage(page.locator('.art-gallery-frame img').first());
+      assert.equal((await state(page)).artCollection['met-1'].image,'https://images.metmuseum.org/repaired.jpg');assert.equal((await state(page)).artCollection['met-1'].purchasedFor,777);
+      for(let i=0;i<100;i++){if(await page.evaluate(async()=>{const c=await caches.open('001-art-images-v82');return (await c.keys()).length>0;}))break;await new Promise(r=>setTimeout(r,20));}
+      assert.equal(await page.evaluate(async()=>{const c=await caches.open('001-art-images-v82');return (await c.keys()).length>0;}),true);
+      offline=true;await page.reload({waitUntil:'load'});await page.locator('#v68-shortcut-menu').click();await page.locator('#artMuseumBtn').click();await waitImage(page.locator('.art-gallery-frame img').first());assert.equal((await state(page)).artRooms[0].slots[0].id,'met-1');
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1,artV56Migrated:true,artMuseumWelcome:true,artTickets:0,artCollection:{'met-1':{id:'met-1',museum:'met',title:'保存済み作品',artist:'作者',date:'1900',image:'https://images.metmuseum.org/broken.jpg',source:'https://www.metmuseum.org/art/collection/search/1',purchasedFor:777}},artRooms:[{id:'studio',slots:[{id:'met-1',frame:'oak'},null,null,null,null,null]}],artRoomActive:'studio',artFramesOwned:['bare','oak']}))}});
     await check('151 species have unique identities and searchable drops without losing old trophies',async page=>{
       const all=await page.evaluate(()=>__infinityTest.catalog());assert.equal(all.length,151);for(const key of ['id','name','drop'])assert.equal(new Set(all.map(x=>x[key])).size,151);
       assert.equal((await state(page)).v80Relics.counts.ashkeeper,4);
