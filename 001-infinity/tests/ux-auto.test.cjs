@@ -29,7 +29,7 @@ window.__infinityTest = {
   start: () => v68AutoStart(), pause: reason => v68AutoPause(reason), manual: () => v68AutoManual(),
   initAuto: () => v68AutoInit(), autoTick: (t,dt) => v68AutoTick(t,dt), battleTick: (t,dt) => v68FightTick(t,dt),
   openPanel: key => v68OpenPanel(key),
-  buyBuilding: (id,count=1) => v76BuyBuilding(id,count), quoteBuilding: (id,count) => v79BuildingQuote(id,count), gainBoxes: () => boxGain(), buildingCost: id => v76BuildingCost(id),
+  buyBuilding: (id,count=1) => v76BuyBuilding(id,count), quoteBuilding: (id,count) => v79BuildingQuote(id,count), gainBoxes: () => boxGain(), buildingCost: id => v76BuildingCost(id), enemyStats: (stage,boss=false,metal=false) => v83EnemyStats(stage,boss,metal),
   hudRows: () => v78HUDRows(), hudUpdate: fields => v78HUDUpdate(fields),
   buildingRates: () => ({attack:v78BuildingAttack(),healing:v78BuildingHealing(),sparkle:v78BuildingSparkle(),money:v76BuildingMoney(),boxes:v76BuildingBoxes(),paper:v76BuildingPaper(),scrap:v76BuildingScrap()}),
   rareCatalog: () => V82_CATALOG, rareGrant: (kind,id) => v82Grant(kind,id), rareRoll: kind => v82Roll(kind), rareRandom: n => {v82Random=()=>n;}, rarePatch: fields => {Object.assign(s.v82Rare,fields);s.v82Rare.revision++;}, rarePower: () => v82Power(), rareEquip: id => v82Equip(id), rareBattle: () => v82BattleDrop(),
@@ -286,11 +286,36 @@ async function main() {
       assert.ok(values.duplicates.income/values.first.income<4,'100x duplicate count must not create a millionfold output');
       assert.ok(values.duplicates.income>values.first.income,'Duplicates still improve production');
       assert.ok(values.duplicates.combat.hp/values.first.combat.hp<2);
-      assert.ok(values.first.cost/values.first.income>10&&values.first.cost/values.first.income<60);
+      assert.ok(values.first.cost/values.first.income>3&&values.first.cost/values.first.income<30);
       assert.ok(values.reborn.rebirth>1&&values.reborn.rebirth<5);
       assert.equal(values.state.owned['0'],10000,'Owned quantities are retained');assert.equal(values.state.lv,178);
       assert.ok(Object.values(values.first.combat).every(Number.isFinite));
     },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('v83 preserves opening enemies and stages scale independently of player wealth', async page => {
+      const rows=await page.evaluate(()=>[1,5,15,30,31,75,150,300].map(stage=>({stage,normal:__infinityTest.enemyStats(stage),boss:__infinityTest.enemyStats(stage,true)})));
+      for(const r of rows){
+        if(r.stage<=30){assert.equal(r.normal.hp,Math.ceil(18*(1+.2*(r.stage-1))**1.8));assert.equal(r.normal.atk,Math.ceil(2*(1+.14*(r.stage-1))**1.75));}
+        assert.ok(r.boss.hp>=r.normal.hp*2.9);assert.ok(r.boss.atk>=r.normal.atk);
+      }
+      await page.evaluate(()=>__infinityTest.patch({lv:1000,n:1e99}));
+      assert.deepEqual(await page.evaluate(()=>__infinityTest.enemyStats(150)),rows.find(r=>r.stage===150).normal);
+      assert.ok(rows.at(-1).normal.hp>Math.ceil(18*(1+.2*299)**1.8)*3);
+    });
+    await check('v83 building costs grow after ten, bulk uses full prices and old levels survive', async page => {
+      const result=await page.evaluate(()=>{const b=__infinityTest.state().v76Buildings;b.levels.dojo=100;__infinityTest.patch({v76Buildings:b,n:1e100});const first=__infinityTest.buildingCost('dojo'),before=__infinityTest.state().n;const quote=__infinityTest.quoteBuilding('dojo',10);const bought=__infinityTest.buyBuilding('dojo',10);__infinityTest.save();return {first,quote,bought,before,state:__infinityTest.state()};});
+      assert.ok(result.first>1e15);assert.ok(result.quote>10*result.first);assert.equal(result.bought,true);assert.equal(result.state.v76Buildings.levels.dojo,110);
+      // Use a representable balance for exact deduction, rather than losing a tiny price in 1e100.
+      await page.evaluate(()=>{const b=__infinityTest.state().v76Buildings;b.levels.dojo=25;__infinityTest.patch({v76Buildings:b});__infinityTest.patch({n:__infinityTest.quoteBuilding('dojo',10)*2});});
+      const charged=await page.evaluate(()=>{const q=__infinityTest.quoteBuilding('dojo',10),before=__infinityTest.state().n;__infinityTest.buyBuilding('dojo',10);__infinityTest.save();return {q,before,after:__infinityTest.state().n};});assert.equal(charged.after,charged.before-charged.q);
+      await page.reload({waitUntil:'load'});assert.equal((await state(page)).v76Buildings.levels.dojo,35);
+      await page.evaluate(()=>{const b=__infinityTest.state().v76Buildings;b.levels.dojo=10000;__infinityTest.patch({v76Buildings:b,n:Number.MAX_VALUE});});assert.equal(await page.evaluate(()=>__infinityTest.buyBuilding('dojo')),false);
+    },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1}))}});
+    await check('v83 late upgrade prices stay increasing with gentler growth and preserve assets', async page => {
+      const result=await page.evaluate(()=>[1,25,149,150,151,300,500].map(lv=>{__infinityTest.patch({lv,n:12345});return {lv,cost:__infinityTest.balance().cost,n:__infinityTest.state().n};}));
+      for(const row of result){assert.equal(row.n,12345);if(row.lv<=150)assert.equal(row.cost,Math.floor(12*1.43**(row.lv-1)));}
+      for(let i=1;i<result.length;i++)assert.ok(result[i].cost>result[i-1].cost);
+      const late=result.find(r=>r.lv===300);assert.ok(late.cost<12*1.43**299/100);assert.ok(late.cost>result.find(r=>r.lv===150).cost);
+    });
     await check('fresh level1 can finish its first normal battle with the real turn loop', async page => {
       await chooseWorld(page,'classic');
       await page.evaluate(()=>{Math.random=()=>.5;});
@@ -737,7 +762,7 @@ async function main() {
       const repeated=await state(page);assert.equal(repeated.boxes,after.boxes);assert.equal(repeated.paper,after.paper);assert.equal(repeated.empty,after.empty);
     },{seed:{[KEY]:JSON.stringify(fixture({v68Migration:1,autoPlayPaused:true,rebirth:0,research:{opening:0,recycling:0,balance:0},v76Buildings:{levels:{market:0,factory:1,scrap:1,press:1},paperFraction:0,scrapFraction:0}}))}});
     await check('buildings grow beyond old caps and numeric precision guards never charge for invalid upgrades', async page => {
-      await page.evaluate(()=>{const b=__infinityTest.state().v76Buildings;for(const key of Object.keys(b.levels))b.levels[key]=25;__infinityTest.patch({n:1e20,v76Buildings:b});});
+      await page.evaluate(()=>{const b=__infinityTest.state().v76Buildings;for(const key of Object.keys(b.levels))b.levels[key]=25;__infinityTest.patch({v76Buildings:b});__infinityTest.patch({n:__infinityTest.quoteBuilding('market',100)*2});});
       const before=await page.evaluate(()=>__infinityTest.buildingRates());
       assert.equal(await page.evaluate(()=>__infinityTest.buyBuilding('market',100)),true);assert.equal((await state(page)).v76Buildings.levels.market,125);
       assert.ok((await page.evaluate(()=>__infinityTest.buildingRates())).money>before.money);
