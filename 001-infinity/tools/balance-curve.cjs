@@ -14,6 +14,7 @@ const {chromium}=require('playwright');
  if(p.gods)for(let id=107;id<118;id++)s.owned[id]=1;
  if(p.rare)for(const kind of ['gear','card','trophy'])for(let id=0;id<100;id++)v82Grant(kind,id);
  if(p.ascendant!==undefined&&typeof v84Grant==='function')v84Grant(p.ascendant);
+ if(p.rpLevel&&s.v85Rebirth){s.v85Rebirth.levels.engine=p.rpLevel;s.v85Rebirth.levels.combat=p.rpLevel;}
  const combat=v74CombatStats(),production=income(),price=lvCost();fight=null;startFight();
  const foe={hp:fight.e.hp,attack:fight.e.atk,boss:fight.e.boss};let turns=0;
  while(fight.active&&turns<300){fightTick(fight.last+1000);turns++;}
@@ -27,7 +28,7 @@ const {chromium}=require('playwright');
  const page=await browser.newPage();await page.route('**/*',r=>new URL(r.request().url()).hostname==='127.0.0.1'?r.continue():r.abort());
  await page.addInitScript(()=>{Math.random=()=>.5;Date.now=()=>1762128000000;});
  await page.goto('http://127.0.0.1:'+server.address().port,{waitUntil:'load'});
- const profiles=[{level:1,stage:1},{level:5,stage:5},{level:10,stage:11},{level:25,stage:26,copies:1},{level:50,stage:51,copies:10,town:10},{level:178,stage:178,copies:100},{level:178,stage:178,copies:100,town:100},{level:178,stage:178,copies:100,gods:true},{level:300,stage:301,copies:100,town:100},{level:300,stage:301,copies:100,town:100,gods:true,rare:true},{level:500,stage:500,copies:100},{level:300,stage:301,copies:100,town:100,ascendant:0},{level:500,stage:500,copies:100,ascendant:11},{level:500,stage:500,copies:100,ascendant:21},{level:500,stage:1000,copies:100},{level:500,stage:1000,copies:100,ascendant:11},{level:500,stage:1000,copies:100,ascendant:21}];
+ const profiles=[{level:1,stage:1},{level:5,stage:5},{level:10,stage:11},{level:25,stage:26,copies:1},{level:50,stage:51,copies:10,town:10},{level:178,stage:178,copies:100},{level:178,stage:178,copies:100,town:100},{level:178,stage:178,copies:100,gods:true},{level:300,stage:301,copies:100,town:100},{level:300,stage:301,copies:100,town:100,gods:true,rare:true},{level:500,stage:500,copies:100},{level:300,stage:301,copies:100,town:100,ascendant:0},{level:500,stage:500,copies:100,ascendant:11},{level:500,stage:500,copies:100,ascendant:21},{level:500,stage:1000,copies:100},{level:500,stage:1000,copies:100,ascendant:11},{level:500,stage:1000,copies:100,ascendant:21},{level:50,stage:51,copies:10,town:10,rpLevel:5},{level:178,stage:178,copies:100,town:100,rpLevel:5},{level:300,stage:301,copies:100,town:100,rpLevel:10},{level:500,stage:1000,copies:100,rpLevel:20}];
  const rows=[];for(const p of profiles)rows.push(await page.evaluate(p=>__curve(p),p));
  console.log(JSON.stringify(rows,null,2));
  }finally{await browser.close();await new Promise(r=>server.close(r));}
