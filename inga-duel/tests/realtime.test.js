@@ -1,0 +1,17 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const ctx={};vm.createContext(ctx);
+for(const file of ['battle-core.js','battle-rules.js','duel-engine.js','match-journal.js','room-core.js','lobby-core.js','cards.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),ctx);
+let seq=0;const lobby=ctx.IngaLobby.createLobby({catalog:ctx.starter,randomBytes:n=>Uint8Array.from({length:n},()=>seq++%256)});
+const deck=ctx.starter.map(c=>c.id),host=lobby.create(deck,'せかいのおわりに');
+assert.equal(host.ok,true);
+let events=0;
+const subscription=lobby.subscribe(host.token,()=>events++);
+assert.equal(subscription.ok,true);
+const guest=lobby.join(host.code,deck);
+assert.equal(guest.ok,true);assert.equal(events,1);
+assert.equal(lobby.action(host.token,0,{type:'end_turn'}).ok,true);
+assert.equal(events,2);
+subscription.unsubscribe();
+assert.equal(lobby.action(guest.token,1,{type:'end_turn'}).ok,true);
+assert.equal(events,2);
+console.log('PASS room subscription join/action/unsubscribe');
