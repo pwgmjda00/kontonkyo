@@ -87,6 +87,7 @@ function apply(match,seat,action){
  if(action?.type==='fate'){
  const cost={energy:2,draw:3,guard:4}[action.mode];
  if(!cost||a.fate<cost)return {ok:false,reason:'fate'};
+ if(action.mode==='energy'&&a.energy>=ENERGY_CAP)return {ok:false,reason:'energy_full'};
  a.fate-=cost;for(const id of s.relics[seat]){const r=RELICS.find(x=>x.id===id);if(r?.effect==='fateHeal'&&!a.relicFlags.fateHeal){a.hp=Math.min(a.maxHp,a.hp+r.value);a.relicFlags.fateHeal=true}}if(action.mode==='energy')a.energy=Math.min(ENERGY_CAP,a.energy+1);if(action.mode==='draw')draw(a,1,match.random);if(action.mode==='guard')a.block+=7;
  if(a.job==='ruin'&&action.mode==='energy')core.damage(b,2);
  if(a.job==='guard'&&action.mode==='guard')a.block+=3;
