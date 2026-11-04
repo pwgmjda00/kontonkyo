@@ -123,7 +123,7 @@ function apply(match,seat,action){
   let hitIndex=0;const ctx={hit:(target,n)=>{const first=hitIndex++===0;const added=target===b&&first?bonus('firstHit',a.attacksPlayed===0)+bonus('secondHit',a.attacksPlayed===1)+bonus('thirdHit',a.attacksPlayed===2)+bonus('lowHit',a.hp<=30&&a.attacksPlayed===0)+bonus('blockHit',b.block>0&&a.attacksPlayed===0):0;const outcome=core.damage(target,n+added);if(target===b&&outcome.dealt>0){for(const id of s.relics[1-seat]){const r=RELICS.find(x=>x.id===id);if(r?.effect==='retaliate'&&!b.relicFlags.retaliate){core.damage(a,r.value);b.relicFlags.retaliate=true}}}return outcome},draw:(p,n)=>draw(p,n,match.random),random:match.random,
    get intent(){return {kind:'none',value:0,name:'対人戦',desc:'相手の手番'}},
    set intent(_v){}};
-  const before={hp:a.hp,block:a.block,energy:a.energy,fate:a.fate,enemyHp:b.hp,enemyBlock:b.block};
+  const before={hp:a.hp,block:a.block,energy:a.energy,fate:a.fate,hand:a.hand.length,deck:a.deck.length,discard:a.discard.length,enemyHp:b.hp,enemyBlock:b.block,enemyFate:b.fate,enemyHand:b.hand.length};
   try{const outcome=rules.playCard(a,b,action.uid,ctx);if(!outcome.ok)return outcome}catch(_err){s.players=savedPlayers;match.setRngState(savedRng);return {ok:false,reason:'effect_failed'}}
   if(card.desc.includes('ダメージ')||card.desc.includes('敵に'))a.attacksPlayed++;
   a.cardsPlayed++;
@@ -139,7 +139,7 @@ function apply(match,seat,action){
   if(before.enemyBlock>0&&a.attacksPlayed===1)b.block=Math.max(0,b.block-bonus('breakBlock'));
   a.energy=Math.min(ENERGY_CAP,Math.max(0,a.energy));
   if(a.hp<=0||b.hp<=0){s.over=true;s.winner=a.hp<=0&&b.hp<=0?null:a.hp<=0?1-seat:seat}
-  s.log.push({turn:s.turn,seat,type:'play',cardId:card.id,name:card.name,damage:Math.max(0,before.enemyHp-b.hp),healing:Math.max(0,a.hp-before.hp),selfDamage:Math.max(0,before.hp-a.hp),block:Math.max(0,a.block-before.block),energy:a.energy-before.energy, energySpent:card.cost, fate:a.fate-before.fate});
+  s.log.push({turn:s.turn,seat,type:'play',cardId:card.id,name:card.name,description:card.desc,enemyFate:b.fate-before.enemyFate,enemyBlock:b.block-before.enemyBlock,drawn:Math.max(0,a.hand.length-before.hand+1),damage:Math.max(0,before.enemyHp-b.hp),healing:Math.max(0,a.hp-before.hp),selfDamage:Math.max(0,before.hp-a.hp),block:Math.max(0,a.block-before.block),energy:a.energy-before.energy, energySpent:card.cost, fate:a.fate-before.fate});
  }else if(action.type==='fate'){
   const outcome=rules.spendFate(a,b);if(!outcome.ok)return outcome;s.log.push({turn:s.turn,seat,type:'fate',damage:0,name:'因果断絶'});
  }else if(action.type==='end_turn'){
@@ -153,8 +153,9 @@ function apply(match,seat,action){
   a.hand=kept;
   s.log.push({turn:s.turn,seat,type:'retain',name:'手札を'+kept.length+'枚温存'});
   s.active=1-seat;
-  b.turnsTaken++;b.fate=Math.min(12,b.fate+1);s.log.push({turn:s.turn+1,seat:1-seat,type:'income',name:'ターン開始：因果+1'});b.block=0;b.energy=Math.max(1,4-b.skillDebt);b.skillDebt=0;b.skillUsed=false;b.cardsPlayed=0;b.attacksPlayed=0;b.relicFlags={};draw(b,Math.max(3,5-b.hand.length)+b.extraDrawNext,match.random);b.extraDrawNext=0;
-  s.log.push({turn:s.turn,seat,type:'end_turn'});s.turn++;
+  if(s.active===0)s.turn++;
+  b.turnsTaken++;b.fate=Math.min(12,b.fate+1);s.log.push({turn:s.turn,seat:1-seat,type:'income',name:'ターン開始：因果+1、防御リセット'});b.block=0;b.energy=Math.max(1,4-b.skillDebt);b.skillDebt=0;b.skillUsed=false;b.cardsPlayed=0;b.attacksPlayed=0;b.relicFlags={};draw(b,Math.max(3,5-b.hand.length)+b.extraDrawNext,match.random);b.extraDrawNext=0;
+  s.log.push({turn:s.turn,seat,type:'end_turn'});
   for(const id of s.relics[s.active]){const r=RELICS.find(x=>x.id===id);if(!r)continue;const e=r.effect,n=r.value;
    if(e==='startBlock'||e==='emptyBlock'&&b.block===0||e==='lowBlock'&&b.hp<=30||e==='fateBlock'&&b.fate>=4||e==='fewHandBlock'&&b.hand.length<=3||e==='behindBlock'&&b.hp<a.hp)b.block+=n;
    if(e==='startHeal'||e==='lowHeal'&&b.hp<=30||e==='criticalHeal'&&b.hp<=20||e==='blockHeal'&&b.block>=10||e==='thirdHeal'&&b.turnsTaken%3===0)b.hp=Math.min(b.maxHp,b.hp+n);
@@ -163,7 +164,7 @@ function apply(match,seat,action){
    if(e==='thirdDraw'&&b.turnsTaken%3===0||e==='oddDraw'&&b.turnsTaken%2===1||e==='evenDraw'&&b.turnsTaken%2===0||e==='fewHandDraw'&&b.hand.length<4)draw(b,n,match.random);
   }
   b.energy=Math.min(ENERGY_CAP,b.energy);b.fate=Math.min(12,b.fate);
-  if(s.turn%3===0&&a.hp>0&&b.hp>0)s.relicOffer=offerRelics(s,match.random);
+  if(s.active===0&&s.turn>1&&(s.turn-1)%3===0&&a.hp>0&&b.hp>0)s.relicOffer=offerRelics(s,match.random);
   if(s.turn>60){s.over=true;s.relicOffer=null;const hp0=s.players[0].hp,hp1=s.players[1].hp;s.winner=hp0===hp1?null:hp0>hp1?0:1;s.log.push({turn:s.turn,seat,type:'limit',name:'60ターン上限：残りHPで判定'})}
  }
  if(a.hp<=0||b.hp<=0){s.over=true;s.winner=a.hp<=0&&b.hp<=0?null:a.hp<=0?1-seat:seat}
