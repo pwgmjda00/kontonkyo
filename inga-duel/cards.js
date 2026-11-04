@@ -16,7 +16,7 @@ const cards=[
 ['量子跳躍',2,'手札をすべて捨て、4枚引く。エネルギー+1。',(a,b,ctx)=>{a.discard.push(...a.hand.splice(0));ctx.draw(a,4);a.energy++}],
 ['二重螺旋',2,'敵に6ダメージを3回。',(a,b,ctx)=>{for(let i=0;i<3;i++)ctx.hit(b,6)}],
 ['断罪',4,'敵に28ダメージ。自分も6ダメージ。',(a,b,ctx)=>{ctx.hit(b,28);a.hp-=6}],
-['再起動',2,'HPを12回復。因果+1。',(a,b,ctx)=>{a.hp=Math.min(40,a.hp+12);a.fate++}],
+['再起動',2,'HPを12回復。因果+1。',(a,b,ctx)=>{a.hp=Math.min(a.maxHp,a.hp+12);a.fate++}],
 ['天秤',1,'HPが敵より低ければ敵に14ダメージ、そうでなければ防御12。',(a,b,ctx)=>{if(a.hp<b.hp)ctx.hit(b,14);else a.block+=12}],
 ['過剰演算',0,'エネルギー+2。敵に4ダメージ。',(a,b,ctx)=>{a.energy+=2;ctx.hit(b,4)}],
 ['破城・砕牙',2,'敵に10ダメージ。防御を先に5削る。',(a,b,ctx)=>{b.block=Math.max(0,b.block-5);ctx.hit(b,10);}],
@@ -245,3 +245,5 @@ cards.push({id:1116,name:'魔契',cost:1,desc:'HP4を失い、2枚引く。',act
 cards.push({id:1117,name:'冥府',cost:2,desc:'HP5を失い、敵に14ダメージ。',act:(a,b,ctx)=>{a.hp-=5;ctx.hit(b,14)}});
 cards.push({id:1118,name:'赤鎖',cost:0,desc:'HP2を失い、エネルギー+2。',act:(a,b,ctx)=>{a.hp-=2;a.energy+=2}});
 cards.push({id:1119,name:'血王',cost:2,desc:'HP3を失い、2枚引く。',act:(a,b,ctx)=>{a.hp-=3;ctx.draw(a,2)}});
+
+for(const theme of duelThemes)for(const id of theme.cards){const c=cards.find(c=>c.id===id);c.job=theme.id}
