@@ -130,7 +130,7 @@ function apply(match,seat,action){
   if(s.relics[s.active].includes('fate'))b.fate+=1;
   if(s.relics[s.active].includes('draw'))draw(b,1,match.random);
   if(s.relics[s.active].includes('thorn'))core.damage(a,1);
- for(const id of s.relics[s.active]){const m=/^(strike|guard|heal|focus|draw|fate|tempo)(\\d+)$/.exec(id);if(!m)continue;
+ for(const id of s.relics[s.active]){const m=/^(strike|guard|heal|focus|draw|fate|tempo)(\d+)$/.exec(id);if(!m)continue;
  if(m[1]==='guard')b.block++;if(m[1]==='heal')b.hp=Math.min(b.maxHp,b.hp+1);
  if(m[1]==='focus'&&s.turn%2===0)b.energy++;
  if(m[1]==='draw'&&s.turn%3===0)draw(b,1,match.random);
