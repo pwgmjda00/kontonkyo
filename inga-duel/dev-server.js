@@ -9,6 +9,7 @@ for(const file of ['battle-core.js','battle-rules.js','duel-engine.js','match-jo
 const {cards,starter}=vm.runInContext('({cards,starter})',context);
 const lobby=context.IngaLobby.createLobby({catalog:[...cards,...starter],randomBytes:n=>crypto.randomBytes(n),ttlMs:60*60*1000});
 const port=Number(process.env.PORT||8788);
+const host=process.env.HOST||'127.0.0.1';
 const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8'};
 function reply(res,status,obj){res.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(obj))}
 function auth(req){const header=req.headers.authorization||'';return /^Bearer [a-f0-9]{64}$/.test(header)?header.slice(7):''}
@@ -38,5 +39,5 @@ const server=http.createServer(async(req,res)=>{
  }catch(e){reply(res,400,{ok:false,reason:e.message==='too_large'?'too_large':'invalid_request'})}
 });
 require('./ws-server.js').attachWebSocket(server,lobby);
-if(require.main===module)server.listen(port,'127.0.0.1',()=>console.log('Local duel: http://127.0.0.1:'+port));
+if(require.main===module)server.listen(port,host,()=>console.log('Duel server listening on '+host+':'+port));
 module.exports={server};
