@@ -780,9 +780,17 @@ function renderPoemImage(poem){
   ctx.textAlign='left';
  }
  ctx.font='31px serif';
- ctx.fillText((poem.kind||'詩')+'  ·  '+($('#imageSignature')?.value.trim()||poem.author||'あなた').slice(0,18),90,1160);
- ctx.fillText(postHashtags(poem),90,1235);
- if(poem.note&&!/^(規則生成|創作サンプル|主題|独自要旨)/.test(poem.note)){ctx.font='22px serif';ctx.fillText(poem.note.slice(0,38),90,1290)}
+ ctx.fillText((poem.kind||'詩')+'  ·  '+($('#imageSignature')?.value.trim()||poem.author||'あなた').slice(0,18),90,1160,900);
+ // Keep the original-poem hashtags fully inside the PNG rather than clipping.
+ ctx.font='27px serif';
+ if(isUserOriginal(poem)){
+  ctx.fillText('#会わない歌会  #会わない歌会余白文庫',90,1207,900);
+  ctx.fillText('#オリジナル',90,1243,900);
+ }else ctx.fillText(postHashtags(poem),90,1220,900);
+ if(poem.note&&!/^(規則生成|創作サンプル|主題|独自要旨|自作・#)/.test(poem.note)){
+  ctx.font='20px serif';ctx.fillText(poem.note.slice(0,40),90,1278,900);
+ }
+ ctx.font='19px sans-serif';ctx.fillText(YOHaku_SITE_URL,90,1310,900);
  return c;
 }
 function previewCurrentImage(){
