@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const root=path.resolve(__dirname,'..'),ctx={};vm.createContext(ctx);
-for(const file of ['battle-core.js','duel-engine.js'])vm.runInContext(fs.readFileSync(path.join(root,file),'utf8'),ctx,{filename:file});
+for(const file of ['battle-core.js','battle-rules.js','duel-engine.js'])vm.runInContext(fs.readFileSync(path.join(root,file),'utf8'),ctx,{filename:file});
 const {createMatch,apply,publicView}=ctx.IngaDuel;
 const card={id:1,name:'strike',cost:1,desc:'hit',act:(a,b,ctx)=>ctx.hit(b,7)};
 const deck=()=>Array.from({length:12},()=>card);
