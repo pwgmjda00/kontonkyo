@@ -6,12 +6,13 @@ if(!core)throw Error('battle-core.js must load first');
 function shuffle(items,random){const out=items.slice();for(let i=out.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[out[i],out[j]]=[out[j],out[i]]}return out}
 function createMatch(decks,options={}){
  if(!Array.isArray(decks)||decks.length!==2||decks.some(d=>!Array.isArray(d)||d.length===0))throw Error('Two nonempty decks required');
- const random=core.seededRandom(options.seed??1);
+ let rngState=(options.seed??1)>>>0;
+ const random=()=>{rngState=(Math.imul(1664525,rngState)+1013904223)>>>0;return rngState/4294967296};
  let serial=0;
  const players=decks.map((deck,i)=>({hp:40,maxHp:40,block:0,energy:5,fate:0,hand:[],deck:shuffle(deck.map(c=>({...c,uid:++serial})),random),discard:[],seat:i}));
  const state={version:1,players,active:0,turn:1,over:false,winner:null,log:[],seed:options.seed??1};
  draw(players[0],5,random);draw(players[1],5,random);
- return {state,random};
+ return {state,random,getRngState:()=>rngState,setRngState:v=>{rngState=v>>>0}};
 }
 function draw(p,n,random){for(let i=0;i<n;i++){if(p.hand.length>=12)break;if(!p.deck.length)p.deck=shuffle(p.discard.splice(0),random);if(!p.deck.length)break;p.hand.push(p.deck.pop())}}
 function apply(match,seat,action){
@@ -24,11 +25,14 @@ function apply(match,seat,action){
  if(action.type==='play'){
   const idx=a.hand.findIndex(c=>c.uid===action.uid),card=a.hand[idx];
   if(typeof card.act!=='function')return {ok:false,reason:'missing_effect'};
+  const savedPlayers=s.players.map(p=>({...p,hand:p.hand.slice(),deck:p.deck.slice(),discard:p.discard.slice()}));
+  const savedRng=match.getRngState();
   a.energy-=card.cost;a.hand.splice(idx,1);
   const ctx={hit:core.damage,draw:(p,n)=>draw(p,n,match.random),random:match.random,
    get intent(){return {kind:'none',value:0,name:'対人戦',desc:'相手の手番'}},
    set intent(_v){/* PvP has no telegraphed CPU action */}};
-  card.act(a,b,ctx);a.discard.push(card);s.log.push({turn:s.turn,seat,type:'play',cardId:card.id});
+  try{card.act(a,b,ctx)}catch(_err){s.players=savedPlayers;match.setRngState(savedRng);return {ok:false,reason:'effect_failed'}}
+  a.discard.push(card);s.log.push({turn:s.turn,seat,type:'play',cardId:card.id});
  }else if(action.type==='fate'){
   a.fate-=6;b.block=0;core.damage(b,18);a.energy+=2;s.log.push({turn:s.turn,seat,type:'fate'});
  }else if(action.type==='end_turn'){
