@@ -1,0 +1,22 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>カード図鑑 | 因果決闘 ∞ PARADOX</title><style>
+:root{font-family:system-ui,sans-serif;color:#f5f0e8;background:#101019}*{box-sizing:border-box}body{margin:0}main{max-width:850px;margin:auto;padding:16px}h1{font-size:clamp(22px,5vw,32px);color:#ffe070}a{color:#ffe070}nav{display:flex;gap:12px;flex-wrap:wrap;margin:18px 0}.tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:18px 0}.tabs a{padding:12px;border:1px solid #89789a;border-radius:12px;text-decoration:none;background:#292132;text-align:center;font-weight:700}.tabs a:focus-visible{outline:3px solid #ffe070}section{margin:26px 0;scroll-margin-top:12px}h2{color:#ffe070;font-size:20px}.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.card{padding:12px;border-radius:12px;background:#292132;overflow-wrap:anywhere;min-width:0}.card b{display:block;font-size:15px}.card small{display:block;color:#d6cddb;margin-top:8px;line-height:1.5;font-size:12px}.card[data-tier="0"]{border:2px solid #747083}.card[data-tier="1"]{border:2px solid #5b9fff}.card[data-tier="2"]{border:2px solid #b889ff}.card[data-tier="3"]{border:2px solid #f5c45c;box-shadow:0 0 9px #f5c45c40}.card[data-tier="4"]{border:2px solid #ff78cf;box-shadow:0 0 14px #ff78cf75}.muted{color:#c9c0d0;font-size:13px;line-height:1.6}@media(max-width:380px){.cards{grid-template-columns:1fr}}
+</style></head><body><main><nav><a href="./online-duel.html">← 対戦に戻る</a><a href="./solo.html">シングルモード</a></nav><h1>🃏 対戦カード図鑑</h1><p class="muted">4職業・各30枚、全120種類。職業を選ぶとそのカード一覧へ移動します。枠色はレアリティ、◆は必要エネルギーです。シングルとは別の対戦専用カードプールです。</p><div class="tabs" id="tabs"></div><div id="catalog"></div></main><script src="cards.js"></script><script>
+'use strict';
+const byId=new Map(cards.map(c=>[c.id,c]));
+const tabs=document.getElementById('tabs'),catalog=document.getElementById('catalog');
+for(const theme of duelThemes){
+ const link=document.createElement('a');link.href='#'+theme.id;link.textContent=theme.name;tabs.append(link);
+ const section=document.createElement('section');section.id=theme.id;
+ const heading=document.createElement('h2');heading.textContent=theme.name+'（30枚）';
+ const description=document.createElement('p');description.className='muted';description.textContent=theme.description;
+ const grid=document.createElement('div');grid.className='cards';
+ for(const id of theme.cards){
+  const c=byId.get(id);if(!c)continue;
+  const card=document.createElement('article');card.className='card';card.dataset.tier=String(c.rarity??0);
+  const name=document.createElement('b');name.textContent=c.name+' ◆'+c.cost;
+  const detail=document.createElement('small');detail.textContent=c.desc;
+  card.append(name,detail);grid.append(card);
+ }
+ section.append(heading,description,grid);catalog.append(section);
+}
+</script></body></html>
