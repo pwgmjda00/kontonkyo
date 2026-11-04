@@ -4,7 +4,7 @@ for(const file of ['battle-core.js','battle-rules.js','duel-engine.js','match-jo
  vm.runInContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),ctx,{filename:file});
 let counter=0,time=1000;
 const randomBytes=n=>Uint8Array.from({length:n},(_,i)=>(counter++*17+i*13)%224);
-const lobby=ctx.IngaLobby.createLobby({catalog:ctx.starter,randomBytes,now:()=>time,ttlMs:1000});
+const lobby=ctx.IngaLobby.createLobby({catalog:ctx.starter,randomBytes,now:()=>time,ttlMs:1000,activeTtlMs:1000});
 const deck=ctx.starter.map(c=>c.id);
 function test(name,fn){fn();console.log('PASS '+name)}
 const host=lobby.create(deck,'せかいのおわりに');
