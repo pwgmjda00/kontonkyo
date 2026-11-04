@@ -149,7 +149,7 @@ function apply(match,seat,action){
    if(e==='startBlock'||e==='emptyBlock'&&b.block===0||e==='lowBlock'&&b.hp<=30||e==='fateBlock'&&b.fate>=4||e==='fewHandBlock'&&b.hand.length<=3||e==='behindBlock'&&b.hp<a.hp)b.block+=n;
    if(e==='startHeal'||e==='lowHeal'&&b.hp<=30||e==='criticalHeal'&&b.hp<=20||e==='blockHeal'&&b.block>=10||e==='thirdHeal'&&b.turnsTaken%3===0)b.hp=Math.min(b.maxHp,b.hp+n);
    if(e==='startFate'||e==='emptyFate'&&b.fate===0||e==='oddFate'&&b.turnsTaken%2===1||e==='fourthFate'&&b.turnsTaken%4===0||e==='emptyDeckFate'&&b.deck.length===0||e==='behindFate'&&b.hp<a.hp||e==='aheadFate'&&b.hp>=a.hp)b.fate+=n;
-   if(e==='evenEnergy'&&b.turnsTaken%2===0||e==='thirdEnergy'&&s.turn%3===0||e==='fourthEnergy'&&s.turn%4===0||e==='fullEnergy'&&b.hp===b.maxHp||e==='lowEnergy'&&b.energy<4)b.energy+=n;
+   if(e==='evenEnergy'&&b.turnsTaken%2===0||e==='thirdEnergy'&&b.turnsTaken%3===0||e==='fourthEnergy'&&b.turnsTaken%4===0||e==='fullEnergy'&&b.hp===b.maxHp||e==='lowEnergy'&&b.energy<4)b.energy+=n;
    if(e==='thirdDraw'&&b.turnsTaken%3===0||e==='oddDraw'&&b.turnsTaken%2===1||e==='evenDraw'&&b.turnsTaken%2===0||e==='fewHandDraw'&&b.hand.length<4)draw(b,n,match.random);
   }
   if(s.turn%3===0&&a.hp>0&&b.hp>0)s.relicOffer=offerRelics(s,match.random);
