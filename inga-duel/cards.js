@@ -565,10 +565,10 @@ for(const c of cards.filter(c=>c.id>=1000&&c.id<1120)){const act=c.act;c.act=(a,
 /* PvP balance pass: class modifiers applied to each unique card action.
    All modifiers are displayed in the card description. */
 const PVP_CLASS_BALANCE={
- ruin:{damage:0.84,block:1,heal:1},
- guard:{damage:1.03,block:1.20,heal:1.10},
- fate:{damage:1.12,block:1.08,heal:1},
- blood:{damage:0.96,block:1,heal:1}
+ ruin:{damage:0.91,block:1.06,heal:1},
+ guard:{damage:1.05,block:1.29,heal:1.12},
+ fate:{damage:1.08,block:1.08,heal:1},
+ blood:{damage:0.89,block:0.98,heal:0.96}
 };
 for(const theme of duelThemes){
  const tune=PVP_CLASS_BALANCE[theme.id];
