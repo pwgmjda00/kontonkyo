@@ -12,7 +12,7 @@ function hit(a,n){return IngaCore.damage(a,n)}
 function draw(a,n){for(let i=0;i<n;i++){if(!a.deck.length){a.deck=shuffle(a.discard.splice(0));if(!a.deck.length)break}if(a.hand.length>=12)break;a.hand.push(a.deck.pop())}}
 function add(s){logs.unshift(s);logs=logs.slice(0,40)}
 function plan(){const pool=[{kind:'attack',value:12,name:'斬撃予告',desc:'防御しなければ12ダメージ'},{kind:'burst',value:20,name:'終末砲',desc:'防御しなければ20ダメージ'},{kind:'guard',value:16,name:'結界展開',desc:'防御16を獲得'},{kind:'drain',value:8,name:'生命吸収',desc:'8ダメージを与え、実際に与えた分だけ回復'},{kind:'attack',value:15,name:'神罰',desc:'防御しなければ15ダメージ'},{kind:'charge',value:0,name:'再構築',desc:'HPを10回復、ただし最大40'}];return {...pool[R(pool.length)]}}
-function init(){if(journey&&!journey.finished&&!confirm('巡礼を終了して通常CPU戦に戻りますか？'))return;journey=null;beginBattle(40,40);renderJourney()}
+function init(){if(journey&&!journey.finished&&!confirm('巡礼を終了して通常CPU戦に戻りますか？'))return;journey=null;saveRun();beginBattle(40,40);renderJourney()}
 function beginBattle(hp,enemyHp){p={hp,block:0,energy:5,fate:0,hand:[],deck:shuffle(makeBattleDeck()),discard:[]};e={hp:enemyHp,maxHp:enemyHp,block:0};turn=1;over=false;logs=[];intent=plan();if(journey&&journey.relics.includes('先制砲'))hit(e,6);if(journey&&journey.relics.includes('生命の泉'))p.hp=Math.min(40,p.hp+5);if(journey&&journey.relics.includes('鋼鉄の誓い'))p.block+=8;if(journey&&journey.relics.includes('運命の導火線'))p.fate+=2;draw(p,5);add('決闘開始。敵の予告を見て行動しよう。');if(e.hp<=0)finish();render()}
 
 function finish(){if(over)return true;if(p.hp<=0||e.hp<=0){over=true;if(journey){journeyBattleEnd(e.hp<=0&&p.hp>0)}else{profile[e.hp<=0&&p.hp>0?'wins':'losses']++;award(e.hp<=0&&p.hp>0?2:1);save();}add(p.hp<=0&&e.hp<=0?'相討ち':e.hp<=0?'勝利！ 観測者を撃破した。':'敗北。因果は閉じた。');return true}return false}
@@ -58,10 +58,42 @@ function selectNode(kind){if(!journey||journey.waiting||journey.finished)return;
 function journeyBattleEnd(won){const j=journey;if(!j||!j.waiting)return;j.hp=Math.max(0,p.hp);if(!won){j.finished=true;j.waiting=false;award(1);add('巡礼失敗。報酬1パック。再挑戦できる。');renderJourney();return}const boss=j.combat==='boss',elite=j.combat==='elite';award(boss?3:elite?2:1);if(j.relics.includes('再生の核')){j.hp=Math.min(40,j.hp+3);p.hp=j.hp;add('再生の核：勝利時HP+3')}j.stage++;if(boss||elite){const available=shuffle(JOURNEY_RELICS.filter(x=>!j.relics.includes(x.name))).slice(0,3);if(available.length){j.offer=available.map(x=>x.name);j.waiting=true;add('✨ レリックを選択してください');renderJourney();return}}if(j.stage>=12)completeJourney();else makeNodes();renderJourney()}
 function pickJourneyRelic(name){const j=journey;if(!j||!j.offer?.includes(name))return;j.relics.push(name);j.offer=null;j.waiting=false;add('✨ '+name+'を獲得');if(j.stage>=12)completeJourney();else makeNodes();render()}
 function completeJourney(){journey.finished=true;journey.waiting=false;award(5);add('🏆 因果巡礼踏破！ 追加5パック獲得。');renderJourney()}
-function renderJourney(){const j=journey;$('journey').classList.toggle('hidden',!j);if(!j)return;$('journeyStatus').textContent=j.finished?'巡礼終了。新たな巡礼を始められる。':'エリア'+(Math.floor(j.stage/4)+1)+' / '+(j.stage%4+1)+'戦目 · 継続HP '+j.hp+'/40';$('relicStatus').textContent='レリック：'+(j.relics.map(name=>{const r=JOURNEY_RELICS.find(x=>x.name===name);return name+'（'+(r?.desc||'効果不明')+'）'}).join(' / ')||'なし');$('journeyNodes').replaceChildren(...(j.finished?[]:(j.offer?j.offer.map(name=>({label:'✨ '+name+'：'+JOURNEY_RELICS.find(x=>x.name===name)?.desc,kind:'relic',name})):(j.nodes||[])).map(n=>{const b=document.createElement('button');b.className='secondary';b.textContent=n.label;b.disabled=j.waiting&&n.kind!=='relic';b.onclick=()=>n.kind==='relic'?pickJourneyRelic(n.name):selectNode(n.kind);return b})));$('pilgrimageMode').textContent=j.finished?'🗺️ 再挑戦':'🗺️ 因果巡礼'}
+function renderJourney(){const j=journey;$('journey').classList.toggle('hidden',!j);if(!j)return;$('journeyStatus').textContent=j.finished?'巡礼終了。新たな巡礼を始められる。':'エリア'+(Math.floor(j.stage/4)+1)+' / '+(j.stage%4+1)+'戦目 · 継続HP '+j.hp+'/40';$('relicStatus').textContent='レリック：'+(j.relics.map(name=>{const r=JOURNEY_RELICS.find(x=>x.name===name);return name+'（'+(r?.desc||'効果不明')+'）'}).join(' / ')||'なし');$('journeyNodes').replaceChildren(...(j.finished?[]:(j.offer?j.offer.map(name=>({label:'✨ '+name+'：'+JOURNEY_RELICS.find(x=>x.name===name)?.desc,kind:'relic',name})):(j.nodes||[])).map(n=>{const b=document.createElement('button');b.className='secondary';b.textContent=n.label;b.disabled=j.waiting&&n.kind!=='relic';b.onclick=()=>n.kind==='relic'?pickJourneyRelic(n.name):selectNode(n.kind);return b})));$('pilgrimageMode').textContent=j.finished?'🗺️ 再挑戦':'🗺️ 因果巡礼';saveRun()}
 $('normalMode').onclick=init;$('pilgrimageMode').onclick=startJourney;
 
 
+
+const RUN_KEY='inga-solo-run-v1';
+function saveRun(){
+ try{
+  if(!journey){localStorage.removeItem(RUN_KEY);return}
+  const active=journey.waiting&&!journey.offer&&!over;
+  const snap={journey,serial,active,battle:active?{
+   p:{...p,hand:p.hand.map(c=>({id:c.id,uid:c.uid})),deck:p.deck.map(c=>({id:c.id,uid:c.uid})),discard:p.discard.map(c=>({id:c.id,uid:c.uid}))},
+   e,turn,intent,logs}:null};
+  localStorage.setItem(RUN_KEY,JSON.stringify(snap));
+ }catch(err){console.warn('巡礼保存失敗',err)}
+}
+function restoreRun(){
+ try{
+  const s=JSON.parse(localStorage.getItem(RUN_KEY)||'null');
+  if(!s||!s.journey||!Number.isInteger(s.journey.stage)||s.journey.stage<0||s.journey.stage>12)return false;
+  journey=s.journey;serial=Math.max(serial,s.serial||0);
+  if(s.active&&s.battle){
+   const revive=c=>{const base=c.id<0?starter[-c.id-1]:cards[c.id];if(!base)throw Error('invalid card');return {...base,uid:c.uid}};
+   const b=s.battle;p={...b.p,hand:b.p.hand.map(revive),deck:b.p.deck.map(revive),discard:b.p.discard.map(revive)};
+   e=b.e;turn=b.turn;intent=b.intent;logs=b.logs;over=false;
+  }else{
+   p={hp:journey.hp,block:0,energy:5,fate:0,hand:[],deck:[],discard:[]};
+   e={hp:40,maxHp:40,block:0};turn=1;over=true;
+   intent={kind:'none',name:'経路選択',desc:'次のマスを選ぼう'};logs=[];
+   if(journey.waiting&&!journey.offer){journey.waiting=false;makeNodes()}
+  }
+  return true;
+ }catch(err){console.warn('巡礼復元失敗',err);journey=null;return false}
+}
+window.addEventListener('pagehide',saveRun);
+
 function render(){renderJourney();$('ph').textContent='HP '+Math.max(0,p.hp)+'/40';$('eh').textContent='HP '+Math.max(0,e.hp)+'/'+(e.maxHp||40);$('pb').textContent='防御 '+p.block;$('eb').textContent='防御 '+e.block;$('intent').textContent=intent.name;$('idesc').textContent=intent.desc;$('fate').textContent='因果 '+p.fate+' / 6';$('meter').style.width=Math.min(100,p.fate/6*100)+'%';$('round').textContent='TURN '+turn;$('energy').textContent='⚡ エネルギー '+p.energy+' / '+(journey&&journey.relics.includes('永久機関')?6:5);$('deck').textContent='山札 '+p.deck.length+' / 捨札 '+p.discard.length;$('hand').replaceChildren(...p.hand.map(c=>{let b=document.createElement('button');b.className='card';b.disabled=over||c.cost>p.energy;let name=document.createElement('strong'),desc=document.createElement('span');name.textContent=c.name+'  ◆'+c.cost;desc.textContent=c.desc;b.append(name,desc);b.onclick=()=>play(c.uid);return b}));$('end').disabled=over;$('fateBtn').disabled=over||p.fate<6;$('status').textContent=over?(p.hp<=0?(e.hp<=0?'相討ち':'敗北'):'勝利！'):'';$('log').replaceChildren(...logs.map(s=>{let d=document.createElement('div');d.textContent=s;return d}))}
-$('end').onclick=endTurn;$('fateBtn').onclick=breakFate;$('reset').onclick=init;load();init();updateCollection();
+$('end').onclick=endTurn;$('fateBtn').onclick=breakFate;$('reset').onclick=init;load();if(restoreRun())render();else init();updateCollection();
 </script></html>
