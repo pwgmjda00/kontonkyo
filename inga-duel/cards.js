@@ -263,7 +263,7 @@ for(const theme of duelThemes)for(let i=0;i<theme.cards.length;i++){
   c.desc='防御'+block+'。敵に'+damage+'ダメージ。'+(cost>=4?'HP2回復。':'');
   c.act=(a,b,ctx)=>{a.block+=block;ctx.hit(b,damage);if(cost>=4)a.hp=Math.min(a.maxHp,a.hp+2)};
  }else if(theme.id==='fate'){
-  const damage=2+cost*3+(tier%2),fate=cost>=4?2:1;
+  const damage=4+cost*3+(tier%2),fate=cost>=4?2:1;
   c.desc='敵に'+damage+'ダメージ。因果+'+fate+'。'+(cost>=3?'1枚引く。':'');
   c.act=(a,b,ctx)=>{ctx.hit(b,damage);a.fate+=fate;if(cost>=3)ctx.draw(a,1)};
  }else if(theme.id==='blood'){
