@@ -27,16 +27,17 @@ function apply(match,seat,action){
   a.energy-=card.cost;a.hand.splice(idx,1);
   const ctx={hit:core.damage,draw:(p,n)=>draw(p,n,match.random),random:match.random,
    get intent(){return {kind:'none',value:0,name:'対人戦',desc:'相手の手番'}},
-   set intent(_v){}};
+   set intent(_v){/* PvP has no telegraphed CPU action */}};
   card.act(a,b,ctx);a.discard.push(card);s.log.push({turn:s.turn,seat,type:'play',cardId:card.id});
  }else if(action.type==='fate'){
   a.fate-=6;b.block=0;core.damage(b,18);a.energy+=2;s.log.push({turn:s.turn,seat,type:'fate'});
  }else if(action.type==='end_turn'){
-  a.block=0;a.discard.push(...a.hand.splice(0));s.active=1-seat;
+  a.discard.push(...a.hand.splice(0));s.active=1-seat;
   b.block=0;b.energy=5;draw(b,5,match.random);
   s.turn++;s.log.push({turn:s.turn,seat,type:'end_turn'});
  }
  if(a.hp<=0||b.hp<=0){s.over=true;s.winner=a.hp<=0&&b.hp<=0?null:a.hp<=0?1-seat:seat}
+ if(s.log.length>100)s.log.splice(0,s.log.length-100);
  return {ok:true,state:s};
 }
 function publicView(match,seat){
