@@ -75,7 +75,7 @@ function render(state){
  $('relicChoices').replaceChildren(...(v.relicOffer||[]).map(r=>{const b=document.createElement('button');b.disabled=busy||pending;b.textContent=r.name+'：'+r.desc;b.onclick=()=>act({type:'relic',id:r.id});return b}));
  if(v.over){visualQueue=[];showResult(v)}
  $('log').replaceChildren(...v.log.slice(-16).reverse().map(e=>{const p=document.createElement('p');const who=e.seat===session.seat?'あなた':'相手';let detail=e.type==='play'?'「'+(e.name||'カード')+'」を使用':e.type==='end_turn'?'ターン終了':e.type==='relic'?'レリック「'+e.name+'」を獲得':e.type==='retain'?e.name:e.type==='fate'||e.type==='skill'?e.name+'を使用':e.type;
- if(e.type==='play'){if(e.damage)detail+=' / '+e.damage+'ダメージ';if(e.block)detail+=' / 防御+'+e.block;if(e.healing)detail+=' / HP+'+e.healing;if(e.selfDamage)detail+=' / 自傷'+e.selfDamage;if(e.fate>0)detail+=' / 因果+'+e.fate}
+ if(e.type==='play'){detail+='：'+(e.description||'効果不明');const changes=[];if(e.damage)changes.push('実ダメージ '+e.damage);if(e.block)changes.push('自分の防御 +'+e.block);if(e.enemyBlock)changes.push('相手の防御 '+(e.enemyBlock>0?'+':'')+e.enemyBlock);if(e.healing)changes.push('HP回復 '+e.healing);if(e.selfDamage)changes.push('自傷 '+e.selfDamage);if(e.fate)changes.push('自分の因果 '+(e.fate>0?'+':'')+e.fate);if(e.enemyFate)changes.push('相手の因果 '+(e.enemyFate>0?'+':'')+e.enemyFate);if(e.drawn)changes.push('ドロー '+e.drawn+'枚');if(e.energy)changes.push('エネルギー '+(e.energy>0?'+':'')+e.energy);if(changes.length)detail+=' / 実際の変化：'+changes.join('、')}
  if(e.energySpent)detail+=' / ⚡'+e.energySpent+'消費';if(e.type==='income')detail='ターン開始：因果+1';if(e.type==='bonus')detail=e.name;if(e.type==='limit')detail=e.name;
  p.textContent='第'+e.turn+'ターン · '+who+'：'+detail;return p}));
 }
