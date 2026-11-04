@@ -4,8 +4,8 @@ for(const file of ['battle-core.js','battle-rules.js','duel-engine.js','match-jo
  vm.runInContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),ctx,{filename:file});
 let counter=0,time=1000;
 const randomBytes=n=>Uint8Array.from({length:n},(_,i)=>(counter++*17+i*13)%224);
-const lobby=ctx.IngaLobby.createLobby({catalog:ctx.starter,randomBytes,now:()=>time,ttlMs:1000,activeTtlMs:1000});
-const deck=ctx.starter.map(c=>c.id);
+const lobby=ctx.IngaLobby.createLobby({catalog:vm.runInContext('starter',ctx),randomBytes,now:()=>time,ttlMs:1000,activeTtlMs:1000});
+const deck=vm.runInContext('starter.map(c=>c.id)',ctx);
 function test(name,fn){fn();console.log('PASS '+name)}
 const host=lobby.create(deck,'せかいのおわりに');
 test('create invite and wait',()=>{assert.equal(host.ok,true);assert.equal(host.code.length,8);assert.equal(lobby.status(host.token).status,'waiting')});
