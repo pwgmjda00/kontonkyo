@@ -11,7 +11,7 @@ function createMatch(decks,options={}){
  let serial=0;
  const players=decks.map((deck,i)=>({hp:60,maxHp:60,block:0,energy:4,fate:0,hand:[],deck:shuffle(deck.map(c=>({...c,uid:++serial})),random),discard:[],seat:i,job:deck[0]?.job||'ruin',skillUsed:false,skillDebt:0,extraDrawNext:0,cardsPlayed:0,attacksPlayed:0,turnsTaken:0,relicFlags:{}}));
  const state={version:2,players,active:0,turn:1,over:false,winner:null,log:[],seed:options.seed??1,relics:[[],[]],relicOffer:null};
- draw(players[0],5,random);draw(players[1],6,random);players[0].fate=1;state.log.push({turn:1,seat:1,type:'bonus',name:'後手補正：初期手札+1枚'});
+ draw(players[0],5,random);draw(players[1],6,random);players[1].fate=1;state.log.push({turn:1,seat:1,type:'bonus',name:'後手補正：初期手札+1枚・因果+1'});
  return {state,random,getRngState:()=>rngState,setRngState:v=>{rngState=v>>>0}};
 }
 function draw(p,n,random){for(let i=0;i<n;i++){if(p.hand.length>=12)break;if(!p.deck.length)p.deck=shuffle(p.discard.splice(0),random);if(!p.deck.length)break;p.hand.push(p.deck.pop())}}
