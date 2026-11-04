@@ -9,7 +9,7 @@ function createMatch(decks,options={}){
  let rngState=(options.seed??1)>>>0;
  const random=()=>{rngState=(Math.imul(1664525,rngState)+1013904223)>>>0;return rngState/4294967296};
  let serial=0;
- const players=decks.map((deck,i)=>({hp:60,maxHp:60,block:0,energy:4,fate:0,hand:[],deck:shuffle(deck.map(c=>({...c,uid:++serial})),random),discard:[],seat:i,job:deck[0]?.job||'ruin',skillUsed:false,skillDebt:0,extraDrawNext:0,cardsPlayed:0,attacksPlayed:0,relicFlags:{}}));
+ const players=decks.map((deck,i)=>({hp:60,maxHp:60,block:0,energy:4,fate:0,hand:[],deck:shuffle(deck.map(c=>({...c,uid:++serial})),random),discard:[],seat:i,job:deck[0]?.job||'ruin',skillUsed:false,skillDebt:0,extraDrawNext:0,cardsPlayed:0,attacksPlayed:0,turnsTaken:0,relicFlags:{}}));
  const state={version:2,players,active:0,turn:1,over:false,winner:null,log:[],seed:options.seed??1,relics:[[],[]],relicOffer:null};
  draw(players[0],5,random);draw(players[1],5,random);
  return {state,random,getRngState:()=>rngState,setRngState:v=>{rngState=v>>>0}};
@@ -118,7 +118,7 @@ function apply(match,seat,action){
   
   const owned=s.relics[seat].map(id=>RELICS.find(r=>r.id===id)).filter(Boolean);
   const bonus=(effect,condition=true)=>owned.filter(r=>r.effect===effect&&condition).reduce((n,r)=>n+r.value,0);
-  const ctx={hit:(target,n)=>core.damage(target,n+(target===b?bonus('firstHit',a.attacksPlayed===0)+bonus('secondHit',a.attacksPlayed===1)+bonus('thirdHit',a.attacksPlayed===2)+bonus('lowHit',a.hp<=30&&a.attacksPlayed===0)+bonus('blockHit',b.block>0&&a.attacksPlayed===0):0)),draw:(p,n)=>draw(p,n,match.random),random:match.random,
+  let hitIndex=0;const ctx={hit:(target,n)=>{const first=hitIndex++===0;const added=target===b&&first?bonus('firstHit',a.attacksPlayed===0)+bonus('secondHit',a.attacksPlayed===1)+bonus('thirdHit',a.attacksPlayed===2)+bonus('lowHit',a.hp<=30&&a.attacksPlayed===0)+bonus('blockHit',b.block>0&&a.attacksPlayed===0):0;const outcome=core.damage(target,n+added);if(target===b&&outcome.dealt>0){for(const id of s.relics[1-seat]){const r=RELICS.find(x=>x.id===id);if(r?.effect==='retaliate'&&!b.relicFlags.retaliate){core.damage(a,r.value);b.relicFlags.retaliate=true}}}return outcome},draw:(p,n)=>draw(p,n,match.random),random:match.random,
    get intent(){return {kind:'none',value:0,name:'対人戦',desc:'相手の手番'}},
    set intent(_v){}};
   const before={hp:a.hp,block:a.block,energy:a.energy,fate:a.fate,enemyHp:b.hp,enemyBlock:b.block};
@@ -143,16 +143,16 @@ function apply(match,seat,action){
   if(a.hand.length<=2&&s.relics[seat].includes('prism'))a.extraDrawNext=1;
   if(a.block>0){for(const id of s.relics[seat]){const r=RELICS.find(x=>x.id===id);if(r?.effect==='endBlockHeal')a.hp=Math.min(a.maxHp,a.hp+r.value)}}
   a.discard.push(...a.hand.splice(0));s.active=1-seat;
-  b.block=0;b.energy=Math.max(1,4-b.skillDebt);b.skillDebt=0;b.skillUsed=false;b.cardsPlayed=0;b.attacksPlayed=0;b.relicFlags={};draw(b,5+b.extraDrawNext,match.random);b.extraDrawNext=0;
+  b.turnsTaken++;b.block=0;b.energy=Math.max(1,4-b.skillDebt);b.skillDebt=0;b.skillUsed=false;b.cardsPlayed=0;b.attacksPlayed=0;b.relicFlags={};draw(b,5+b.extraDrawNext,match.random);b.extraDrawNext=0;
   s.log.push({turn:s.turn,seat,type:'end_turn'});s.turn++;
   for(const id of s.relics[s.active]){const r=RELICS.find(x=>x.id===id);if(!r)continue;const e=r.effect,n=r.value;
    if(e==='startBlock'||e==='emptyBlock'&&b.block===0||e==='lowBlock'&&b.hp<=30||e==='fateBlock'&&b.fate>=4||e==='fewHandBlock'&&b.hand.length<=3||e==='behindBlock'&&b.hp<a.hp)b.block+=n;
-   if(e==='startHeal'||e==='lowHeal'&&b.hp<=30||e==='criticalHeal'&&b.hp<=20||e==='blockHeal'&&b.block>=10||e==='thirdHeal'&&s.turn%3===0)b.hp=Math.min(b.maxHp,b.hp+n);
-   if(e==='startFate'||e==='emptyFate'&&b.fate===0||e==='oddFate'&&s.turn%2===1||e==='fourthFate'&&s.turn%4===0||e==='emptyDeckFate'&&b.deck.length===0||e==='behindFate'&&b.hp<a.hp||e==='aheadFate'&&b.hp>=a.hp)b.fate+=n;
-   if(e==='evenEnergy'&&s.turn%2===0||e==='thirdEnergy'&&s.turn%3===0||e==='fourthEnergy'&&s.turn%4===0||e==='fullEnergy'&&b.hp===b.maxHp||e==='lowEnergy'&&b.energy<4)b.energy+=n;
+   if(e==='startHeal'||e==='lowHeal'&&b.hp<=30||e==='criticalHeal'&&b.hp<=20||e==='blockHeal'&&b.block>=10||e==='thirdHeal'&&b.turnsTaken%3===0)b.hp=Math.min(b.maxHp,b.hp+n);
+   if(e==='startFate'||e==='emptyFate'&&b.fate===0||e==='oddFate'&&b.turnsTaken%2===1||e==='fourthFate'&&b.turnsTaken%4===0||e==='emptyDeckFate'&&b.deck.length===0||e==='behindFate'&&b.hp<a.hp||e==='aheadFate'&&b.hp>=a.hp)b.fate+=n;
+   if(e==='evenEnergy'&&b.turnsTaken%2===0||e==='thirdEnergy'&&s.turn%3===0||e==='fourthEnergy'&&s.turn%4===0||e==='fullEnergy'&&b.hp===b.maxHp||e==='lowEnergy'&&b.energy<4)b.energy+=n;
    if(e==='thirdDraw'&&s.turn%3===0||e==='oddDraw'&&s.turn%2===1||e==='evenDraw'&&s.turn%2===0||e==='fewHandDraw'&&b.hand.length<4)draw(b,n,match.random);
   }
-  if(s.turn%5===0)s.relicOffer=offerRelics(s,match.random);
+  if(s.turn%5===0&&a.hp>0&&b.hp>0)s.relicOffer=offerRelics(s,match.random);
  }
  if(a.hp<=0||b.hp<=0){s.over=true;s.winner=a.hp<=0&&b.hp<=0?null:a.hp<=0?1-seat:seat}
  if(s.log.length>100)s.log.splice(0,s.log.length-100);
