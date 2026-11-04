@@ -87,6 +87,10 @@ function apply(match,seat,action){
  const cost={energy:2,draw:3,guard:4}[action.mode];
  if(!cost||a.fate<cost)return {ok:false,reason:'fate'};
  a.fate-=cost;if(action.mode==='energy')a.energy++;if(action.mode==='draw')draw(a,1,match.random);if(action.mode==='guard')a.block+=7;
+ if(a.job==='ruin'&&action.mode==='energy')core.damage(b,2);
+ if(a.job==='guard'&&action.mode==='guard')a.block+=3;
+ if(a.job==='fate'&&action.mode==='draw')a.fate+=1;
+ if(a.job==='blood'&&action.mode==='energy')a.hp=Math.min(a.maxHp,a.hp+2);
  s.log.push({turn:s.turn,seat,type:'fate',name:action.mode==='energy'?'因果転換：エナジー+1':action.mode==='draw'?'因果観測：1枚引く':'因果結界：防御+7'});
  return {ok:true,state:s};
  }
