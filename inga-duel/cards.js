@@ -438,3 +438,126 @@ for(const theme of duelThemes)for(let i=0;i<30;i++){
 {const c=cards.find(c=>c.id===1117),base=c.act;c.desc+=' 【残額の祈り】HPが15以下ならHP2回復。';c.act=(a,b,x)=>{base(a,b,x);if(a.hp<=15)a.hp=Math.min(a.maxHp,a.hp+2)}}
 {const c=cards.find(c=>c.id===1118),base=c.act;c.desc+=' 【割り切れない夜】敵HPが奇数なら追加2ダメージ。';c.act=(a,b,x)=>{base(a,b,x);if(b.hp%2!==0)x.hit(b,2)}}
 {const c=cards.find(c=>c.id===1119),base=c.act;c.desc+=' 【二枚目の遺書】手札が2枚以下なら防御+3。';c.act=(a,b,x)=>{base(a,b,x);if(a.hand.length<=2)a.block+=3}}
+
+/* 120 individually authored PvP mechanics; overrides prior draft effects. */
+{const c=cards.find(v=>v.id===1000);c.desc="防御を半分にし、失わせた防御と同じダメージ";c.act=(a,b,x)=>{const n=Math.ceil(b.block/2);b.block-=n;x.hit(b,n)}}
+{const c=cards.find(v=>v.id===1001);c.desc="相手の防御が0なら7ダメージ、あれば防御を全消去";c.act=(a,b,x)=>{if(b.block===0)x.hit(b,7);else b.block=0}}
+{const c=cards.find(v=>v.id===1002);c.desc="敵の防御を3削り、削れなければ因果を2奪う";c.act=(a,b,x)=>{if(b.block){b.block=Math.max(0,b.block-3)}else{const n=Math.min(2,b.fate);b.fate-=n;a.fate+=n}}}
+{const c=cards.find(v=>v.id===1003);c.desc="敵に6ダメージ。相手の手札が5枚以上なら追加4";c.act=(a,b,x)=>{x.hit(b,6+(b.hand.length>=5?4:0))}}
+{const c=cards.find(v=>v.id===1004);c.desc="相手の因果を1削り、因果が0になれば10ダメージ";c.act=(a,b,x)=>{b.fate=Math.max(0,b.fate-1);if(b.fate===0)x.hit(b,10)}}
+{const c=cards.find(v=>v.id===1005);c.desc="敵に8ダメージ。敵の防御が残れば自分に防御6";c.act=(a,b,x)=>{x.hit(b,8);if(b.block>0)a.block+=6}}
+{const c=cards.find(v=>v.id===1006);c.desc="敵に9ダメージ。自分の防御が0なら因果+2";c.act=(a,b,x)=>{x.hit(b,9);if(a.block===0)a.fate+=2}}
+{const c=cards.find(v=>v.id===1007);c.desc="敵に5ダメージを2回。2撃ともHPに通れば因果+1";c.act=(a,b,x)=>{const z=x.hit(b,5),w=x.hit(b,5);if(z.dealt&&w.dealt)a.fate++}}
+{const c=cards.find(v=>v.id===1008);c.desc="相手の因果を最大3消費させ、消費量×4ダメージ";c.act=(a,b,x)=>{const n=Math.min(3,b.fate);b.fate-=n;x.hit(b,n*4)}}
+{const c=cards.find(v=>v.id===1009);c.desc="敵に12ダメージ。相手の防御が10以上なら防御を追加で8削る";c.act=(a,b,x)=>{x.hit(b,12);if(b.block>=10)b.block-=8}}
+{const c=cards.find(v=>v.id===1010);c.desc="敵に7ダメージ。敵のHPが偶数ならもう一度4ダメージ";c.act=(a,b,x)=>{x.hit(b,7);if(b.hp%2===0)x.hit(b,4)}}
+{const c=cards.find(v=>v.id===1011);c.desc="敵に11ダメージ。相手の因果が自分より多ければ因果を2奪う";c.act=(a,b,x)=>{x.hit(b,11);if(b.fate>a.fate){const n=Math.min(2,b.fate);b.fate-=n;a.fate+=n}}}
+{const c=cards.find(v=>v.id===1012);c.desc="敵の防御を5削る。残った防御が0なら15ダメージ";c.act=(a,b,x)=>{b.block=Math.max(0,b.block-5);if(b.block===0)x.hit(b,15)}}
+{const c=cards.find(v=>v.id===1013);c.desc="敵に13ダメージ。自分のHPが低ければ自分の防御+7";c.act=(a,b,x)=>{x.hit(b,13);if(a.hp<b.hp)a.block+=7}}
+{const c=cards.find(v=>v.id===1014);c.desc="敵に9ダメージ。相手の因果が0なら追加9ダメージ";c.act=(a,b,x)=>{x.hit(b,9+(b.fate===0?9:0))}}
+{const c=cards.find(v=>v.id===1015);c.desc="敵に12ダメージ。自分の防御を最大8消費し、消費量×2追加";c.act=(a,b,x)=>{const n=Math.min(8,a.block);a.block-=n;x.hit(b,12+n*2)}}
+{const c=cards.find(v=>v.id===1016);c.desc="敵に10ダメージ。相手の防御が0なら因果+3";c.act=(a,b,x)=>{x.hit(b,10);if(b.block===0)a.fate+=3}}
+{const c=cards.find(v=>v.id===1017);c.desc="敵に15ダメージ。相手の防御が残れば因果を2削る";c.act=(a,b,x)=>{x.hit(b,15);if(b.block>0)b.fate=Math.max(0,b.fate-2)}}
+{const c=cards.find(v=>v.id===1018);c.desc="敵に8ダメージを3回。自分の防御を0にする";c.act=(a,b,x)=>{a.block=0;for(let i=0;i<3;i++)x.hit(b,8)}}
+{const c=cards.find(v=>v.id===1019);c.desc="敵に18ダメージ。自分の因果を2消費できなければHP3を失う";c.act=(a,b,x)=>{if(a.fate>=2)a.fate-=2;else a.hp-=3;x.hit(b,18)}}
+{const c=cards.find(v=>v.id===1020);c.desc="敵の防御を全消去。消した防御の半分だけ自分に防御を得る";c.act=(a,b,x)=>{const n=b.block;b.block=0;a.block+=Math.floor(n/2)}}
+{const c=cards.find(v=>v.id===1021);c.desc="敵に16ダメージ。相手の手札が2枚以下なら追加8";c.act=(a,b,x)=>{x.hit(b,16+(b.hand.length<=2?8:0))}}
+{const c=cards.find(v=>v.id===1022);c.desc="敵に20ダメージ。自分の防御が10以上なら半分消費し追加10";c.act=(a,b,x)=>{const z=a.block>=10;a.block=z?Math.floor(a.block/2):a.block;x.hit(b,20+(z?10:0))}}
+{const c=cards.find(v=>v.id===1023);c.desc="敵に14ダメージ。相手の因果を2削り、削った分だけ防御+5";c.act=(a,b,x)=>{const n=Math.min(2,b.fate);b.fate-=n;x.hit(b,14);a.block+=n*5}}
+{const c=cards.find(v=>v.id===1024);c.desc="敵に22ダメージ。相手の防御が0なら自分の因果を1失う";c.act=(a,b,x)=>{x.hit(b,22);if(b.block===0)a.fate=Math.max(0,a.fate-1)}}
+{const c=cards.find(v=>v.id===1025);c.desc="敵に18ダメージ。相手のHPが自分以上なら追加12";c.act=(a,b,x)=>{x.hit(b,18+(b.hp>=a.hp?12:0))}}
+{const c=cards.find(v=>v.id===1026);c.desc="敵に11ダメージを2回。相手の防御が残れば3撃目";c.act=(a,b,x)=>{x.hit(b,11);x.hit(b,11);if(b.block>0)x.hit(b,7)}}
+{const c=cards.find(v=>v.id===1027);c.desc="敵に26ダメージ。自分の防御を全消費し、消費10以上なら因果+3";c.act=(a,b,x)=>{const n=a.block;a.block=0;x.hit(b,26);if(n>=10)a.fate+=3}}
+{const c=cards.find(v=>v.id===1028);c.desc="敵に15ダメージ。相手の因果を全消費し、消費3以上なら追加15";c.act=(a,b,x)=>{const n=b.fate;b.fate=0;x.hit(b,15+(n>=3?15:0))}}
+{const c=cards.find(v=>v.id===1029);c.desc="敵に32ダメージ。相手の防御が残ればその防御を自分へ移す";c.act=(a,b,x)=>{x.hit(b,32);if(b.block>0){a.block+=b.block;b.block=0}}}
+{const c=cards.find(v=>v.id===1030);c.desc="防御5。相手の防御が自分より高ければさらに防御5";c.act=(a,b,x)=>{a.block+=5;if(b.block>a.block)a.block+=5}}
+{const c=cards.find(v=>v.id===1031);c.desc="防御4。相手の因果が4以上なら因果を1奪う";c.act=(a,b,x)=>{a.block+=4;if(b.fate>=4){b.fate--;a.fate++}}}
+{const c=cards.find(v=>v.id===1032);c.desc="防御8。自分のHPが奇数ならHP1回復";c.act=(a,b,x)=>{a.block+=8;if(a.hp%2)a.hp=Math.min(a.maxHp,a.hp+1)}}
+{const c=cards.find(v=>v.id===1033);c.desc="防御6。相手の手札が5枚以上なら防御+5";c.act=(a,b,x)=>{a.block+=6+(b.hand.length>=5?5:0)}}
+{const c=cards.find(v=>v.id===1034);c.desc="防御10。敵の防御が0なら敵に4ダメージ";c.act=(a,b,x)=>{a.block+=10;if(b.block===0)x.hit(b,4)}}
+{const c=cards.find(v=>v.id===1035);c.desc="防御7。自分の防御が15以上になれば因果+2";c.act=(a,b,x)=>{a.block+=7;if(a.block>=15)a.fate+=2}}
+{const c=cards.find(v=>v.id===1036);c.desc="防御9。敵HPが自分より低ければ敵に6ダメージ";c.act=(a,b,x)=>{a.block+=9;if(b.hp<a.hp)x.hit(b,6)}}
+{const c=cards.find(v=>v.id===1037);c.desc="防御5。自分の防御を半分消費して同量のHP回復（最大5）";c.act=(a,b,x)=>{a.block+=5;const n=Math.min(5,Math.floor(a.block/2));a.block-=n;a.hp=Math.min(a.maxHp,a.hp+n)}}
+{const c=cards.find(v=>v.id===1038);c.desc="防御12。自分の手札が1枚以下なら1枚引く";c.act=(a,b,x)=>{a.block+=12;if(a.hand.length<=1)x.draw(a,1)}}
+{const c=cards.find(v=>v.id===1039);c.desc="防御8。敵の因果を1削り、削れなければ防御+5";c.act=(a,b,x)=>{a.block+=8;if(b.fate)b.fate--;else a.block+=5}}
+{const c=cards.find(v=>v.id===1040);c.desc="敵に6ダメージ。実際に与えたHPダメージ分だけ防御獲得（最大8）";c.act=(a,b,x)=>{const z=x.hit(b,6);a.block+=Math.min(8,z.dealt)}}
+{const c=cards.find(v=>v.id===1041);c.desc="防御14。自分のHPが30以下なら敵に5ダメージ";c.act=(a,b,x)=>{a.block+=14;if(a.hp<=30)x.hit(b,5)}}
+{const c=cards.find(v=>v.id===1042);c.desc="防御11。相手の防御が5以上なら自分の防御+7";c.act=(a,b,x)=>{a.block+=11;if(b.block>=5)a.block+=7}}
+{const c=cards.find(v=>v.id===1043);c.desc="防御6。因果を最大2消費し、消費量×6防御追加";c.act=(a,b,x)=>{a.block+=6;const n=Math.min(2,a.fate);a.fate-=n;a.block+=n*6}}
+{const c=cards.find(v=>v.id===1044);c.desc="防御16。敵の因果が0ならHP3回復";c.act=(a,b,x)=>{a.block+=16;if(b.fate===0)a.hp=Math.min(a.maxHp,a.hp+3)}}
+{const c=cards.find(v=>v.id===1045);c.desc="防御8。防御が20以上になれば敵に10ダメージ";c.act=(a,b,x)=>{a.block+=8;if(a.block>=20)x.hit(b,10)}}
+{const c=cards.find(v=>v.id===1046);c.desc="防御10。自分の防御を5消費し敵に14ダメージ（不足なら攻撃なし）";c.act=(a,b,x)=>{a.block+=10;if(a.block>=5){a.block-=5;x.hit(b,14)}}}
+{const c=cards.find(v=>v.id===1047);c.desc="防御13。敵HPが自分より高ければ因果+2";c.act=(a,b,x)=>{a.block+=13;if(b.hp>a.hp)a.fate+=2}}
+{const c=cards.find(v=>v.id===1048);c.desc="防御15。相手の防御を最大6削り、その分を自分の防御へ";c.act=(a,b,x)=>{const n=Math.min(6,b.block);b.block-=n;a.block+=15+n}}
+{const c=cards.find(v=>v.id===1049);c.desc="防御12。自分の防御が25以上ならHP5回復";c.act=(a,b,x)=>{a.block+=12;if(a.block>=25)a.hp=Math.min(a.maxHp,a.hp+5)}}
+{const c=cards.find(v=>v.id===1050);c.desc="防御18。敵の因果が自分より多ければ敵に8ダメージ";c.act=(a,b,x)=>{a.block+=18;if(b.fate>a.fate)x.hit(b,8)}}
+{const c=cards.find(v=>v.id===1051);c.desc="防御9。敵に自分の防御の3分の1ダメージ（最大12）";c.act=(a,b,x)=>{a.block+=9;x.hit(b,Math.min(12,Math.floor(a.block/3)))}}
+{const c=cards.find(v=>v.id===1052);c.desc="防御16。自分のHPが20以下ならさらに防御10";c.act=(a,b,x)=>{a.block+=16;if(a.hp<=20)a.block+=10}}
+{const c=cards.find(v=>v.id===1053);c.desc="防御14。相手の手札が2枚以下なら因果+3";c.act=(a,b,x)=>{a.block+=14;if(b.hand.length<=2)a.fate+=3}}
+{const c=cards.find(v=>v.id===1054);c.desc="防御20。因果を1消費できればHP4回復";c.act=(a,b,x)=>{a.block+=20;if(a.fate){a.fate--;a.hp=Math.min(a.maxHp,a.hp+4)}}}
+{const c=cards.find(v=>v.id===1055);c.desc="防御11。自分の防御が30以上なら敵の因果を3削る";c.act=(a,b,x)=>{a.block+=11;if(a.block>=30)b.fate=Math.max(0,b.fate-3)}}
+{const c=cards.find(v=>v.id===1056);c.desc="防御17。自分の防御の半分を失い、失った量だけ敵にダメージ";c.act=(a,b,x)=>{a.block+=17;const n=Math.floor(a.block/2);a.block-=n;x.hit(b,n)}}
+{const c=cards.find(v=>v.id===1057);c.desc="防御22。相手の防御が0なら敵に9ダメージ";c.act=(a,b,x)=>{a.block+=22;if(b.block===0)x.hit(b,9)}}
+{const c=cards.find(v=>v.id===1058);c.desc="防御19。自分のHPが敵より低ければHP6回復";c.act=(a,b,x)=>{a.block+=19;if(a.hp<b.hp)a.hp=Math.min(a.maxHp,a.hp+6)}}
+{const c=cards.find(v=>v.id===1059);c.desc="防御28。自分の防御が40以上なら因果+4";c.act=(a,b,x)=>{a.block+=28;if(a.block>=40)a.fate+=4}}
+{const c=cards.find(v=>v.id===1060);c.desc="因果+1。敵の因果が0なら敵に5ダメージ";c.act=(a,b,x)=>{a.fate++;if(!b.fate)x.hit(b,5)}}
+{const c=cards.find(v=>v.id===1061);c.desc="因果+1。自分の防御が0なら防御4";c.act=(a,b,x)=>{a.fate++;if(!a.block)a.block+=4}}
+{const c=cards.find(v=>v.id===1062);c.desc="因果+2。自分の因果が偶数になれば敵に6ダメージ";c.act=(a,b,x)=>{a.fate+=2;if(a.fate%2===0)x.hit(b,6)}}
+{const c=cards.find(v=>v.id===1063);c.desc="因果+1。相手の因果が自分より多ければ1奪う";c.act=(a,b,x)=>{a.fate++;if(b.fate>a.fate){b.fate--;a.fate++}}}
+{const c=cards.find(v=>v.id===1064);c.desc="因果+2。敵の防御が0なら追加5ダメージ";c.act=(a,b,x)=>{a.fate+=2;if(b.block===0)x.hit(b,5)}}
+{const c=cards.find(v=>v.id===1065);c.desc="因果を最大2消費し、消費量×7ダメージ。消費0なら防御5";c.act=(a,b,x)=>{const n=Math.min(2,a.fate);a.fate-=n;if(n)x.hit(b,n*7);else a.block+=5}}
+{const c=cards.find(v=>v.id===1066);c.desc="敵に8ダメージ。自分の因果が3以下なら因果+2";c.act=(a,b,x)=>{x.hit(b,8);if(a.fate<=3)a.fate+=2}}
+{const c=cards.find(v=>v.id===1067);c.desc="因果を1消費し、敵の防御をすべて削る。消費できなければ因果+1";c.act=(a,b,x)=>{if(a.fate){a.fate--;b.block=0}else a.fate++}}
+{const c=cards.find(v=>v.id===1068);c.desc="敵に10ダメージ。敵の因果が奇数なら1奪う";c.act=(a,b,x)=>{x.hit(b,10);if(b.fate%2){b.fate--;a.fate++}}}
+{const c=cards.find(v=>v.id===1069);c.desc="因果を最大3消費し、消費量×6ダメージ。消費3なら1枚引く";c.act=(a,b,x)=>{const n=Math.min(3,a.fate);a.fate-=n;x.hit(b,n*6);if(n===3)x.draw(a,1)}}
+{const c=cards.find(v=>v.id===1070);c.desc="敵に6ダメージ。自分の手札が2枚以下なら1枚引く";c.act=(a,b,x)=>{x.hit(b,6);if(a.hand.length<=2)x.draw(a,1)}}
+{const c=cards.find(v=>v.id===1071);c.desc="因果+1。自分の山札が5枚以下なら1枚引く";c.act=(a,b,x)=>{a.fate++;if(a.deck.length<=5)x.draw(a,1)}}
+{const c=cards.find(v=>v.id===1072);c.desc="敵に9ダメージ。自分の因果が5以上なら防御8";c.act=(a,b,x)=>{x.hit(b,9);if(a.fate>=5)a.block+=8}}
+{const c=cards.find(v=>v.id===1073);c.desc="因果を1消費して2枚引く。消費できなければ防御8";c.act=(a,b,x)=>{if(a.fate){a.fate--;x.draw(a,2)}else a.block+=8}}
+{const c=cards.find(v=>v.id===1074);c.desc="敵に12ダメージ。相手の因果が0なら1枚引く";c.act=(a,b,x)=>{x.hit(b,12);if(b.fate===0)x.draw(a,1)}}
+{const c=cards.find(v=>v.id===1075);c.desc="防御9。自分の因果が偶数なら因果+2";c.act=(a,b,x)=>{a.block+=9;if(a.fate%2===0)a.fate+=2}}
+{const c=cards.find(v=>v.id===1076);c.desc="因果を最大2消費し、消費量×8防御獲得";c.act=(a,b,x)=>{const n=Math.min(2,a.fate);a.fate-=n;a.block+=n*8}}
+{const c=cards.find(v=>v.id===1077);c.desc="防御12。相手の因果が3以上なら因果を2奪う";c.act=(a,b,x)=>{a.block+=12;if(b.fate>=3){b.fate-=2;a.fate+=2}}}
+{const c=cards.find(v=>v.id===1078);c.desc="防御10。自分の因果が6以上ならHP3回復";c.act=(a,b,x)=>{a.block+=10;if(a.fate>=6)a.hp=Math.min(a.maxHp,a.hp+3)}}
+{const c=cards.find(v=>v.id===1079);c.desc="因果+2。相手の防御が10以上なら防御+12";c.act=(a,b,x)=>{a.fate+=2;if(b.block>=10)a.block+=12}}
+{const c=cards.find(v=>v.id===1080);c.desc="敵に13ダメージ。相手の因果を最大2削り、削った数だけ因果獲得";c.act=(a,b,x)=>{x.hit(b,13);const n=Math.min(2,b.fate);b.fate-=n;a.fate+=n}}
+{const c=cards.find(v=>v.id===1081);c.desc="敵に11ダメージ。敵の因果が0なら防御12";c.act=(a,b,x)=>{x.hit(b,11);if(!b.fate)a.block+=12}}
+{const c=cards.find(v=>v.id===1082);c.desc="因果を最大3消費し、消費量×7ダメージと消費量×2防御";c.act=(a,b,x)=>{const n=Math.min(3,a.fate);a.fate-=n;x.hit(b,n*7);a.block+=n*2}}
+{const c=cards.find(v=>v.id===1083);c.desc="敵に15ダメージ。自分の因果が相手より低ければ因果+3";c.act=(a,b,x)=>{x.hit(b,15);if(a.fate<b.fate)a.fate+=3}}
+{const c=cards.find(v=>v.id===1084);c.desc="敵に16ダメージ。相手の因果が2以上なら因果を2奪う";c.act=(a,b,x)=>{x.hit(b,16);if(b.fate>=2){b.fate-=2;a.fate+=2}}}
+{const c=cards.find(v=>v.id===1085);c.desc="敵に12ダメージ。自分の因果が奇数なら追加10";c.act=(a,b,x)=>{x.hit(b,12+(a.fate%2?10:0))}}
+{const c=cards.find(v=>v.id===1086);c.desc="因果を最大4消費し、消費量×8ダメージ";c.act=(a,b,x)=>{const n=Math.min(4,a.fate);a.fate-=n;x.hit(b,n*8)}}
+{const c=cards.find(v=>v.id===1087);c.desc="敵に18ダメージ。相手の因果が自分より多ければ防御+15";c.act=(a,b,x)=>{x.hit(b,18);if(b.fate>a.fate)a.block+=15}}
+{const c=cards.find(v=>v.id===1088);c.desc="因果を2消費し、敵に30ダメージ。足りなければ因果+2";c.act=(a,b,x)=>{if(a.fate>=2){a.fate-=2;x.hit(b,30)}else a.fate+=2}}
+{const c=cards.find(v=>v.id===1089);c.desc="因果を最大6消費し、消費量×7ダメージ。消費6ならHP5回復";c.act=(a,b,x)=>{const n=Math.min(6,a.fate);a.fate-=n;x.hit(b,n*7);if(n===6)a.hp=Math.min(a.maxHp,a.hp+5)}}
+{const c=cards.find(v=>v.id===1090);c.desc="HP1を失い、敵に6ダメージ。HP30以下なら因果+1";c.act=(a,b,x)=>{a.hp--;x.hit(b,6);if(a.hp<=30)a.fate++}}
+{const c=cards.find(v=>v.id===1091);c.desc="HP2を失い、敵に8ダメージ。自分の防御が0なら防御3";c.act=(a,b,x)=>{a.hp-=2;x.hit(b,8);if(!a.block)a.block+=3}}
+{const c=cards.find(v=>v.id===1092);c.desc="HP2を失い、敵に11ダメージ。HP20以下なら追加5";c.act=(a,b,x)=>{a.hp-=2;x.hit(b,11+(a.hp<=20?5:0))}}
+{const c=cards.find(v=>v.id===1093);c.desc="HP3を失い、敵に13ダメージ。相手のHPが自分以上なら因果+2";c.act=(a,b,x)=>{a.hp-=3;x.hit(b,13);if(b.hp>=a.hp)a.fate+=2}}
+{const c=cards.find(v=>v.id===1094);c.desc="HP4を失い、敵に17ダメージ。HP10以下ならHP3回復";c.act=(a,b,x)=>{a.hp-=4;x.hit(b,17);if(a.hp<=10)a.hp=Math.min(a.maxHp,a.hp+3)}}
+{const c=cards.find(v=>v.id===1095);c.desc="敵に9ダメージ。自分のHPが敵より低ければHP2回復";c.act=(a,b,x)=>{x.hit(b,9);if(a.hp<b.hp)a.hp=Math.min(a.maxHp,a.hp+2)}}
+{const c=cards.find(v=>v.id===1096);c.desc="HP2を失い、敵に12ダメージ。敵の防御が残れば防御を5削る";c.act=(a,b,x)=>{a.hp-=2;x.hit(b,12);if(b.block)b.block=Math.max(0,b.block-5)}}
+{const c=cards.find(v=>v.id===1097);c.desc="敵に11ダメージ。自分のHPが半分以下なら因果+2";c.act=(a,b,x)=>{x.hit(b,11);if(a.hp<=30)a.fate+=2}}
+{const c=cards.find(v=>v.id===1098);c.desc="HP3を失い、敵に16ダメージ。HPが敵より低ければ防御8";c.act=(a,b,x)=>{a.hp-=3;x.hit(b,16);if(a.hp<b.hp)a.block+=8}}
+{const c=cards.find(v=>v.id===1099);c.desc="敵に14ダメージ。敵HPが自分より低ければHP3回復";c.act=(a,b,x)=>{x.hit(b,14);if(b.hp<a.hp)a.hp=Math.min(a.maxHp,a.hp+3)}}
+{const c=cards.find(v=>v.id===1100);c.desc="自分の防御を最大5消費し、消費量×3ダメージ。消費0ならHP2を失い8ダメージ";c.act=(a,b,x)=>{const n=Math.min(5,a.block);a.block-=n;if(n)x.hit(b,n*3);else{a.hp-=2;x.hit(b,8)}}}
+{const c=cards.find(v=>v.id===1101);c.desc="HP2を失い、防御12。HP20以下なら敵に9ダメージ";c.act=(a,b,x)=>{a.hp-=2;a.block+=12;if(a.hp<=20)x.hit(b,9)}}
+{const c=cards.find(v=>v.id===1102);c.desc="HP3を失い、敵に18ダメージ。自分の防御をすべて消費し追加最大8";c.act=(a,b,x)=>{a.hp-=3;const n=Math.min(8,a.block);a.block=0;x.hit(b,18+n)}}
+{const c=cards.find(v=>v.id===1103);c.desc="敵に15ダメージ。自分のHPが15以下ならHP5回復";c.act=(a,b,x)=>{x.hit(b,15);if(a.hp<=15)a.hp=Math.min(a.maxHp,a.hp+5)}}
+{const c=cards.find(v=>v.id===1104);c.desc="HP4を失い、敵に20ダメージ。相手の因果を1削る";c.act=(a,b,x)=>{a.hp-=4;x.hit(b,20);b.fate=Math.max(0,b.fate-1)}}
+{const c=cards.find(v=>v.id===1105);c.desc="HP3を失い、敵に14ダメージ。実際に与えたHPダメージの半分を回復（最大7）";c.act=(a,b,x)=>{a.hp-=3;const n=x.hit(b,14).dealt;a.hp=Math.min(a.maxHp,a.hp+Math.min(7,Math.floor(n/2)))}}
+{const c=cards.find(v=>v.id===1106);c.desc="HP5を失い、敵に22ダメージ。敵の防御が0ならHP4回復";c.act=(a,b,x)=>{a.hp-=5;x.hit(b,22);if(!b.block)a.hp=Math.min(a.maxHp,a.hp+4)}}
+{const c=cards.find(v=>v.id===1107);c.desc="HP2を失い、敵に10ダメージを2回。両方HPに通ればHP3回復";c.act=(a,b,x)=>{a.hp-=2;const n=x.hit(b,10).dealt,m=x.hit(b,10).dealt;if(n&&m)a.hp=Math.min(a.maxHp,a.hp+3)}}
+{const c=cards.find(v=>v.id===1108);c.desc="HP4を失い、防御15。自分のHPが敵より低ければ因果+3";c.act=(a,b,x)=>{a.hp-=4;a.block+=15;if(a.hp<b.hp)a.fate+=3}}
+{const c=cards.find(v=>v.id===1109);c.desc="HP6を失い、敵に25ダメージ。敵のHPが20以下ならHP5回復";c.act=(a,b,x)=>{a.hp-=6;x.hit(b,25);if(b.hp<=20)a.hp=Math.min(a.maxHp,a.hp+5)}}
+{const c=cards.find(v=>v.id===1110);c.desc="HP2を失い、敵に16ダメージ。手札が1枚以下なら1枚引く";c.act=(a,b,x)=>{a.hp-=2;x.hit(b,16);if(a.hand.length<=1)x.draw(a,1)}}
+{const c=cards.find(v=>v.id===1111);c.desc="HP3を失い、敵に18ダメージ。山札が3枚以下なら因果+3";c.act=(a,b,x)=>{a.hp-=3;x.hit(b,18);if(a.deck.length<=3)a.fate+=3}}
+{const c=cards.find(v=>v.id===1112);c.desc="HP4を失い、敵に21ダメージ。敵の防御があれば自分の防御+10";c.act=(a,b,x)=>{a.hp-=4;x.hit(b,21);if(b.block)a.block+=10}}
+{const c=cards.find(v=>v.id===1113);c.desc="HP5を失い、敵に24ダメージ。自分の因果が4以上ならHP5回復";c.act=(a,b,x)=>{a.hp-=5;x.hit(b,24);if(a.fate>=4)a.hp=Math.min(a.maxHp,a.hp+5)}}
+{const c=cards.find(v=>v.id===1114);c.desc="HP3を失い、敵に19ダメージ。自分のHPが偶数なら因果+2";c.act=(a,b,x)=>{a.hp-=3;x.hit(b,19);if(a.hp%2===0)a.fate+=2}}
+{const c=cards.find(v=>v.id===1115);c.desc="敵に12ダメージを2回。自分のHPが20より高ければHP4を失う";c.act=(a,b,x)=>{x.hit(b,12);x.hit(b,12);if(a.hp>20)a.hp-=4}}
+{const c=cards.find(v=>v.id===1116);c.desc="HP5を失い、敵に27ダメージ。HP10以下なら防御20";c.act=(a,b,x)=>{a.hp-=5;x.hit(b,27);if(a.hp<=10)a.block+=20}}
+{const c=cards.find(v=>v.id===1117);c.desc="HP6を失い、敵に30ダメージ。敵の因果が0ならHP6回復";c.act=(a,b,x)=>{a.hp-=6;x.hit(b,30);if(!b.fate)a.hp=Math.min(a.maxHp,a.hp+6)}}
+{const c=cards.find(v=>v.id===1118);c.desc="HP4を失い、敵に18ダメージを2回。自分の防御を0にする";c.act=(a,b,x)=>{a.hp-=4;a.block=0;x.hit(b,18);x.hit(b,18)}}
+{const c=cards.find(v=>v.id===1119);c.desc="HP8を失い、敵に42ダメージ。倒せなければ防御15";c.act=(a,b,x)=>{a.hp-=8;x.hit(b,42);if(b.hp>0)a.block+=15}}
+for(const c of cards.filter(c=>c.id>=1000&&c.id<1120)){const act=c.act;c.act=(a,b,x)=>{act(a,b,x);a.fate=Math.max(0,Math.min(12,a.fate));b.fate=Math.max(0,Math.min(12,b.fate))}}
