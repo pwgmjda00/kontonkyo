@@ -6,7 +6,9 @@ function attachWebSocket(server,lobby){
  const wss=new WebSocketServer({noServer:true,maxPayload:4096});
  server.on('upgrade',(req,socket,head)=>{
   const url=new URL(req.url,'http://localhost');
-  if(url.pathname!=='/ws'||req.headers.origin&&req.headers.origin!==('http://'+req.headers.host)){
+  let originValid=true;
+  if(req.headers.origin){try{const origin=new URL(req.headers.origin);originValid=origin.host===req.headers.host&&['http:','https:'].includes(origin.protocol)}catch(_){originValid=false}}
+  if(url.pathname!=='/ws'||!originValid){
    socket.write('HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n');socket.destroy();return;
   }
   wss.handleUpgrade(req,socket,head,ws=>wss.emit('connection',ws));
