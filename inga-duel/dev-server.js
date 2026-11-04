@@ -1,6 +1,6 @@
 /* Local development HTTP server. Run: node inga-duel/dev-server.js
    Serves static UI + authoritative lobby API. NOT for public deployment.
-   No WebSocket yet: clients use short polling. */
+   WebSocket transport requires the ws development dependency. */
 'use strict';
 const http=require('node:http'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),vm=require('node:vm');
 const base=__dirname,context={};vm.createContext(context);
@@ -36,5 +36,6 @@ const server=http.createServer(async(req,res)=>{
   fs.readFile(file,(err,bytes)=>{if(err)return reply(res,404,{ok:false,reason:'not_found'});res.writeHead(200,{'content-type':types[path.extname(name)],'x-content-type-options':'nosniff','cache-control':'no-store'});res.end(bytes)});
  }catch(e){reply(res,400,{ok:false,reason:e.message==='too_large'?'too_large':'invalid_request'})}
 });
+require('./ws-server.js').attachWebSocket(server,lobby);
 if(require.main===module)server.listen(port,'127.0.0.1',()=>console.log('Local duel: http://127.0.0.1:'+port));
 module.exports={server};
