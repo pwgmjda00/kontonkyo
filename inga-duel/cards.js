@@ -254,8 +254,8 @@ for(const theme of duelThemes)for(let i=0;i<theme.cards.length;i++){
  const c=cards.find(x=>x.id===theme.cards[i]),tier=i%5;
  if(theme.id==='ruin'){
   c.cost=1+(i%3);const damage=6+tier*2;
-  c.desc='敵に'+damage+'ダメージ'+(i%5===0?'を2回':'')+'。';
-  c.act=i%5===0?(a,b,ctx)=>{ctx.hit(b,damage);ctx.hit(b,damage)}:(a,b,ctx)=>ctx.hit(b,damage);
+  c.desc='防御を3削り、敵に'+damage+'ダメージ'+(i%5===0?'を2回':'')+'。';
+  c.act=i%5===0?(a,b,ctx)=>{b.block=Math.max(0,b.block-3);ctx.hit(b,damage);ctx.hit(b,damage)}:(a,b,ctx)=>{b.block=Math.max(0,b.block-3);ctx.hit(b,damage)};
  }else if(theme.id==='guard'){
   c.cost=1+(i%3);const block=4+tier,damage=6+(i%4);
   c.desc='防御'+block+'。敵に'+damage+'ダメージ。'+(i%4===0?'HP2回復。':'');
