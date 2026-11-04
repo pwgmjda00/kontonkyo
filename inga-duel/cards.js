@@ -248,25 +248,27 @@ cards.push({id:1119,name:'血王',cost:2,desc:'HP3を失い、2枚引く。',act
 
 for(const theme of duelThemes)for(const id of theme.cards){const c=cards.find(c=>c.id===id);c.job=theme.id}
 
-/* PvP balancing layer: 30-card job decks have reliable damage, sustain and tempo.
-   Legacy single-player cards are unchanged. */
+/* PvP mana curve: 30 cards per class, identical cost distribution but different effects.
+   Costs: 0x2, 1x8, 2x10, 3x6, 4x3, 5x1. */
+const PVP_CURVE=[0,0,...Array(8).fill(1),...Array(10).fill(2),...Array(6).fill(3),...Array(3).fill(4),5];
 for(const theme of duelThemes)for(let i=0;i<theme.cards.length;i++){
- const c=cards.find(x=>x.id===theme.cards[i]),tier=i%5;
+ const c=cards.find(x=>x.id===theme.cards[i]),cost=PVP_CURVE[i],tier=i%5;
+ c.cost=cost;
  if(theme.id==='ruin'){
-  c.cost=1+(i%3);const damage=6+tier*2;
-  c.desc='防御を3削り、敵に'+damage+'ダメージ'+(i%5===0?'を2回':'')+'。';
-  c.act=i%5===0?(a,b,ctx)=>{b.block=Math.max(0,b.block-3);ctx.hit(b,damage);ctx.hit(b,damage)}:(a,b,ctx)=>{b.block=Math.max(0,b.block-3);ctx.hit(b,damage)};
+  const damage=Math.max(2,3+cost*4+(tier%3));
+  c.desc='防御を3削り、敵に'+damage+'ダメージ'+(cost===5?'を2回':'')+'。';
+  c.act=cost===5?(a,b,ctx)=>{b.block=Math.max(0,b.block-3);ctx.hit(b,damage);ctx.hit(b,damage)}:(a,b,ctx)=>{b.block=Math.max(0,b.block-3);ctx.hit(b,damage)};
  }else if(theme.id==='guard'){
-  c.cost=1+(i%3);const block=4+tier,damage=6+(i%4);
-  c.desc='防御'+block+'。敵に'+damage+'ダメージ。'+(i%4===0?'HP2回復。':'');
-  c.act=(a,b,ctx)=>{a.block+=block;ctx.hit(b,damage);if(i%4===0)a.hp=Math.min(a.maxHp,a.hp+2)};
+  const block=2+cost*2,damage=2+cost*3+(tier%2);
+  c.desc='防御'+block+'。敵に'+damage+'ダメージ。'+(cost>=4?'HP2回復。':'');
+  c.act=(a,b,ctx)=>{a.block+=block;ctx.hit(b,damage);if(cost>=4)a.hp=Math.min(a.maxHp,a.hp+2)};
  }else if(theme.id==='fate'){
-  c.cost=1+(i%3);const damage=6+(i%5);
-  c.desc='敵に'+damage+'ダメージ。因果+1。'+(i%3===0?'1枚引く。':'');
-  c.act=(a,b,ctx)=>{ctx.hit(b,damage);a.fate+=1;if(i%3===0)ctx.draw(a,1)};
+  const damage=2+cost*3+(tier%2),fate=cost>=4?2:1;
+  c.desc='敵に'+damage+'ダメージ。因果+'+fate+'。'+(cost>=3?'1枚引く。':'');
+  c.act=(a,b,ctx)=>{ctx.hit(b,damage);a.fate+=fate;if(cost>=3)ctx.draw(a,1)};
  }else if(theme.id==='blood'){
-  c.cost=1+(i%2);const damage=7+(i%5)*2,loss=1+(i%3);
-  c.desc='HP'+loss+'を失い、敵に'+damage+'ダメージ。'+(i%5===0?'因果+1。':'');
-  c.act=(a,b,ctx)=>{a.hp-=loss;ctx.hit(b,damage);if(i%5===0)a.fate++};
+  const damage=3+cost*5+(tier%3),loss=cost===0?1:Math.max(1,Math.ceil(cost/2));
+  c.desc='HP'+loss+'を失い、敵に'+damage+'ダメージ。'+(cost>=4?'因果+1。':'');
+  c.act=(a,b,ctx)=>{a.hp-=loss;ctx.hit(b,damage);if(cost>=4)a.fate++};
  }
 }
