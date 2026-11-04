@@ -132,7 +132,7 @@ function restoreRun(){
 }
 window.addEventListener('pagehide',saveRun);
 
-function cardText(c){return String(c.desc||'').replace(/(?:ダメージ|防御|回復)\s*[=＝]\s*[^。、「」]+/g,m=>m.split(/[=＝]/)[0].trim()).replace(/\s*[×*]\s*/g,'×')}
+function cardText(c){return previewCardEffect(c,p,e,{intent})}
 function render(){renderJourney();$('ph').textContent='HP '+Math.max(0,p.hp)+'/'+SOLO_MAX_HP;$('eh').textContent='HP '+Math.max(0,e.hp)+'/'+(e.maxHp||40);$('pb').textContent='防御 '+p.block;$('eb').textContent='防御 '+e.block;$('intent').textContent=intent.name;$('idesc').textContent=intent.desc;$('fate').textContent='因果 '+p.fate+' / 6';$('meter').style.width=Math.min(100,p.fate/6*100)+'%';$('round').textContent='TURN '+turn;$('energy').textContent='⚡ '+p.energy+' / '+(turn+1+(journey&&journey.relics.includes('永久機関')?1:0))+'（毎ターン+1・上限なし）';$('deck').textContent='山札 '+p.deck.length+' / 捨札 '+p.discard.length;$('hand').replaceChildren(...p.hand.map(c=>{let b=document.createElement('button');b.className='card';b.dataset.tier=c.id<0?0:tier(c.id);b.disabled=over||c.cost>p.energy;let name=document.createElement('strong'),desc=document.createElement('span');name.textContent=c.name+'  ◆'+c.cost;desc.textContent=cardText(c);b.append(name,desc);b.onclick=()=>play(c.uid);return b}));$('end').disabled=over;$('fateBtn').disabled=over||p.fate<6;$('status').textContent=over?(p.hp<=0?(e.hp<=0?'相討ち':'敗北'):'勝利！'):'';$('log').replaceChildren(...logs.map(s=>{let d=document.createElement('div');d.textContent=s;return d}))}
 $('end').onclick=endTurn;$('fateBtn').onclick=breakFate;$('reset').onclick=init;load();if(restoreRun())render();else init();updateCollection();
 </script></html>
