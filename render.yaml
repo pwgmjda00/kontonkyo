@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: inga-duel-beta
+    runtime: node
+    plan: free
+    rootDir: inga-duel
+    buildCommand: npm install --no-audit --no-fund
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: NODE_ENV
+        value: production
