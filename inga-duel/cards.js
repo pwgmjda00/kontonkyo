@@ -561,3 +561,29 @@ for(const theme of duelThemes)for(let i=0;i<30;i++){
 {const c=cards.find(v=>v.id===1118);c.desc="HP4を失い、敵に18ダメージを2回。自分の防御を0にする";c.act=(a,b,x)=>{a.hp-=4;a.block=0;x.hit(b,18);x.hit(b,18)}}
 {const c=cards.find(v=>v.id===1119);c.desc="HP8を失い、敵に42ダメージ。倒せなければ防御15";c.act=(a,b,x)=>{a.hp-=8;x.hit(b,42);if(b.hp>0)a.block+=15}}
 for(const c of cards.filter(c=>c.id>=1000&&c.id<1120)){const act=c.act;c.act=(a,b,x)=>{act(a,b,x);a.fate=Math.max(0,Math.min(12,a.fate));b.fate=Math.max(0,Math.min(12,b.fate))}}
+
+/* PvP balance pass: class modifiers applied to each unique card action.
+   All modifiers are displayed in the card description. */
+const PVP_CLASS_BALANCE={
+ ruin:{damage:0.84,block:1,heal:1},
+ guard:{damage:1.08,block:1.38,heal:1.15},
+ fate:{damage:1.12,block:1.08,heal:1},
+ blood:{damage:0.86,block:0.96,heal:0.92}
+};
+for(const theme of duelThemes){
+ const tune=PVP_CLASS_BALANCE[theme.id];
+ for(const id of theme.cards){
+  const card=cards.find(c=>c.id===id),base=card.act;
+  card.act=(a,b,ctx)=>{
+   const oldBlock=a.block,oldHp=a.hp;
+   const adjusted={...ctx,hit:(target,amount)=>{
+    const scaled=target===b?Math.max(0,Math.round(amount*tune.damage)):amount;
+    return ctx.hit(target,scaled);
+   }};
+   base(a,b,adjusted);
+   if(a.block>oldBlock)a.block=oldBlock+Math.round((a.block-oldBlock)*tune.block);
+   if(a.hp>oldHp)a.hp=Math.min(a.maxHp,oldHp+Math.round((a.hp-oldHp)*tune.heal));
+  };
+  card.desc+=' ［職業補正：攻撃×'+tune.damage+'、防御×'+tune.block+'、回復×'+tune.heal+'（端数四捨五入）］';
+ }
+}
