@@ -3,8 +3,8 @@ const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const ctx={};vm.createContext(ctx);
 for(const file of ['battle-core.js','battle-rules.js','duel-engine.js','match-journal.js','room-core.js','socket-hub.js','cards.js'])
  vm.runInContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),ctx,{filename:file});
-const deck=ctx.starter.map(c=>c.id);let seq=0;
-const room=ctx.IngaRoom.createRoom({decks:[deck,deck],catalog:ctx.starter,seed:9,randomToken:()=>String(++seq).padStart(32,'t')});
+const deck=vm.runInContext('starter',ctx).map(c=>c.id);let seq=0;
+const room=ctx.IngaRoom.createRoom({decks:[deck,deck],catalog:vm.runInContext('starter',ctx),seed:9,randomToken:()=>String(++seq).padStart(32,'t')});
 const hub=ctx.IngaSocketHub.createSocketHub(room);
 function socket(){
  const listeners={};const out=[];
