@@ -257,11 +257,11 @@ for(const theme of duelThemes)for(let i=0;i<theme.cards.length;i++){
   c.desc='敵に'+damage+'ダメージ'+(i%5===0?'を2回':'')+'。';
   c.act=i%5===0?(a,b,ctx)=>{ctx.hit(b,damage);ctx.hit(b,damage)}:(a,b,ctx)=>ctx.hit(b,damage);
  }else if(theme.id==='guard'){
-  c.cost=1+(i%3);const block=3+tier,damage=4+(i%4);
+  c.cost=1+(i%3);const block=4+tier,damage=4+(i%4);
   c.desc='防御'+block+'。敵に'+damage+'ダメージ。'+(i%4===0?'HP2回復。':'');
   c.act=(a,b,ctx)=>{a.block+=block;ctx.hit(b,damage);if(i%4===0)a.hp=Math.min(a.maxHp,a.hp+2)};
  }else if(theme.id==='fate'){
-  c.cost=1+(i%3);const damage=7+(i%5);
+  c.cost=1+(i%3);const damage=6+(i%5);
   c.desc='敵に'+damage+'ダメージ。因果+1。'+(i%3===0?'1枚引く。':'');
   c.act=(a,b,ctx)=>{ctx.hit(b,damage);a.fate+=1;if(i%3===0)ctx.draw(a,1)};
  }else if(theme.id==='blood'){
