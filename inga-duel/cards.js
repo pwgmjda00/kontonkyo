@@ -590,6 +590,11 @@ for(const theme of duelThemes){
 
 /* Per-card cost audit after free-build mirror tests.
    Costs are card-specific and do not restrict duplicate ownership. */
+// PvP rarity is independent of energy cost. Keep stable across all PvP views.
+for(const c of cards.filter(c=>c.id>=1000&&c.id<1120)){
+ const index=c.id-1000;
+ c.rarity=index%30>=28?4:index%30>=25?3:index%30>=20?2:index%30>=12?1:0;
+}
 const PVP_COST_AUDIT={
  1001:1,1004:2,1006:2,1007:2,1009:2,
  1034:2,1046:3,1057:5,1059:4,
