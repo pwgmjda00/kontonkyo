@@ -19,7 +19,10 @@ function createJournal(deckIds,seed,catalog){
  const decks=deckIds.map(ids=>normalizeDeck(ids,catalog));
  return {version:1,seed,decks:deckIds.map(ids=>ids.slice()),actions:[],match:duel.createMatch(decks,{seed})};
 }
+function fingerprint(value){const data=JSON.stringify(value);let h=2166136261;for(let i=0;i<data.length;i++){h^=data.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(16).padStart(8,'0')}
+function payload(j){return {version:1,seed:j.seed,decks:j.decks.map(ids=>ids.slice()),actions:j.actions.map(e=>({seat:e.seat,action:{...e.action}}))}}
 function replay(snapshot,catalog){
+ if(!snapshot||typeof snapshot.checksum!=='string'||snapshot.checksum!==fingerprint({version:snapshot.version,seed:snapshot.seed,decks:snapshot.decks,actions:snapshot.actions}))throw Error('Journal checksum mismatch');
  if(!snapshot||snapshot.version!==1||!Array.isArray(snapshot.actions)||snapshot.actions.length>10000)throw Error('Invalid journal');
  const journal=createJournal(snapshot.decks,snapshot.seed,catalog);
  for(const event of snapshot.actions){
@@ -42,7 +45,7 @@ function dispatch(journal,seat,action){
  return {ok:result.ok,reason:result.reason||null,view:result.ok?duel.publicView(journal.match,seat):null};
 }
 function exportJournal(journal){
- return {version:1,seed:journal.seed,decks:journal.decks.map(ids=>ids.slice()),actions:journal.actions.map(e=>({seat:e.seat,action:{...e.action}}))};
+ const data=payload(journal);return {...data,checksum:fingerprint(data)};
 }
 root.IngaJournal=Object.freeze({createJournal,replay,dispatch,exportJournal});
 })(typeof globalThis!=='undefined'?globalThis:this);
