@@ -14,6 +14,7 @@ function createMatch(decks,options={}){
  draw(players[0],5,random);draw(players[1],6,random);players[1].fate=1;state.log.push({turn:1,seat:1,type:'bonus',name:'後手補正：初期手札+1枚・因果+1'});
  return {state,random,getRngState:()=>rngState,setRngState:v=>{rngState=v>>>0}};
 }
+const ENERGY_CAP=8;
 function draw(p,n,random){for(let i=0;i<n;i++){if(p.hand.length>=12)break;if(!p.deck.length)p.deck=shuffle(p.discard.splice(0),random);if(!p.deck.length)break;p.hand.push(p.deck.pop())}}
 const RELICS=[
  {id:'blade',name:'刃の誓い',desc:'最初の攻撃カードに+3ダメージ',effect:'firstHit',value:3},
@@ -86,7 +87,7 @@ function apply(match,seat,action){
  if(action?.type==='fate'){
  const cost={energy:2,draw:3,guard:4}[action.mode];
  if(!cost||a.fate<cost)return {ok:false,reason:'fate'};
- a.fate-=cost;for(const id of s.relics[seat]){const r=RELICS.find(x=>x.id===id);if(r?.effect==='fateHeal'&&!a.relicFlags.fateHeal){a.hp=Math.min(a.maxHp,a.hp+r.value);a.relicFlags.fateHeal=true}}if(action.mode==='energy')a.energy++;if(action.mode==='draw')draw(a,1,match.random);if(action.mode==='guard')a.block+=7;
+ a.fate-=cost;for(const id of s.relics[seat]){const r=RELICS.find(x=>x.id===id);if(r?.effect==='fateHeal'&&!a.relicFlags.fateHeal){a.hp=Math.min(a.maxHp,a.hp+r.value);a.relicFlags.fateHeal=true}}if(action.mode==='energy')a.energy=Math.min(ENERGY_CAP,a.energy+1);if(action.mode==='draw')draw(a,1,match.random);if(action.mode==='guard')a.block+=7;
  if(a.job==='ruin'&&action.mode==='energy')core.damage(b,2);
  if(a.job==='guard'&&action.mode==='guard')a.block+=3;
  if(a.job==='fate'&&action.mode==='draw')a.fate+=1;
@@ -102,7 +103,7 @@ function apply(match,seat,action){
  if(job==='ruin'){b.block=Math.max(0,b.block-2);core.damage(b,4)}
  else if(job==='guard'){a.block+=6;if(a.hp<=a.maxHp/2)a.hp=Math.min(a.maxHp,a.hp+2)}
  else if(job==='fate'){a.fate=Math.min(12,a.fate+2);if(a.fate>=4)draw(a,1,match.random)}
- else if(job==='blood'){a.hp-=3;a.energy+=3;a.skillDebt=1}
+ else if(job==='blood'){a.hp-=3;a.energy=Math.min(ENERGY_CAP,a.energy+3);a.skillDebt=1}
  else return {ok:false,reason:'invalid_job'};
  s.log.push({turn:s.turn,seat,type:'skill',energySpent:2,name:job==='ruin'?'破滅：4ダメージ＋防御2削り':job==='guard'?'守護：防御6＋瀕死時回復2':job==='fate'?'因果：因果2＋条件ドロー':'血盟：HP-3、エナジー+3、次ターン-1'});
  if(a.hp<=0||b.hp<=0){s.over=true;s.winner=a.hp<=0&&b.hp<=0?null:a.hp<=0?1-seat:seat}
@@ -135,6 +136,7 @@ function apply(match,seat,action){
   if(card.desc.includes('引く')&&a.cardsPlayed===1)a.fate+=bonus('drawFate');
   if(a.block>before.block)a.fate+=bonus('blockFate',a.cardsPlayed===1);
   if(before.enemyBlock>0&&a.attacksPlayed===1)b.block=Math.max(0,b.block-bonus('breakBlock'));
+  a.energy=Math.min(ENERGY_CAP,Math.max(0,a.energy));
   if(a.hp<=0||b.hp<=0){s.over=true;s.winner=a.hp<=0&&b.hp<=0?null:a.hp<=0?1-seat:seat}
   s.log.push({turn:s.turn,seat,type:'play',cardId:card.id,name:card.name,damage:Math.max(0,before.enemyHp-b.hp),healing:Math.max(0,a.hp-before.hp),selfDamage:Math.max(0,before.hp-a.hp),block:Math.max(0,a.block-before.block),energy:a.energy-before.energy, energySpent:card.cost, fate:a.fate-before.fate});
  }else if(action.type==='fate'){
@@ -152,6 +154,7 @@ function apply(match,seat,action){
    if(e==='evenEnergy'&&b.turnsTaken%2===0||e==='thirdEnergy'&&b.turnsTaken%3===0||e==='fourthEnergy'&&b.turnsTaken%4===0||e==='fullEnergy'&&b.hp===b.maxHp||e==='lowEnergy'&&b.energy<4)b.energy+=n;
    if(e==='thirdDraw'&&b.turnsTaken%3===0||e==='oddDraw'&&b.turnsTaken%2===1||e==='evenDraw'&&b.turnsTaken%2===0||e==='fewHandDraw'&&b.hand.length<4)draw(b,n,match.random);
   }
+  b.energy=Math.min(ENERGY_CAP,b.energy);b.fate=Math.min(12,b.fate);
   if(s.turn%3===0&&a.hp>0&&b.hp>0)s.relicOffer=offerRelics(s,match.random);
   if(s.turn>60){s.over=true;s.relicOffer=null;const hp0=s.players[0].hp,hp1=s.players[1].hp;s.winner=hp0===hp1?null:hp0>hp1?0:1;s.log.push({turn:s.turn,seat,type:'limit',name:'60ターン上限：残りHPで判定'})}
  }
