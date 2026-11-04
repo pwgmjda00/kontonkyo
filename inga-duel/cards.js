@@ -584,7 +584,13 @@ for(const theme of duelThemes){
    if(a.block>oldBlock)a.block=oldBlock+Math.round((a.block-oldBlock)*tune.block);
    if(a.hp>oldHp)a.hp=Math.min(a.maxHp,oldHp+Math.round((a.hp-oldHp)*tune.heal));
   };
-  // Keep job modifiers in combat calculations, but omit them from player-facing card text.
+  // Convert fixed, explicitly labelled damage/block/healing figures to post-class values.
+  // Conditional values are estimates only when their condition actually applies.
+  card.desc=card.desc
+   .replace(/(敵に|敵へ|敵に与える|ダメージを)(\\d+)(ダメージ)/g,(_,prefix,n,suffix)=>prefix+Math.round(Number(n)*tune.damage)+suffix)
+   .replace(/(防御[+＋]?)(\\d+)/g,(_,prefix,n)=>prefix+Math.round(Number(n)*tune.block))
+   .replace(/(HPを|HP)(\\d+)(回復)/g,(_,prefix,n,suffix)=>prefix+Math.round(Number(n)*tune.heal)+suffix);
+  // Job modifiers remain in the authoritative action calculation.
  }
 }
 
