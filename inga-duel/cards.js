@@ -611,3 +611,30 @@ for(const [id,cost] of Object.entries(PVP_COST_AUDIT)){
  if(!card)throw Error('Missing PvP card '+id);
  card.cost=cost;
 }
+
+/* One-step card preview uses the actual card action on disposable state.
+   Does not spend energy or apply external relics; never mutates a live match. */
+function previewCardEffect(card,player={},enemy={},options={}){
+ if(!card||typeof card.act!=='function')return card?.desc||'';
+ const clone=o=>({...o,hand:[...(o.hand||[])],deck:[...(o.deck||[])],discard:[...(o.discard||[])]});
+ const a=clone({hp:120,maxHp:120,block:0,energy:2,fate:0,...player});
+ const b=clone({hp:120,maxHp:120,block:0,energy:2,fate:0,...enemy});
+ const before={hp:a.hp,block:a.block,energy:a.energy,fate:a.fate,enemyHp:b.hp,enemyBlock:b.block};
+ let hits=0,draws=0,unknown=false;
+ const ctx={hit:(target,amount)=>{if(!Number.isFinite(amount))throw Error('invalid_damage');const n=Math.max(0,Math.round(amount));if(target===b){hits+=n;const absorbed=Math.min(b.block,n);b.block-=absorbed;b.hp-=n-absorbed}else if(target===a){const absorbed=Math.min(a.block,n);a.block-=absorbed;a.hp-=n-absorbed}},draw:(_target,n)=>{draws+=Math.max(0,n)},random:()=>{unknown=true;return .5},get intent(){return options.intent||{kind:'none',value:0}},set intent(_v){unknown=true}};
+ try{card.act(a,b,ctx)}catch(_e){return card.desc||''}
+ const parts=[];
+ if(hits>0)parts.push('攻撃'+hits);
+ if(b.block<before.enemyBlock)parts.push('敵防御-'+(before.enemyBlock-b.block));
+ if(a.block>before.block)parts.push('防御+'+(a.block-before.block));
+ if(a.hp>before.hp)parts.push('HP+'+(a.hp-before.hp));
+ if(a.hp<before.hp)parts.push('HP-'+(before.hp-a.hp));
+ if(a.energy>before.energy)parts.push('エネルギー+'+(a.energy-before.energy));
+ if(a.energy<before.energy)parts.push('エネルギー-'+(before.energy-a.energy));
+ if(a.fate>before.fate)parts.push('因果+'+(a.fate-before.fate));
+ if(a.fate<before.fate)parts.push('因果-'+(before.fate-a.fate));
+ if(draws)parts.push(draws+'枚引く');
+ if(b.hp>before.enemyHp)parts.push('敵HP+'+(b.hp-before.enemyHp));
+ if(!parts.length)return card.desc||'';
+ return parts.join(' / ')+(unknown?'（確率・予告効果は変動）':'');
+}
