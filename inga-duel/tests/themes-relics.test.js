@@ -33,3 +33,22 @@ test('full thirty-card job match exposes class skill and fate utility',()=>{
  assert.equal(ctx.IngaDuel.publicView(j.match,0).player.fate,0);
  assert.equal(ctx.IngaJournal.replay(ctx.IngaJournal.exportJournal(j),catalog).actions.length,2);
 });
+
+test('fifty distinct relics and no direct instant-win relic',()=>{
+ const text=fs.readFileSync(path.join(__dirname,'..','duel-engine.js'),'utf8');
+ const section=text.split('const RELICS=[')[1].split('];')[0];
+ const ids=[...section.matchAll(/id:'([^']+)'/g)].map(m=>m[1]);
+ assert.equal(ids.length,50);assert.equal(new Set(ids).size,50);
+ assert.ok(!section.includes('即勝利'));
+});
+test('blood skill costs future tempo; guard skill is conditional',()=>{
+ const blood=duelThemes[3].cards,guard=duelThemes[1].cards;
+ const j=ctx.IngaJournal.createJournal([blood,guard],14,catalog);
+ const before=ctx.IngaDuel.publicView(j.match,0).player;
+ assert.equal(ctx.IngaJournal.dispatch(j,0,{type:'skill'}).ok,true);
+ const after=ctx.IngaDuel.publicView(j.match,0).player;
+ assert.equal(after.energy,before.energy+1);assert.equal(after.hp,before.hp-3);
+ assert.equal(ctx.IngaJournal.dispatch(j,0,{type:'end_turn'}).ok,true);
+ assert.equal(ctx.IngaJournal.dispatch(j,1,{type:'end_turn'}).ok,true);
+ assert.equal(ctx.IngaDuel.publicView(j.match,0).player.energy,3);
+});
