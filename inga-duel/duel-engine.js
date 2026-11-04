@@ -9,12 +9,12 @@ function createMatch(decks,options={}){
  let rngState=(options.seed??1)>>>0;
  const random=()=>{rngState=(Math.imul(1664525,rngState)+1013904223)>>>0;return rngState/4294967296};
  let serial=0;
- const players=decks.map((deck,i)=>({hp:60,maxHp:60,block:0,energy:4,fate:0,hand:[],deck:shuffle(deck.map(c=>({...c,uid:++serial})),random),discard:[],seat:i,job:deck[0]?.job||'ruin',skillUsed:false,skillDebt:0,extraDrawNext:0,cardsPlayed:0,attacksPlayed:0,turnsTaken:0,relicFlags:{}}));
+ const players=decks.map((deck,i)=>({hp:120,maxHp:120,block:0,energy:2,fate:0,hand:[],deck:shuffle(deck.map(c=>({...c,uid:++serial})),random),discard:[],seat:i,job:deck[0]?.job||'ruin',skillUsed:false,skillDebt:0,extraDrawNext:0,cardsPlayed:0,attacksPlayed:0,turnsTaken:0,relicFlags:{}}));
  const state={version:2,players,active:0,turn:1,over:false,winner:null,log:[],seed:options.seed??1,relics:[[],[]],relicOffer:null};
  draw(players[0],5,random);draw(players[1],6,random);players[1].fate=2;state.log.push({turn:1,seat:1,type:'bonus',name:'後手補正：初期手札+1枚・因果+2'});
  return {state,random,getRngState:()=>rngState,setRngState:v=>{rngState=v>>>0}};
 }
-const ENERGY_CAP=8;
+const ENERGY_CAP=Number.POSITIVE_INFINITY;
 function draw(p,n,random){for(let i=0;i<n;i++){if(p.hand.length>=8)break;if(!p.deck.length)p.deck=shuffle(p.discard.splice(0),random);if(!p.deck.length)break;p.hand.push(p.deck.pop())}}
 const RELICS=[
  {id:'blade',name:'刃の誓い',desc:'最初の攻撃カードに+3ダメージ',effect:'firstHit',value:3},
@@ -87,7 +87,7 @@ function apply(match,seat,action){
  if(action?.type==='fate'){
  const cost={energy:2,draw:3,guard:4}[action.mode];
  if(!cost||a.fate<cost)return {ok:false,reason:'fate'};
- if(action.mode==='energy'&&a.energy>=ENERGY_CAP)return {ok:false,reason:'energy_full'};
+ 
  a.fate-=cost;for(const id of s.relics[seat]){const r=RELICS.find(x=>x.id===id);if(r?.effect==='fateHeal'&&!a.relicFlags.fateHeal){a.hp=Math.min(a.maxHp,a.hp+r.value);a.relicFlags.fateHeal=true}}if(action.mode==='energy')a.energy=Math.min(ENERGY_CAP,a.energy+1);if(action.mode==='draw')draw(a,2,match.random);if(action.mode==='guard')a.block+=7;
  if(a.job==='ruin'&&action.mode==='energy')core.damage(b,2);
  if(a.job==='guard'&&action.mode==='guard')a.block+=3;
@@ -155,7 +155,7 @@ function apply(match,seat,action){
   s.log.push({turn:s.turn,seat,type:'end_turn'});
   s.active=1-seat;
   if(s.active===0)s.turn++;
-  b.turnsTaken++;b.fate=Math.min(12,b.fate+1);s.log.push({turn:s.turn,seat:1-seat,type:'income',name:'ターン開始：因果+1、防御リセット'});b.block=0;b.energy=Math.max(1,4-b.skillDebt);b.skillDebt=0;b.skillUsed=false;b.cardsPlayed=0;b.attacksPlayed=0;b.relicFlags={};draw(b,Math.max(3,5-b.hand.length)+b.extraDrawNext,match.random);b.extraDrawNext=0;
+  b.turnsTaken++;b.fate=Math.min(12,b.fate+1);s.log.push({turn:s.turn,seat:1-seat,type:'income',name:'ターン開始：因果+1、防御リセット'});b.block=0;b.energy=Math.max(0,2+b.turnsTaken-b.skillDebt);b.skillDebt=0;b.skillUsed=false;b.cardsPlayed=0;b.attacksPlayed=0;b.relicFlags={};draw(b,Math.max(3,5-b.hand.length)+b.extraDrawNext,match.random);b.extraDrawNext=0;
   for(const id of s.relics[s.active]){const r=RELICS.find(x=>x.id===id);if(!r)continue;const e=r.effect,n=r.value;
    if(e==='startBlock'||e==='emptyBlock'&&b.block===0||e==='lowBlock'&&b.hp<=30||e==='fateBlock'&&b.fate>=4||e==='fewHandBlock'&&b.hand.length<=3||e==='behindBlock'&&b.hp<a.hp)b.block+=n;
    if(e==='startHeal'||e==='lowHeal'&&b.hp<=30||e==='criticalHeal'&&b.hp<=20||e==='blockHeal'&&b.block>=10||e==='thirdHeal'&&b.turnsTaken%3===0)b.hp=Math.min(b.maxHp,b.hp+n);
