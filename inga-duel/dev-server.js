@@ -6,7 +6,8 @@ const http=require('node:http'),fs=require('node:fs'),path=require('node:path'),
 const base=__dirname,context={};vm.createContext(context);
 for(const file of ['battle-core.js','battle-rules.js','duel-engine.js','match-journal.js','room-core.js','lobby-core.js','cards.js'])
  vm.runInContext(fs.readFileSync(path.join(base,file),'utf8'),context,{filename:file});
-const lobby=context.IngaLobby.createLobby({catalog:[...context.cards,...context.starter],randomBytes:n=>crypto.randomBytes(n),ttlMs:60*60*1000});
+const {cards,starter}=vm.runInContext('({cards,starter})',context);
+const lobby=context.IngaLobby.createLobby({catalog:[...cards,...starter],randomBytes:n=>crypto.randomBytes(n),ttlMs:60*60*1000});
 const port=Number(process.env.PORT||8788);
 const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8'};
 function reply(res,status,obj){res.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(obj))}
