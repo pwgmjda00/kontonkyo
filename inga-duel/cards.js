@@ -253,11 +253,11 @@ for(const theme of duelThemes)for(const id of theme.cards){const c=cards.find(c=
 for(const theme of duelThemes)for(let i=0;i<theme.cards.length;i++){
  const c=cards.find(x=>x.id===theme.cards[i]),tier=i%5;
  if(theme.id==='ruin'){
-  c.cost=1+(i%3);const damage=5+tier*2;
+  c.cost=1+(i%3);const damage=6+tier*2;
   c.desc='敵に'+damage+'ダメージ'+(i%5===0?'を2回':'')+'。';
   c.act=i%5===0?(a,b,ctx)=>{ctx.hit(b,damage);ctx.hit(b,damage)}:(a,b,ctx)=>ctx.hit(b,damage);
  }else if(theme.id==='guard'){
-  c.cost=1+(i%3);const block=5+tier*2,damage=5+(i%4);
+  c.cost=1+(i%3);const block=3+tier,damage=4+(i%4);
   c.desc='防御'+block+'。敵に'+damage+'ダメージ。'+(i%4===0?'HP2回復。':'');
   c.act=(a,b,ctx)=>{a.block+=block;ctx.hit(b,damage);if(i%4===0)a.hp=Math.min(a.maxHp,a.hp+2)};
  }else if(theme.id==='fate'){
@@ -265,7 +265,7 @@ for(const theme of duelThemes)for(let i=0;i<theme.cards.length;i++){
   c.desc='敵に'+damage+'ダメージ。因果+1。'+(i%3===0?'1枚引く。':'');
   c.act=(a,b,ctx)=>{ctx.hit(b,damage);a.fate+=1;if(i%3===0)ctx.draw(a,1)};
  }else if(theme.id==='blood'){
-  c.cost=1+(i%2);const damage=7+(i%5)*2,loss=2+(i%3);
+  c.cost=1+(i%2);const damage=7+(i%5)*2,loss=1+(i%3);
   c.desc='HP'+loss+'を失い、敵に'+damage+'ダメージ。'+(i%5===0?'因果+1。':'');
   c.act=(a,b,ctx)=>{a.hp-=loss;ctx.hit(b,damage);if(i%5===0)a.fate++};
  }
