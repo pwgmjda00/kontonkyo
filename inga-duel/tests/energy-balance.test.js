@@ -4,10 +4,10 @@ const ctx=vm.createContext({});
 for(const name of ['battle-core.js','battle-rules.js','cards.js','duel-engine.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'..',name),'utf8'),ctx,{filename:name});
 const {cards,duelThemes,IngaDuel}=vm.runInContext('({cards,duelThemes,IngaDuel})',ctx);
 const decks=duelThemes.slice(0,2).map(t=>t.cards.map(id=>cards.find(c=>c.id===id)));
-test('second seat receives six cards and one fate; first receives five and zero',()=>{
+test('second seat receives six cards and two fate; first receives five and zero',()=>{
  const m=IngaDuel.createMatch(decks,{seed:2});
  assert.equal(m.state.players[0].hand.length,5);assert.equal(m.state.players[1].hand.length,6);
- assert.equal(m.state.players[0].fate,0);assert.equal(m.state.players[1].fate,1);
+ assert.equal(m.state.players[0].fate,0);assert.equal(m.state.players[1].fate,2);
 });
 test('fate conversion cannot push energy above eight',()=>{
  const m=IngaDuel.createMatch(decks,{seed:2}),p=m.state.players[0];
