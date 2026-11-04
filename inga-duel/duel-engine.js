@@ -9,7 +9,7 @@ function createMatch(decks,options={}){
  let rngState=(options.seed??1)>>>0;
  const random=()=>{rngState=(Math.imul(1664525,rngState)+1013904223)>>>0;return rngState/4294967296};
  let serial=0;
- const players=decks.map((deck,i)=>({hp:60,maxHp:60,block:0,energy:4,fate:0,hand:[],deck:shuffle(deck.map(c=>({...c,uid:++serial})),random),discard:[],seat:i,job:deck[0]?.job||'ruin',skillUsed:false,skillDebt:0,cardsPlayed:0,attacksPlayed:0,relicFlags:{}}));
+ const players=decks.map((deck,i)=>({hp:60,maxHp:60,block:0,energy:4,fate:0,hand:[],deck:shuffle(deck.map(c=>({...c,uid:++serial})),random),discard:[],seat:i,job:deck[0]?.job||'ruin',skillUsed:false,skillDebt:0,extraDrawNext:0,cardsPlayed:0,attacksPlayed:0,relicFlags:{}}));
  const state={version:2,players,active:0,turn:1,over:false,winner:null,log:[],seed:options.seed??1,relics:[[],[]],relicOffer:null};
  draw(players[0],5,random);draw(players[1],5,random);
  return {state,random,getRngState:()=>rngState,setRngState:v=>{rngState=v>>>0}};
@@ -129,17 +129,19 @@ function apply(match,seat,action){
   if(a.cardsPlayed===2)a.fate+=bonus('secondCardFate');
   if(a.cardsPlayed===3)a.energy+=bonus('thirdCardEnergy');
   if(card.cost===0&&a.cardsPlayed===1)a.block+=bonus('zeroBlock');
-  if(a.hp<before.hp)a.fate+=bonus('selfFate');
+  if(a.hp<before.hp){a.fate+=bonus('selfFate');if(a.cardsPlayed===1)a.hp=Math.min(a.maxHp,a.hp+bonus('selfGuard'))}
   if(a.hp>before.hp)a.block+=bonus('healBlock');
+  if(card.desc.includes('引く')&&a.cardsPlayed===1)a.fate+=bonus('drawFate');
   if(a.block>before.block)a.fate+=bonus('blockFate',a.cardsPlayed===1);
   if(b.block>0&&a.attacksPlayed===1)b.block=Math.max(0,b.block-bonus('breakBlock'));
   s.log.push({turn:s.turn,seat,type:'play',cardId:card.id,name:card.name,damage:Math.max(0,before.enemyHp-b.hp),healing:Math.max(0,a.hp-before.hp),selfDamage:Math.max(0,before.hp-a.hp),block:Math.max(0,a.block-before.block),energy:a.energy-before.energy, fate:a.fate-before.fate});
  }else if(action.type==='fate'){
   const outcome=rules.spendFate(a,b);if(!outcome.ok)return outcome;s.log.push({turn:s.turn,seat,type:'fate',damage:0,name:'因果断絶'});
  }else if(action.type==='end_turn'){
+  if(a.hand.length<=2&&s.relics[seat].includes('prism'))a.extraDrawNext=1;
   if(a.block>0){for(const id of s.relics[seat]){const r=RELICS.find(x=>x.id===id);if(r?.effect==='endBlockHeal')a.hp=Math.min(a.maxHp,a.hp+r.value)}}
   a.discard.push(...a.hand.splice(0));s.active=1-seat;
-  b.block=0;b.energy=Math.max(1,4-b.skillDebt);b.skillDebt=0;b.skillUsed=false;b.cardsPlayed=0;b.attacksPlayed=0;b.relicFlags={};draw(b,5,match.random);
+  b.block=0;b.energy=Math.max(1,4-b.skillDebt);b.skillDebt=0;b.skillUsed=false;b.cardsPlayed=0;b.attacksPlayed=0;b.relicFlags={};draw(b,5+b.extraDrawNext,match.random);b.extraDrawNext=0;
   s.log.push({turn:s.turn,seat,type:'end_turn'});s.turn++;
   for(const id of s.relics[s.active]){const r=RELICS.find(x=>x.id===id);if(!r)continue;const e=r.effect,n=r.value;
    if(e==='startBlock'||e==='emptyBlock'&&b.block===0||e==='lowBlock'&&b.hp<=30||e==='fateBlock'&&b.fate>=4||e==='fewHandBlock'&&b.hand.length<=3||e==='behindBlock'&&b.hp<a.hp)b.block+=n;
