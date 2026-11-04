@@ -584,7 +584,7 @@ for(const theme of duelThemes){
    if(a.block>oldBlock)a.block=oldBlock+Math.round((a.block-oldBlock)*tune.block);
    if(a.hp>oldHp)a.hp=Math.min(a.maxHp,oldHp+Math.round((a.hp-oldHp)*tune.heal));
   };
-  card.desc+=' ［職業補正：攻撃×'+tune.damage+'、防御×'+tune.block+'、回復×'+tune.heal+'（端数四捨五入）］';
+  // Keep job modifiers in combat calculations, but omit them from player-facing card text.
  }
 }
 
