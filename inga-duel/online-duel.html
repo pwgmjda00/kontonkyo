@@ -34,7 +34,10 @@ function show(id){for(const name of ['setup','waiting','liveDraft','battle'])$(n
 function note(msg){$('notice').textContent=msg}
 async function api(route,data){
  const response=await fetch('/api/'+route,{method:data===undefined?'GET':'POST',headers:{...(data===undefined?{}:{'content-type':'application/json'}),...(session?{'authorization':'Bearer '+session.token}:{})},body:data===undefined?undefined:JSON.stringify(data),cache:'no-store'});
- const result=await response.json();if(!result.ok)throw Error(result.reason||'request_failed');return result;
+ const type=response.headers.get('content-type')||'';
+ if(!type.toLowerCase().includes('application/json'))throw Error('対戦サーバー未接続：この公開先には /api/'+route+' がありません。静的ページだけではオンライン対戦できません。');
+ let result;try{result=await response.json()}catch(_){throw Error('対戦サーバーの応答が不正です。JSONを取得できませんでした。')}
+ if(!response.ok||!result.ok)throw Error(result.reason||'request_failed');return result;
 }
 
 function audioContext(){try{audio=audio||new (window.AudioContext||window.webkitAudioContext)();if(audio.state==='suspended')audio.resume();return audio}catch(_){return null}}
@@ -83,6 +86,7 @@ function render(state){
  p.textContent='第'+e.turn+'ターン · '+who+'：'+detail;return p}));
 }
 function connectSocket(){
+ if(location.hostname.endsWith('github.io'))return;
  if(!session||ws||Date.now()<retryAt)return;
  const socket=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws');ws=socket;
  socket.onopen=()=>{if(ws===socket)socket.send(JSON.stringify({type:'hello',token:session.token}))};
