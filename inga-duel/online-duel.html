@@ -1,8 +1,8 @@
 <!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>因果決闘 | 通信対戦テスト</title><style>
-:root{font-family:system-ui,sans-serif;background:#101019;color:#f5f0e8}*{box-sizing:border-box}body{margin:0}main{max-width:640px;margin:auto;padding:14px}h1{font-size:23px;color:#ffe070}.panel{background:#231e2d;border:1px solid #574861;border-radius:14px;padding:14px;margin:12px 0}.row{display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap}button,input{font:inherit;border-radius:9px;padding:11px}button{background:#51415d;color:white;border:1px solid #8a7696}button.primary{background:#ffe070;color:#17121b;font-weight:bold}button:disabled{opacity:.4}input{width:100%;background:#14111b;color:white;border:1px solid #83718e;font-size:20px}.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.cards button{text-align:left}.cards small{display:block;color:#ccc;margin-top:5px}.hidden{display:none}.muted{color:#c9c0d0;font-size:13px}.code{color:#ffe070;font-size:24px;letter-spacing:.08em}.hp{color:#ff9da3;font-weight:bold}#notice{color:#ffe070;min-height:24px}</style><main>
-<h1>因果決闘 ∞ PARADOX</h1><p class="muted">β0.8.4 ローカル通信試験。サーバー起動時のみ利用可能。WebSocket優先。接続できない場合はHTTPで同期します。</p>
+:root{font-family:system-ui,sans-serif;background:#101019;color:#f5f0e8}*{box-sizing:border-box}body{margin:0}main{max-width:640px;margin:auto;padding:14px}h1{font-size:23px;color:#ffe070}.panel{background:#231e2d;border:1px solid #574861;border-radius:14px;padding:14px;margin:12px 0}.row{display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap}button,input{font:inherit;border-radius:9px;padding:11px}button{background:#51415d;color:white;border:1px solid #8a7696}button.primary{background:#ffe070;color:#17121b;font-weight:bold}button:disabled{opacity:.4}input{width:100%;background:#14111b;color:white;border:1px solid #83718e;font-size:20px}.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.cards button{text-align:left}.cards small{display:block;color:#ccc;margin-top:5px}.hidden{display:none}.muted{color:#c9c0d0;font-size:13px}.code{color:#ffe070;font-size:24px;letter-spacing:.08em;overflow-wrap:anywhere}.invite{display:flex;gap:8px;flex-wrap:wrap}.invite button{flex:1;min-width:130px}button{touch-action:manipulation;min-height:44px}.hp{color:#ff9da3;font-weight:bold}#notice{color:#ffe070;min-height:24px}</style><main>
+<h1>因果決闘 ∞ PARADOX</h1><p class="muted">β0.8.7 遠隔テスト版。WebSocket優先、通信不調時はHTTP同期。</p>
 <section class="panel" id="setup"><h2>合言葉で対戦</h2><label for="code">ひらがな8文字</label><input id="code" maxlength="8" placeholder="せかいのおわりに" autocomplete="off"><p class="row"><button class="primary" id="create">部屋を作る</button><button id="join">部屋に参加</button></p></section>
-<section class="panel hidden" id="waiting"><h2>相手を待機中</h2><div class="code" id="roomCode"></div><p class="muted">相手が同じ合言葉を入力すると始まります。</p></section>
+<section class="panel hidden" id="waiting"><h2>相手を待機中</h2><div class="code" id="roomCode"></div><p class="muted">この画面のまま待機できます。相手が参加すると自動で始まります。</p><p class="invite"><button id="share" class="primary">📨 招待リンクを送る</button><button id="copyCode">合言葉をコピー</button></p><p class="muted">招待リンクには合言葉だけが含まれます。認証用の秘密情報は含みません。</p></section>
 <section class="panel hidden" id="battle"><div class="row"><b id="phase"></b><span id="revision"></span></div><div class="row"><div>相手<div class="hp" id="oppHp"></div><div id="oppBlock"></div></div><div>あなた<div class="hp" id="selfHp"></div><div id="selfBlock"></div></div></div><p id="resource"></p><div class="cards" id="hand"></div><p class="row"><button id="fate">⚡ 因果断絶</button><button id="end" class="primary">ターン終了</button></p><h3>行動履歴</h3><div id="log" class="muted"></div></section>
 <section class="panel"><p id="notice" role="status"></p><button id="leave">この端末の接続を解除</button></section>
 </main><script src="cards.js"></script><script>
@@ -10,6 +10,9 @@
 const $=id=>document.getElementById(id),KEY='inga-online-session-v1';
 let session=null,revision=0,busy=false,ws=null,retryAt=0,pending=false,lastView=null,pendingSince=0;
 const deck=()=>starter.map(c=>c.id);
+const validCode=value=>/^[ぁ-ゖ]{8}$/u.test(value.normalize('NFKC'));
+function inviteUrl(){const url=new URL(location.href);url.searchParams.set('code',session.code);return url.toString()}
+async function copyText(value){if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(value);return true}return false}
 function show(id){for(const name of ['setup','waiting','battle'])$(name).classList.toggle('hidden',name!==id)}
 function note(msg){$('notice').textContent=msg}
 async function api(route,data){
@@ -46,17 +49,22 @@ async function sync(){
  try{const state=await api('status');if(state.status==='waiting'){show('waiting');$('roomCode').textContent=session.code;note('対戦相手を待っています');return}render(state);note('接続中')}catch(e){if(e.message==='unauthorized'){session=null;sessionStorage.removeItem(KEY);if(ws){ws.close();ws=null}show('setup');note('接続期限が切れました。新しい部屋を作成してください')}else note('通信状態：'+e.message)}
 }
 async function begin(route){
- if(busy)return;busy=true;
- try{const result=await api(route,{code:$('code').value,deck:deck()});if(ws){ws.close();ws=null}pending=false;pendingSince=0;lastView=null;session={token:result.token,seat:result.seat,code:result.code};sessionStorage.setItem(KEY,JSON.stringify(session));note('ルームに接続しました');await syncForced()}catch(e){note('接続できません：'+e.message)}finally{busy=false}
+ if(busy)return;
+ const input=$('code').value.normalize('NFKC');if(!validCode(input)){note('合言葉はひらがな8文字で入力してください');return}
+ busy=true;
+ try{const result=await api(route,{code:input,deck:deck()});if(ws){ws.close();ws=null}pending=false;pendingSince=0;lastView=null;session={token:result.token,seat:result.seat,code:result.code};sessionStorage.setItem(KEY,JSON.stringify(session));note('ルームに接続しました');await syncForced()}catch(e){note('接続できません：'+e.message)}finally{busy=false}
 }
 async function syncForced(){const state=await api('status');pending=false;pendingSince=0;if(state.status==='waiting'){show('waiting');$('roomCode').textContent=session.code}else render(state)}
 async function act(action){
  if(busy||pending||!session)return;busy=true;
  try{if(ws&&ws.readyState===WebSocket.OPEN){pending=true;pendingSince=Date.now();ws.send(JSON.stringify({type:'action',revision,action}));if(lastView)render(lastView);note('行動を送信しました')}else{await api('action',{revision,action});await syncForced();note('行動を送信しました')}}catch(e){note('操作できません：'+e.message);try{await syncForced()}catch(_){}}finally{busy=false}
 }
+$('share').onclick=async()=>{if(!session)return;const url=inviteUrl();try{if(navigator.share){await navigator.share({title:'因果決闘 ∞ PARADOX',text:'合言葉：'+session.code,url});return}if(await copyText(url)){note('招待リンクをコピーしました');return}note('招待リンク：'+url)}catch(e){if(e.name!=='AbortError')note('共有できません：'+e.message)}};
+$('copyCode').onclick=async()=>{if(!session)return;try{if(await copyText(session.code))note('合言葉をコピーしました');else note('合言葉：'+session.code)}catch(e){note('合言葉：'+session.code)}};
 $('create').onclick=()=>begin('create');$('join').onclick=()=>begin('join');
 $('end').onclick=()=>act({type:'end_turn'});$('fate').onclick=()=>act({type:'fate'});
 $('leave').onclick=()=>{if(ws){ws.close();ws=null}pending=false;pendingSince=0;lastView=null;session=null;sessionStorage.removeItem(KEY);show('setup');note('この端末の接続情報を消去しました。部屋は期限まで残ります。')};
 try{const saved=JSON.parse(sessionStorage.getItem(KEY));if(saved&&typeof saved.token==='string'&&[0,1].includes(saved.seat))session=saved}catch(_){}
+const inviteCode=new URLSearchParams(location.search).get('code');if(inviteCode&&validCode(inviteCode))$('code').value=inviteCode.normalize('NFKC');
 if(session)sync();setInterval(sync,2000);
 </script></html>
