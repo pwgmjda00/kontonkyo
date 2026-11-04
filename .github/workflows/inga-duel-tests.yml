@@ -1,0 +1,21 @@
+name: Inga Duel real communication tests
+on:
+  push:
+    paths:
+      - 'inga-duel/**'
+      - '.github/workflows/inga-duel-tests.yml'
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: inga-duel
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npm test
