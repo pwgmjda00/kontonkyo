@@ -7,7 +7,7 @@ if(!Rooms)throw Error('room-core.js must load first');
 const HIRAGANA=/^[ぁ-ゖ]{8}$/u;
  function normalizeCode(value){return typeof value==='string'?value.normalize('NFKC'):''}
 function createLobby(options={}){
- const {catalog,randomBytes,now=()=>Date.now(),ttlMs=15*60*1000,maxRooms=100}=options;
+ const {catalog,randomBytes,now=()=>Date.now(),ttlMs=15*60*1000,activeTtlMs=6*60*60*1000,maxRooms=100}=options;
  if(!Array.isArray(catalog)||typeof randomBytes!=='function')throw Error('Catalog and secure randomBytes required');
  const rooms=new Map(), tokens=new Map(),subscribers=new Map();
  function bytes(n){const b=randomBytes(n);if(!b||b.length!==n||Array.from(b).some(x=>!Number.isInteger(x)||x<0||x>255))throw Error('Invalid secure random bytes');return b}
@@ -35,7 +35,7 @@ function createLobby(options={}){
   const guestDeck=validateDeck(deck),guestToken=secret();
   const seedBytes=bytes(4),seed=((seedBytes[0]<<24)|(seedBytes[1]<<16)|(seedBytes[2]<<8)|seedBytes[3])>>>0;
   const room=Rooms.createRoom({decks:[r.hostDeck,guestDeck],catalog,seed,randomToken:secret});
-  r.room=room;r.guestToken=guestToken;tokens.set(guestToken,normalized);notify(normalized);
+  r.room=room;r.guestToken=guestToken;r.expiresAt=now()+activeTtlMs;tokens.set(guestToken,normalized);notify(normalized);
   return {ok:true,code:normalized,token:guestToken,seat:1,expiresAt:r.expiresAt};
  }
  function status(token){
