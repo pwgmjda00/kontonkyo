@@ -1,7 +1,7 @@
 <!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>因果決闘 | 通信対戦テスト</title><style>
 :root{font-family:system-ui,sans-serif;background:#101019;color:#f5f0e8}*{box-sizing:border-box}body{margin:0}main{max-width:640px;margin:auto;padding:14px}h1{font-size:23px;color:#ffe070}.panel{background:#231e2d;border:1px solid #574861;border-radius:14px;padding:14px;margin:12px 0}.row{display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap}button,input{font:inherit;border-radius:9px;padding:11px}button{background:#51415d;color:white;border:1px solid #8a7696}button.primary{background:#ffe070;color:#17121b;font-weight:bold}button:disabled{opacity:.4}input{width:100%;background:#14111b;color:white;border:1px solid #83718e;font-size:20px}.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.cards button{text-align:left}select{width:100%;font:inherit;padding:12px;border-radius:9px;background:#14111b;color:white;border:1px solid #83718e;margin:8px 0}#deckPreview{margin:8px 0;line-height:1.7}#relicOffer{padding:12px;border:1px solid #ffe070;border-radius:12px;margin:12px 0}.cards small{display:block;color:#ccc;margin-top:5px}.hidden{display:none}.muted{color:#c9c0d0;font-size:13px}.code{color:#ffe070;font-size:24px;letter-spacing:.08em;overflow-wrap:anywhere}.invite{display:flex;gap:8px;flex-wrap:wrap}.invite button{flex:1;min-width:130px}button{touch-action:manipulation;min-height:44px}.hp{color:#ff9da3;font-weight:bold}#notice{color:#ffe070;min-height:24px}</style><main>
 <h1>因果決闘 ∞ PARADOX</h1><p class="muted">β0.9.0 遠隔テスト版。WebSocket優先、通信不調時はHTTP同期。</p>
-<section class="panel" id="setup"><h2>合言葉で対戦</h2><label for="code">ひらがな8文字</label><input id="code" maxlength="8" placeholder="せかいのおわりに" autocomplete="off"><label for="theme">使用デッキ（各テーマ30種類から12枚を構築）</label><select id="theme"></select><div id="deckPreview" class="muted"></div><p class="row"><button class="primary" id="create">部屋を作る</button><button id="join">部屋に参加</button></p></section>
+<section class="panel" id="setup"><h2>合言葉で対戦</h2><label for="code">ひらがな8文字</label><input id="code" maxlength="8" placeholder="せかいのおわりに" autocomplete="off"><label for="theme">使用デッキ（各テーマ30種類から12枚を構築）</label><select id="theme"></select><div id="deckPreview" class="muted"></div><details><summary>30種類から12枚を選ぶ（タップで入れ替え）</summary><div id="deckBuilder" class="cards"></div></details><p class="row"><button class="primary" id="create">部屋を作る</button><button id="join">部屋に参加</button></p></section>
 <section class="panel hidden" id="waiting"><h2>相手を待機中</h2><div class="code" id="roomCode"></div><p class="muted">この画面のまま待機できます。相手が参加すると自動で始まります。</p><p class="invite"><button id="share" class="primary">📨 招待リンクを送る</button><button id="copyCode">合言葉をコピー</button></p><p class="muted">招待リンクには合言葉だけが含まれます。認証用の秘密情報は含みません。</p></section>
 <section class="panel hidden" id="battle"><div class="row"><b id="phase"></b><span id="revision"></span></div><div class="row"><div>相手<div class="hp" id="oppHp"></div><div id="oppBlock"></div></div><div>あなた<div class="hp" id="selfHp"></div><div id="selfBlock"></div></div></div><p id="resource"></p><div class="cards" id="hand"></div><p class="row"><button id="fate">⚡ 因果断絶</button><button id="end" class="primary">ターン終了</button></p><div id="relics" class="muted"></div><section id="relicOffer" class="hidden"><h3>✨ レリック獲得：3択から1つ選択</h3><div class="cards" id="relicChoices"></div></section><h3>行動履歴</h3><div id="log" class="muted"></div></section>
 <section class="panel"><p id="notice" role="status"></p><button id="leave">この端末の接続を解除</button></section>
@@ -11,10 +11,15 @@ const $=id=>document.getElementById(id),KEY='inga-online-session-v1';
 let session=null,revision=0,busy=false,ws=null,retryAt=0,pending=false,lastView=null,pendingSince=0;
 const themeSelect=$('theme');
 for(const theme of duelThemes){const opt=document.createElement('option');opt.value=theme.id;opt.textContent=theme.name+' / '+theme.description;themeSelect.append(opt)}
+let deckIds=[];
 function selectedCards(){const theme=duelThemes.find(t=>t.id===themeSelect.value)||duelThemes[0];return theme.cards.map(id=>cards.find(c=>c.id===id))}
-const deck=()=>selectedCards().filter((_,i)=>i%2===0).slice(0,12).map(c=>c.id);
-function updatePreview(){const theme=duelThemes.find(t=>t.id===themeSelect.value)||duelThemes[0];$('deckPreview').textContent='30種類のカードプール / 初期デッキ12枚：'+deck().map(id=>cards.find(c=>c.id===id).name).join('・')}
-themeSelect.onchange=updatePreview;updatePreview();
+const deck=()=>deckIds.slice();
+function updatePreview(){
+ $('deckPreview').textContent='選択中 '+deckIds.length+'/12枚。'+(deckIds.length===12?'対戦可能':'12枚選んでください');
+ $('deckBuilder').replaceChildren(...selectedCards().map(card=>{const b=document.createElement('button');const selected=deckIds.includes(card.id);b.className=selected?'primary':'';b.textContent=(selected?'✓ ':'＋ ')+card.name+' ◆'+card.cost+' / '+card.desc;b.onclick=()=>{if(selected)deckIds=deckIds.filter(id=>id!==card.id);else if(deckIds.length<12)deckIds.push(card.id);else{note('12枚まで選択できます。外すカードを先にタップしてください');return}updatePreview()};return b}));
+}
+function resetDeck(){deckIds=selectedCards().filter((_,i)=>i%2===0).slice(0,12).map(c=>c.id);updatePreview()}
+themeSelect.onchange=resetDeck;resetDeck();
 const validCode=value=>/^[ぁ-ゖ]{8}$/u.test(value.normalize('NFKC'));
 function inviteUrl(){const url=new URL(location.href);url.searchParams.set('code',session.code);return url.toString()}
 async function copyText(value){if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(value);return true}return false}
@@ -61,6 +66,7 @@ async function sync(){
 async function begin(route){
  if(busy)return;
  const input=$('code').value.normalize('NFKC');if(!validCode(input)){note('合言葉はひらがな8文字で入力してください');return}
+ if(deckIds.length!==12){note('デッキは12枚選択してください');return}
  busy=true;
  try{const result=await api(route,{code:input,deck:deck()});if(ws){ws.close();ws=null}pending=false;pendingSince=0;lastView=null;session={token:result.token,seat:result.seat,code:result.code};sessionStorage.setItem(KEY,JSON.stringify(session));note('ルームに接続しました');await syncForced()}catch(e){note('接続できません：'+e.message)}finally{busy=false;if(lastView)render(lastView)}
 }
