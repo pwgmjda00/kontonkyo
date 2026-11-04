@@ -4,10 +4,10 @@ const ctx={};vm.createContext(ctx);
 for(const file of ['battle-core.js','battle-rules.js','duel-engine.js','match-journal.js','room-core.js','cards.js'])
  vm.runInContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),ctx,{filename:file});
 const {createRoom,restoreRoom}=ctx.IngaRoom;
-const deck=Array.from({length:12},(_,i)=>ctx.starter[i].id);
+const deck=Array.from({length:12},(_,i)=>vm.runInContext('starter',ctx)[i].id);
 let counter=0;
 const token=()=>String(++counter).padStart(32,'x');
-const options={decks:[deck,deck],catalog:ctx.starter,seed:42,randomToken:token};
+const options={decks:[deck,deck],catalog:vm.runInContext('starter',ctx),seed:42,randomToken:token};
 const room=createRoom(options),[a,b]=room.seats;
 const check=(name,fn)=>{fn();console.log('PASS '+name)};
 check('private opponent hand',()=>{const v=room.snapshot(a.token);assert.equal(v.view.opponent.hand,undefined);assert.equal(v.view.player.hand.length,5)});
