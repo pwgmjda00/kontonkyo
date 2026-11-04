@@ -16,11 +16,12 @@ function createLobby(options={}){
  function bytes(n){const b=randomBytes(n);if(!b||b.length!==n||Array.from(b).some(x=>!Number.isInteger(x)||x<0||x>255))throw Error('Invalid secure random bytes');return b}
  function secret(){return Array.from(bytes(32),b=>b.toString(16).padStart(2,'0')).join('')}
  function sweep(){const time=now();for(const [key,r] of rooms){if(r.expiresAt<=time){rooms.delete(key);tokens.delete(r.hostToken);if(r.guestToken)tokens.delete(r.guestToken);notify(key);subscribers.delete(key)}}}
+ function validateFreeDeck(deck){if(!Array.isArray(deck)||deck.length!==30||deck.some(id=>!Number.isInteger(id)||!draftCards.some(c=>c.id===id)))throw Error('Invalid free deck: 30 cards from PvP pool required');return deck.slice()}
  function validateDeck(deck){if(!Array.isArray(deck)||![12,30].includes(deck.length)||deck.some(id=>!Number.isInteger(id)||!catalog.some(c=>c.id===id)))throw Error('Invalid 30-card deck');return deck.slice()}
  function create(deck,requestedCode,mode='standard'){
   sweep();if(rooms.size>=maxRooms)return {ok:false,reason:'room_limit'};
-  if(!['standard','draft'].includes(mode))return {ok:false,reason:'invalid_mode'};
-  const hostDeck=mode==='draft'?null:validateDeck(deck);
+  if(!['standard','draft','free'].includes(mode))return {ok:false,reason:'invalid_mode'};
+  const hostDeck=mode==='draft'?null:mode==='free'?validateFreeDeck(deck):validateDeck(deck);
   const invite=normalizeCode(requestedCode);
   if(!HIRAGANA.test(invite))return {ok:false,reason:'invalid_code'};
   if(rooms.has(invite))return {ok:false,reason:'code_taken'};
@@ -36,7 +37,7 @@ function createLobby(options={}){
   const r=rooms.get(normalized);
   if(!r)return {ok:false,reason:'not_found'};
   if(r.guestToken)return {ok:false,reason:'room_full'};
-  const guestDeck=r.mode==='draft'?null:validateDeck(deck),guestToken=secret();
+  const guestDeck=r.mode==='draft'?null:r.mode==='free'?validateFreeDeck(deck):validateDeck(deck),guestToken=secret();
   const seedBytes=bytes(4),seed=((seedBytes[0]<<24)|(seedBytes[1]<<16)|(seedBytes[2]<<8)|seedBytes[3])>>>0;
   r.seed=seed;
   if(r.mode==='draft')r.draft=[{picked:[],offer:pack([])},{picked:[],offer:pack([])}];
