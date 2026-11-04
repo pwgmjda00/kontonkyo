@@ -1,8 +1,8 @@
 /* Headless, server-portable two-player battle engine. No DOM or storage. */
 (function(root){
 'use strict';
-const core=root.IngaCore;
-if(!core)throw Error('battle-core.js must load first');
+const core=root.IngaCore, rules=root.IngaRules;
+if(!core||!rules)throw Error('battle-core.js and battle-rules.js must load first');
 function shuffle(items,random){const out=items.slice();for(let i=out.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[out[i],out[j]]=[out[j],out[i]]}return out}
 function createMatch(decks,options={}){
  if(!Array.isArray(decks)||decks.length!==2||decks.some(d=>!Array.isArray(d)||d.length===0))throw Error('Two nonempty decks required');
@@ -27,14 +27,14 @@ function apply(match,seat,action){
   if(typeof card.act!=='function')return {ok:false,reason:'missing_effect'};
   const savedPlayers=s.players.map(p=>({...p,hand:p.hand.slice(),deck:p.deck.slice(),discard:p.discard.slice()}));
   const savedRng=match.getRngState();
-  a.energy-=card.cost;a.hand.splice(idx,1);
+  
   const ctx={hit:core.damage,draw:(p,n)=>draw(p,n,match.random),random:match.random,
    get intent(){return {kind:'none',value:0,name:'対人戦',desc:'相手の手番'}},
    set intent(_v){/* PvP has no telegraphed CPU action */}};
-  try{card.act(a,b,ctx)}catch(_err){s.players=savedPlayers;match.setRngState(savedRng);return {ok:false,reason:'effect_failed'}}
-  a.discard.push(card);s.log.push({turn:s.turn,seat,type:'play',cardId:card.id});
+  try{const outcome=rules.playCard(a,b,action.uid,ctx);if(!outcome.ok)return outcome}catch(_err){s.players=savedPlayers;match.setRngState(savedRng);return {ok:false,reason:'effect_failed'}}
+  s.log.push({turn:s.turn,seat,type:'play',cardId:card.id});
  }else if(action.type==='fate'){
-  a.fate-=6;b.block=0;core.damage(b,18);a.energy+=2;s.log.push({turn:s.turn,seat,type:'fate'});
+  const outcome=rules.spendFate(a,b);if(!outcome.ok)return outcome;s.log.push({turn:s.turn,seat,type:'fate'});
  }else if(action.type==='end_turn'){
   a.discard.push(...a.hand.splice(0));s.active=1-seat;
   b.block=0;b.energy=5;draw(b,5,match.random);
