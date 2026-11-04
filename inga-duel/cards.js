@@ -265,8 +265,8 @@ for(const theme of duelThemes)for(let i=0;i<theme.cards.length;i++){
   c.act=(a,b,ctx)=>{a.block+=block;ctx.hit(b,damage);if(cost>=4)a.hp=Math.min(a.maxHp,a.hp+2)};
  }else if(theme.id==='fate'){
   const damage=4+cost*3+(tier%2),fate=cost>=4?2:1;
-  c.desc='敵に'+damage+'ダメージ。因果+'+fate+'。'+(cost>=4?'1枚引く。':'');
-  c.act=(a,b,ctx)=>{ctx.hit(b,damage);a.fate+=fate;if(cost>=4)ctx.draw(a,1)};
+  c.desc='敵の防御を2削り、敵に'+damage+'ダメージ。因果+'+fate+'。'+(cost>=4?'1枚引く。':'');
+  c.act=(a,b,ctx)=>{b.block=Math.max(0,b.block-2);ctx.hit(b,damage);a.fate+=fate;if(cost>=4)ctx.draw(a,1)};
  }else if(theme.id==='blood'){
   const damage=3+cost*5+(tier%3),loss=cost===0?1:Math.max(1,Math.ceil(cost/2));
   c.desc='HP'+loss+'を失い、敵に'+damage+'ダメージ。'+(cost>=4?'因果+1。':'');
