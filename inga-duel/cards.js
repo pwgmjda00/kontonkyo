@@ -280,10 +280,10 @@ for(const theme of duelThemes)for(let i=0;i<theme.cards.length;i++){
 const PVP_TACTICS={
  ruin:[
   (c,k)=>{const n=2+c.cost*3+k%2;c.desc='敵の防御を'+n+'削る。削った量×2ダメージ（最低2）。';c.act=(a,b,x)=>{const z=Math.min(n,b.block);b.block-=z;x.hit(b,Math.max(2+c.cost*2,z*2))}},
-  (c,k)=>{const n=3+c.cost*3+k%2;c.desc='敵に'+n+'ダメージ。相手の因果が4以上なら追加5ダメージ。';c.act=(a,b,x)=>{x.hit(b,n+(b.fate>=4?5:0))}},
-  (c,k)=>{const n=6+c.cost*3+k%2;c.desc='敵に'+n+'ダメージ。相手の因果を最大2削る。削れなければ自分の因果+1。';c.act=(a,b,x)=>{x.hit(b,n);const z=Math.min(2,b.fate);b.fate-=z;if(!z)a.fate=Math.min(12,a.fate+1)}},
+  (c,k)=>{const n=2+c.cost*3+k%2;c.desc='敵に'+n+'ダメージ。相手の因果が4以上なら追加5ダメージ。';c.act=(a,b,x)=>{x.hit(b,n+(b.fate>=4?5:0))}},
+  (c,k)=>{const n=4+c.cost*3+k%2;c.desc='敵に'+n+'ダメージ。相手の因果を最大2削る。削れなければ自分の因果+1。';c.act=(a,b,x)=>{x.hit(b,n);const z=Math.min(2,b.fate);b.fate-=z;if(!z)a.fate=Math.min(12,a.fate+1)}},
   (c,k)=>{const n=2+c.cost*3+k%2;c.desc='敵に'+n+'ダメージ。相手の防御が残っていれば、さらに防御を4削る。';c.act=(a,b,x)=>{x.hit(b,n);b.block=Math.max(0,b.block-4)}},
-  (c,k)=>{const n=6+c.cost*3+k%2;c.desc='敵に'+n+'ダメージ。自分の防御があれば全消費し、追加で最大6ダメージ。';c.act=(a,b,x)=>{const z=Math.min(6,a.block);a.block=0;x.hit(b,n+z)}},
+  (c,k)=>{const n=4+c.cost*3+k%2;c.desc='敵に'+n+'ダメージ。自分の防御があれば全消費し、追加で最大6ダメージ。';c.act=(a,b,x)=>{const z=Math.min(6,a.block);a.block=0;x.hit(b,n+z)}},
   (c,k)=>{const n=2+c.cost*3+k%2;c.desc='敵に'+n+'ダメージ。敵HPが自分より高ければ2回攻撃、そうでなければ因果+1。';c.act=(a,b,x)=>{const behind=b.hp>a.hp;x.hit(b,n);if(behind)x.hit(b,n);else a.fate=Math.min(12,a.fate+1)}}
  ],
  guard:[
@@ -303,12 +303,12 @@ const PVP_TACTICS={
   (c,k)=>{const n=3+c.cost*3+k%2;c.desc='敵に'+n+'ダメージ。自分の因果が偶数なら防御+5、奇数なら因果+1。';c.act=(a,b,x)=>{x.hit(b,n);if(a.fate%2===0)a.block+=5;else a.fate=Math.min(12,a.fate+1)}}
  ],
  blood:[
-  (c,k)=>{const n=4+c.cost*4+k%2;c.desc='HP2を失い、敵に'+n+'ダメージ。HP20以下なら追加4。';c.act=(a,b,x)=>{a.hp-=2;x.hit(b,n+(a.hp<=20?4:0))}},
-  (c,k)=>{const n=3+c.cost*3+k%2;c.desc='敵に'+n+'ダメージ。自分のHPが相手より低ければ因果+2。';c.act=(a,b,x)=>{x.hit(b,n);if(a.hp<b.hp)a.fate=Math.min(12,a.fate+2)}},
-  (c,k)=>{const n=6+c.cost*3+k%2;c.desc='防御を最大6消費し、敵に'+n+'＋消費量×2ダメージ。';c.act=(a,b,x)=>{const z=Math.min(6,a.block);a.block-=z;x.hit(b,n+z*2)}},
-  (c,k)=>{const n=6+c.cost*3+k%2;c.desc='HP3を失い、敵に'+n+'ダメージ。与えたHPダメージの半分（最大5）回復。';c.act=(a,b,x)=>{a.hp-=3;const z=x.hit(b,n);a.hp=Math.min(a.maxHp,a.hp+Math.min(5,Math.floor((z.dealt||0)/2)))}},
-  (c,k)=>{const n=2+c.cost*4+k%2;c.desc='HP2を失い、敵に'+n+'ダメージ。手札が1枚以下なら1枚引く（コスト1以上）。';c.act=(a,b,x)=>{a.hp-=2;x.hit(b,n);if(a.hand.length<=1&&c.cost>0)x.draw(a,1)}},
-  (c,k)=>{const n=3+c.cost*3+k%2;c.desc='敵に'+n+'ダメージ。自分のHPが15以下なら2回攻撃、そうでなければHP1を失う。';c.act=(a,b,x)=>{const low=a.hp<=15;x.hit(b,n);if(low)x.hit(b,n);else a.hp--}}
+  (c,k)=>{const n=7+c.cost*4+k%2;c.desc='HP2を失い、敵に'+n+'ダメージ。HP20以下なら追加4。';c.act=(a,b,x)=>{a.hp-=2;x.hit(b,n+(a.hp<=20?4:0))}},
+  (c,k)=>{const n=6+c.cost*3+k%2;c.desc='敵に'+n+'ダメージ。自分のHPが相手より低ければ因果+2。';c.act=(a,b,x)=>{x.hit(b,n);if(a.hp<b.hp)a.fate=Math.min(12,a.fate+2)}},
+  (c,k)=>{const n=9+c.cost*3+k%2;c.desc='防御を最大6消費し、敵に'+n+'＋消費量×2ダメージ。';c.act=(a,b,x)=>{const z=Math.min(6,a.block);a.block-=z;x.hit(b,n+z*2)}},
+  (c,k)=>{const n=9+c.cost*3+k%2;c.desc='HP3を失い、敵に'+n+'ダメージ。与えたHPダメージの半分（最大5）回復。';c.act=(a,b,x)=>{a.hp-=3;const z=x.hit(b,n);a.hp=Math.min(a.maxHp,a.hp+Math.min(5,Math.floor((z.dealt||0)/2)))}},
+  (c,k)=>{const n=5+c.cost*4+k%2;c.desc='HP2を失い、敵に'+n+'ダメージ。手札が1枚以下なら1枚引く（コスト1以上）。';c.act=(a,b,x)=>{a.hp-=2;x.hit(b,n);if(a.hand.length<=1&&c.cost>0)x.draw(a,1)}},
+  (c,k)=>{const n=6+c.cost*3+k%2;c.desc='敵に'+n+'ダメージ。自分のHPが15以下なら2回攻撃、そうでなければHP1を失う。';c.act=(a,b,x)=>{const low=a.hp<=15;x.hit(b,n);if(low)x.hit(b,n);else a.hp--}}
  ]
 };
 for(const theme of duelThemes)for(let i=0;i<30;i++){
