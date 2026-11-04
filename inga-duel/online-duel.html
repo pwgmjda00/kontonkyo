@@ -25,6 +25,8 @@ const codeWords=['むげん','いんが','せかい','きおく','ゆめ','ほ�
 function autoCode(){const parts=[];let size=0;while(size<8){const pool=codeWords.filter(w=>w.length<=8-size);if(!pool.length){parts.push('あ');size++;continue}const word=pool[cryptoIndex(pool.length)];parts.push(word);size+=word.length}return parts.join('')}
 function inviteUrl(){const url=new URL(location.href);url.searchParams.set('code',session.code);return url.toString()}
 async function copyText(value){if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(value);return true}return false}
+let relicCatalogLoaded=false;
+async function loadReference(){if(!$('waitingCards').childElementCount){$('waitingCards').replaceChildren(...duelThemes.map(t=>{const section=document.createElement('details');const summary=document.createElement('summary');summary.textContent=t.name+'（30枚）';section.append(summary);for(const id of t.cards){const c=cards.find(x=>x.id===id);if(!c)continue;const p=document.createElement('p');p.textContent=c.name+' ◆'+c.cost+'：'+c.desc;section.append(p)}return section}))}if(!relicCatalogLoaded){try{const data=await api('catalog');$('waitingRelics').replaceChildren(...data.relics.map(r=>{const p=document.createElement('p');p.textContent=r.name+'：'+r.desc;return p}));relicCatalogLoaded=true}catch(e){$('waitingRelics').textContent='図鑑を取得できません：'+e.message}}}
 function show(id){for(const name of ['setup','waiting','liveDraft','battle'])$(name).classList.toggle('hidden',name!==id)}
 function note(msg){$('notice').textContent=msg}
 async function api(route,data){
@@ -54,7 +56,7 @@ $('resultNew').onclick=()=>{$('resultOverlay').classList.add('hidden');$('leave'
 
 const keepSelection=new Set();
 function renderLiveDraft(state){show('liveDraft');$('liveDraftProgress').textContent=state.ready?'自分の30枚完成。相手を待機中':'あなた '+state.step+'/30枚';$('liveDraftOpponent').textContent='相手 '+state.opponentStep+'/30枚';$('liveDraftChoices').replaceChildren(...(state.choices||[]).map(c=>{const b=document.createElement('button');b.textContent=c.name+' ◆'+c.cost+' '+c.desc;b.disabled=busy||pending;b.onclick=()=>act({type:'draft_pick',id:c.id});return b}))}
-function showState(state){if(state.status==='waiting'){show('waiting');$('roomCode').textContent=session.code}else if(state.status==='drafting')renderLiveDraft(state);else if(state.view)render(state)}
+function showState(state){if(state.status==='waiting'){show('waiting');$('roomCode').textContent=session.code;loadReference()}else if(state.status==='drafting')renderLiveDraft(state);else if(state.view)render(state)}
 function render(state){
  const oldRevision=revision;revision=state.revision;lastView=state;const v=state.view,me=v.player,op=v.opponent,turn=v.active===session.seat;
  if(v.log.length){const sig=e=>[e.turn,e.seat,e.type,e.name,e.cardId].join(':');const current=v.log.map(sig),previous=lastLogSignature?lastLogSignature.split('|'):[];if(battleInitialized&&oldRevision!==revision){let overlap=0;for(let n=Math.min(previous.length,current.length);n>0;n--){if(previous.slice(-n).join('|')===current.slice(0,n).join('|')){overlap=n;break}}enqueueVisuals(v.log.slice(overlap).slice(-6))}lastLogSignature=current.join('|');battleInitialized=true}
