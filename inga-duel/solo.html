@@ -100,11 +100,11 @@ function restoreRun(){
   journey=s.journey;serial=Math.max(serial,s.serial||0);
   if(s.active&&s.battle){
    const revive=c=>{const base=c.id<0?starter[-c.id-1]:cards[c.id];if(!base)throw Error('invalid card');return {...base,uid:c.uid}};
-   const b=s.battle;p={...b.p,hand:b.p.hand.map(revive),deck:b.p.deck.map(revive),discard:b.p.discard.map(revive)};
+   const b=s.battle;p={...b.p,maxHp:SOLO_MAX_HP,hand:b.p.hand.map(revive),deck:b.p.deck.map(revive),discard:b.p.discard.map(revive)};
    e=b.e;turn=b.turn;intent=b.intent;logs=b.logs;over=false;
   }else{
-   p={hp:journey.hp,block:0,energy:5,fate:0,hand:[],deck:[],discard:[]};
-   e={hp:40,maxHp:40,block:0};turn=1;over=true;
+   p={hp:journey.hp,maxHp:SOLO_MAX_HP,block:0,energy:2,fate:0,hand:[],deck:[],discard:[]};
+   e={hp:110,maxHp:110,block:0};turn=1;over=true;
    intent={kind:'none',name:'経路選択',desc:'次のマスを選ぼう'};logs=[];
    if(journey.waiting&&!journey.offer){journey.waiting=false;makeNodes()}
   }
