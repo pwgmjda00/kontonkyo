@@ -52,3 +52,28 @@ test('blood skill costs future tempo; guard skill is conditional',()=>{
  assert.equal(ctx.IngaJournal.dispatch(j,1,{type:'end_turn'}).ok,true);
  assert.equal(ctx.IngaDuel.publicView(j.match,0).player.energy,3);
 });
+
+test('class skills require exactly two energy and cannot be repeated',()=>{
+ const j=ctx.IngaJournal.createJournal([duelThemes[0].cards,duelThemes[1].cards],98,catalog);
+ j.match.state.players[0].energy=1;
+ assert.equal(ctx.IngaJournal.dispatch(j,0,{type:'skill'}).reason,'skill_unavailable');
+ j.match.state.players[0].energy=2;
+ assert.equal(ctx.IngaJournal.dispatch(j,0,{type:'skill'}).ok,true);
+ assert.equal(j.match.state.players[0].energy,0);
+ assert.equal(ctx.IngaJournal.dispatch(j,0,{type:'skill'}).reason,'skill_unavailable');
+});
+test('all jobs can resolve actions without invalid states over several seeds',()=>{
+ for(let i=0;i<4;i++)for(let k=0;k<4;k++)for(let seed=1;seed<=3;seed++){
+  const j=ctx.IngaJournal.createJournal([duelThemes[i].cards,duelThemes[k].cards],seed,catalog);
+  for(let step=0;step<400&&!j.match.state.over;step++){
+   const seat=j.match.state.active,v=ctx.IngaDuel.publicView(j.match,seat);
+   let action;if(v.relicOffer)action={type:'relic',id:v.relicOffer[0].id};
+   else if(!v.player.skillUsed&&v.player.energy>=2&&v.player.hp>8)action={type:'skill'};
+   else {const card=v.player.hand.find(c=>c.cost<=v.player.energy);action=card?{type:'play',uid:card.uid}:{type:'end_turn'}}
+   const result=ctx.IngaJournal.dispatch(j,seat,action);
+   assert.equal(result.ok,true,JSON.stringify({i,k,seed,step,action,result}));
+   assert.ok(j.match.state.players.every(p=>Number.isFinite(p.hp)&&Number.isFinite(p.energy)));
+  }
+  assert.ok(j.match.state.over,'match must finish by turn limit');
+ }
+});
