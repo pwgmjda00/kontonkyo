@@ -255,7 +255,7 @@ for(const theme of duelThemes)for(let i=0;i<theme.cards.length;i++){
  const c=cards.find(x=>x.id===theme.cards[i]),cost=PVP_CURVE[i],tier=i%5;
  c.cost=cost;
  if(theme.id==='ruin'){
-  const damage=Math.max(2,3+cost*4+(tier%3));
+  const damage=Math.max(2,4+cost*4+(tier%3));
   const seal=(b)=>{if(cost>=2&&b.fate>0)b.fate=Math.max(0,b.fate-2)};
   c.desc='防御を3削り、敵に'+damage+'ダメージ'+(cost===5?'を2回':'')+'。'+(cost>=2?'相手の因果を最大2削る。':'');
   c.act=cost===5?(a,b,ctx)=>{b.block=Math.max(0,b.block-3);ctx.hit(b,damage);ctx.hit(b,damage);seal(b)}:(a,b,ctx)=>{b.block=Math.max(0,b.block-3);ctx.hit(b,damage);seal(b)};
