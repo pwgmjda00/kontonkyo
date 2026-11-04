@@ -63,14 +63,14 @@ function render(state){
  show('battle');$('phase').textContent=v.over?'決闘終了':turn?'あなたのターン':'相手のターン';$('revision').textContent='第'+v.turn+'ターン';
  $('selfHp').textContent='HP '+Math.max(0,me.hp)+'/'+me.maxHp;$('oppHp').textContent='HP '+Math.max(0,op.hp)+'/'+op.maxHp;
  $('meAvatar').textContent=jobIcons[me.job]||'⚔️';$('opAvatar').textContent=jobIcons[op.job]||'👤';$('meBar').style.width=Math.max(0,me.hp)/me.maxHp*100+'%';$('opBar').style.width=Math.max(0,op.hp)/op.maxHp*100+'%';
- $('selfBlock').textContent='防御 '+me.block;$('oppBlock').textContent='防御 '+op.block;
+ $('selfBlock').textContent='防御 '+me.block;$('oppBlock').textContent='防御 '+op.block;$('oppFate').textContent='因果 '+op.fate;
  $('resource').textContent='⚡ '+me.energy+'/8　因果 '+me.fate+'　山札 '+me.deckCount+'　相手手札 '+op.handCount+'枚';
  for(const uid of keepSelection)if(!me.hand.some(c=>c.uid===uid))keepSelection.delete(uid);
  $('keepHint').textContent=$('manualKeep').checked?'温存するカードを選択：'+keepSelection.size+'/2枚':'自動温存：コストの高い2枚';
  $('hand').replaceChildren(...me.hand.map(card=>{const b=document.createElement('button');b.disabled=busy||pending||!turn||v.over||v.relicPending||card.cost>me.energy;const title=document.createElement('b');title.textContent=card.name+' ◆'+card.cost;const desc=document.createElement('small');desc.textContent=card.desc;b.append(title,desc);b.onclick=()=>act({type:'play',uid:card.uid});const wrap=document.createElement('div');wrap.append(b);if($('manualKeep').checked){const k=document.createElement('button');k.textContent=keepSelection.has(card.uid)?'📌 温存中':'📌 温存';k.disabled=!turn||v.over||v.relicPending;k.onclick=()=>{if(keepSelection.has(card.uid))keepSelection.delete(card.uid);else if(keepSelection.size<2)keepSelection.add(card.uid);render(lastView)};wrap.append(k)}return wrap}));
  $('end').disabled=busy||pending||!turn||v.over||v.relicPending;$('skill').disabled=busy||pending||!turn||v.over||v.relicPending||me.energy<2||me.skillUsed;for(const [id,cost] of [['fateEnergy',2],['fateDraw',3],['fateGuard',4]])$(id).disabled=busy||pending||!turn||v.over||v.relicPending||me.fate<cost||(id==='fateEnergy'&&me.energy>=8);
  $('skill').textContent='✦ '+({ruin:'破滅：4ダメージ＋防御2削り',guard:'守護：防御+6・瀕死時回復2',fate:'因果：因果+2・条件ドロー',blood:'血盟：HP-3・⚡+3・次ターン⚡-1'}[me.job]||'職業スキル')+'（⚡2、各ターン1回）';
- $('relics').textContent='✨ あなたのレリック：'+(v.relics?.[session.seat]?.map(r=>r.name).join(' / ')||'なし');
+ $('relics').replaceChildren();$('opRelics').replaceChildren();for(const [index,id] of [[session.seat,'relics'],[1-session.seat,'opRelics']]){const title=document.createElement('b');title.textContent=index===session.seat?'✨ 自分のレリック':'✨ 相手のレリック';$(id).append(title);for(const relic of v.relics?.[index]||[]){const p=document.createElement('p');p.textContent=relic.name+'：'+relic.desc;$(id).append(p)}if(!v.relics?.[index]?.length){const p=document.createElement('p');p.textContent='なし';$(id).append(p)}}
  const offer=$('relicOffer');offer.classList.toggle('hidden',!v.relicOffer);
  $('relicChoices').replaceChildren(...(v.relicOffer||[]).map(r=>{const b=document.createElement('button');b.disabled=busy||pending;b.textContent=r.name+'：'+r.desc;b.onclick=()=>act({type:'relic',id:r.id});return b}));
  if(v.over){visualQueue=[];showResult(v)}
