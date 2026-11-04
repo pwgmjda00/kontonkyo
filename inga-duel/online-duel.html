@@ -17,7 +17,7 @@ async function api(route,data){
  const result=await response.json();if(!result.ok)throw Error(result.reason||'request_failed');return result;
 }
 function render(state){
- revision=state.revision;lastView=state;pending=false;const v=state.view,me=v.player,op=v.opponent,turn=v.active===session.seat;
+ revision=state.revision;lastView=state;const v=state.view,me=v.player,op=v.opponent,turn=v.active===session.seat;
  show('battle');$('phase').textContent=v.over?'決闘終了':turn?'あなたのターン':'相手のターン';$('revision').textContent='第'+v.turn+'ターン';
  $('selfHp').textContent='HP '+me.hp+'/'+me.maxHp;$('oppHp').textContent='HP '+op.hp+'/'+op.maxHp;
  $('selfBlock').textContent='防御 '+me.block;$('oppBlock').textContent='防御 '+op.block;
@@ -48,7 +48,7 @@ async function begin(route){
  if(busy)return;busy=true;
  try{const result=await api(route,{code:$('code').value,deck:deck()});if(ws){ws.close();ws=null}pending=false;lastView=null;session={token:result.token,seat:result.seat,code:result.code};sessionStorage.setItem(KEY,JSON.stringify(session));note('ルームに接続しました');await syncForced()}catch(e){note('接続できません：'+e.message)}finally{busy=false}
 }
-async function syncForced(){const state=await api('status');if(state.status==='waiting'){show('waiting');$('roomCode').textContent=session.code}else render(state)}
+async function syncForced(){const state=await api('status');pending=false;if(state.status==='waiting'){show('waiting');$('roomCode').textContent=session.code}else render(state)}
 async function act(action){
  if(busy||pending||!session)return;busy=true;
  try{if(ws&&ws.readyState===WebSocket.OPEN){pending=true;ws.send(JSON.stringify({type:'action',revision,action}));if(lastView)render(lastView);note('行動を送信しました')}else{await api('action',{revision,action});await syncForced();note('行動を送信しました')}}catch(e){note('操作できません：'+e.message);try{await syncForced()}catch(_){}}finally{busy=false}
