@@ -35,3 +35,24 @@ test('all jobs respect energy cap after card plays and turn transitions',()=>{
   }
  }
 });
+
+test('one turn is two completed player actions; defense expires on owner next turn',()=>{
+ const m=IngaDuel.createMatch(decks,{seed:11});
+ m.state.players[0].block=9;
+ assert.equal(IngaDuel.apply(m,0,{type:'end_turn'}).ok,true);
+ assert.equal(m.state.turn,1);
+ assert.equal(m.state.players[0].block,9);
+ m.state.players[1].block=7;
+ assert.equal(IngaDuel.apply(m,1,{type:'end_turn'}).ok,true);
+ assert.equal(m.state.turn,2);
+ assert.equal(m.state.players[0].block,0);
+ assert.equal(m.state.players[1].block,7);
+ assert.equal(IngaDuel.apply(m,0,{type:'end_turn'}).ok,true);
+ assert.equal(m.state.turn,2);
+ assert.equal(m.state.players[1].block,0);
+});
+test('public relic reference includes descriptions',()=>{
+ const all=IngaDuel.relicCatalog();
+ assert.ok(all.length>=40);
+ assert.ok(all.every(r=>typeof r.name==='string'&&typeof r.desc==='string'));
+});
