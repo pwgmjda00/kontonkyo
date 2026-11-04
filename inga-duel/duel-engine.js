@@ -91,19 +91,20 @@ function apply(match,seat,action){
  if(a.job==='guard'&&action.mode==='guard')a.block+=3;
  if(a.job==='fate'&&action.mode==='draw')a.fate+=1;
  if(a.job==='blood'&&action.mode==='energy')a.hp=Math.min(a.maxHp,a.hp+2);
+ if(b.hp<=0){s.over=true;s.winner=seat}
  s.log.push({turn:s.turn,seat,type:'fate',name:action.mode==='energy'?'因果転換：エナジー+1':action.mode==='draw'?'因果観測：1枚引く':'因果結界：防御+7'});
  return {ok:true,state:s};
  }
  if(action?.type==='skill'){
- if(a.energy<1||a.skillUsed)return {ok:false,reason:'skill_unavailable'};
- a.energy--;a.skillUsed=true;for(const id of s.relics[seat]){const r=RELICS.find(x=>x.id===id);if(r?.effect==='skillBlock')a.block+=r.value}
+ if(a.energy<2||a.skillUsed)return {ok:false,reason:'skill_unavailable'};
+ a.energy-=2;a.skillUsed=true;for(const id of s.relics[seat]){const r=RELICS.find(x=>x.id===id);if(r?.effect==='skillBlock')a.block+=r.value}
  const job=a.job;
  if(job==='ruin'){b.block=Math.max(0,b.block-2);core.damage(b,4)}
  else if(job==='guard'){a.block+=6;if(a.hp<=a.maxHp/2)a.hp=Math.min(a.maxHp,a.hp+2)}
  else if(job==='fate'){a.fate=Math.min(12,a.fate+2);if(a.fate>=4)draw(a,1,match.random)}
- else if(job==='blood'){a.hp-=3;a.energy+=2;a.skillDebt=1}
+ else if(job==='blood'){a.hp-=3;a.energy+=3;a.skillDebt=1}
  else return {ok:false,reason:'invalid_job'};
- s.log.push({turn:s.turn,seat,type:'skill',name:job==='ruin'?'破滅：4ダメージ＋防御2削り':job==='guard'?'守護：防御6＋瀕死時回復2':job==='fate'?'因果：因果2＋条件ドロー':'血盟：HP-3、エナジー+2、次ターン-1'});
+ s.log.push({turn:s.turn,seat,type:'skill',name:job==='ruin'?'破滅：4ダメージ＋防御2削り':job==='guard'?'守護：防御6＋瀕死時回復2':job==='fate'?'因果：因果2＋条件ドロー':'血盟：HP-3、エナジー+3、次ターン-1'});
  if(a.hp<=0||b.hp<=0){s.over=true;s.winner=a.hp<=0?1-seat:seat}
  return {ok:true,state:s};
  }
@@ -122,7 +123,7 @@ function apply(match,seat,action){
    set intent(_v){}};
   const before={hp:a.hp,block:a.block,energy:a.energy,fate:a.fate,enemyHp:b.hp,enemyBlock:b.block};
   try{const outcome=rules.playCard(a,b,action.uid,ctx);if(!outcome.ok)return outcome}catch(_err){s.players=savedPlayers;match.setRngState(savedRng);return {ok:false,reason:'effect_failed'}}
-  if(b.hp<before.enemyHp)a.attacksPlayed++;
+  if(card.desc.includes('ダメージ')||card.desc.includes('敵に'))a.attacksPlayed++;
   a.cardsPlayed++;
   if(a.block>before.block)a.block+=bonus('firstBlock',a.cardsPlayed===1);
   if(a.cardsPlayed===1)a.fate+=bonus('firstCardFate')+bonus('expensiveFate',card.cost>=2);
@@ -133,7 +134,8 @@ function apply(match,seat,action){
   if(a.hp>before.hp)a.block+=bonus('healBlock');
   if(card.desc.includes('引く')&&a.cardsPlayed===1)a.fate+=bonus('drawFate');
   if(a.block>before.block)a.fate+=bonus('blockFate',a.cardsPlayed===1);
-  if(b.block>0&&a.attacksPlayed===1)b.block=Math.max(0,b.block-bonus('breakBlock'));
+  if(before.enemyBlock>0&&a.attacksPlayed===1)b.block=Math.max(0,b.block-bonus('breakBlock'));
+  if(a.hp<=0||b.hp<=0){s.over=true;s.winner=a.hp<=0&&b.hp<=0?null:a.hp<=0?1-seat:seat}
   s.log.push({turn:s.turn,seat,type:'play',cardId:card.id,name:card.name,damage:Math.max(0,before.enemyHp-b.hp),healing:Math.max(0,a.hp-before.hp),selfDamage:Math.max(0,before.hp-a.hp),block:Math.max(0,a.block-before.block),energy:a.energy-before.energy, fate:a.fate-before.fate});
  }else if(action.type==='fate'){
   const outcome=rules.spendFate(a,b);if(!outcome.ok)return outcome;s.log.push({turn:s.turn,seat,type:'fate',damage:0,name:'因果断絶'});
