@@ -43,6 +43,11 @@ async function run(){
   a.close();await new Promise(resolve=>a.once('close',resolve));
   const reconnect=await connect(host.token);const synced=await receive(reconnect,m=>m.type==='state');
   assert.equal(synced.revision,1);assert.equal(synced.seat,0);
+  const secureOrigin=new WebSocket(base.replace('http:','ws:')+'/ws',{headers:{origin:base.replace('http:','https:')}});
+  sockets.push(secureOrigin);
+  await new Promise((resolve,reject)=>{secureOrigin.once('open',resolve);secureOrigin.once('error',reject)});
+  secureOrigin.send(JSON.stringify({type:'hello',token:host.token}));
+  assert.equal((await receive(secureOrigin,m=>m.type==='state')).revision,1);
   console.log('PASS actual WebSocket: connect, join, broadcast, private hand, stale action, reconnect');
  }finally{
   for(const ws of sockets)ws.terminate();
