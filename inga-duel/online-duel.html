@@ -1,9 +1,9 @@
 <!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>因果決闘 | 通信対戦テスト</title><style>
 :root{font-family:system-ui,sans-serif;background:#101019;color:#f5f0e8}*{box-sizing:border-box}body{margin:0}main{max-width:640px;margin:auto;padding:14px}h1{font-size:23px;color:#ffe070}.panel{background:#231e2d;border:1px solid #574861;border-radius:14px;padding:14px;margin:12px 0}.row{display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap}button,input{font:inherit;border-radius:9px;padding:11px}button{background:#51415d;color:white;border:1px solid #8a7696}button.primary{background:#ffe070;color:#17121b;font-weight:bold}button:disabled{opacity:.4}input{width:100%;background:#14111b;color:white;border:1px solid #83718e;font-size:20px}.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.cards button{text-align:left}select{width:100%;font:inherit;padding:12px;border-radius:9px;background:#14111b;color:white;border:1px solid #83718e;margin:8px 0}#deckPreview{margin:8px 0;line-height:1.7}#relicOffer{padding:12px;border:1px solid #ffe070;border-radius:12px;margin:12px 0}.cards small{display:block;color:#ccc;margin-top:5px}.hidden{display:none}.muted{color:#c9c0d0;font-size:13px}.code{color:#ffe070;font-size:24px;letter-spacing:.08em;overflow-wrap:anywhere}.invite{display:flex;gap:8px;flex-wrap:wrap}.invite button{flex:1;min-width:130px}button{touch-action:manipulation;min-height:44px}.hp{color:#ff9da3;font-weight:bold}#notice{color:#ffe070;min-height:24px}</style><main>
-<h1>因果決闘 ∞ PARADOX</h1><p class="muted">β0.9.0 遠隔テスト版。WebSocket優先、通信不調時はHTTP同期。</p>
+<h1>因果決闘 ∞ PARADOX</h1><p class="muted">β1.0.0 遠隔テスト版。WebSocket優先、通信不調時はHTTP同期。</p>
 <section class="panel" id="setup"><h2>合言葉で対戦</h2><label for="code">ひらがな8文字</label><input id="code" maxlength="8" placeholder="せかいのおわりに" autocomplete="off"><label for="theme">使用デッキ（各テーマ30種類から12枚を構築）</label><select id="theme"></select><div id="deckPreview" class="muted"></div><details><summary>30種類から12枚を選ぶ（タップで入れ替え）</summary><div id="deckBuilder" class="cards"></div></details><p class="row"><button class="primary" id="create">部屋を作る</button><button id="join">部屋に参加</button></p></section>
 <section class="panel hidden" id="waiting"><h2>相手を待機中</h2><div class="code" id="roomCode"></div><p class="muted">この画面のまま待機できます。相手が参加すると自動で始まります。</p><p class="invite"><button id="share" class="primary">📨 招待リンクを送る</button><button id="copyCode">合言葉をコピー</button></p><p class="muted">招待リンクには合言葉だけが含まれます。認証用の秘密情報は含みません。</p></section>
-<section class="panel hidden" id="battle"><div class="row"><b id="phase"></b><span id="revision"></span></div><div class="row"><div>相手<div class="hp" id="oppHp"></div><div id="oppBlock"></div></div><div>あなた<div class="hp" id="selfHp"></div><div id="selfBlock"></div></div></div><p id="resource"></p><div class="cards" id="hand"></div><p class="row"><button id="fate">⚡ 因果断絶</button><button id="end" class="primary">ターン終了</button></p><div id="relics" class="muted"></div><section id="relicOffer" class="hidden"><h3>✨ レリック獲得：3択から1つ選択</h3><div class="cards" id="relicChoices"></div></section><h3>行動履歴</h3><div id="log" class="muted"></div></section>
+<section class="panel hidden" id="battle"><div class="row"><b id="phase"></b><span id="revision"></span></div><div class="row"><div>相手<div class="hp" id="oppHp"></div><div id="oppBlock"></div></div><div>あなた<div class="hp" id="selfHp"></div><div id="selfBlock"></div></div></div><p id="resource"></p><div class="cards" id="hand"></div><p class="row"><button id="skill">職業スキル ⚡1</button><button id="end" class="primary">ターン終了</button></p><div id="relics" class="muted"></div><p>因果は補助資源。好きな用途に消費できます。</p><div class="row"><button id="fateEnergy">因果2→⚡+1</button><button id="fateDraw">因果3→1枚引く</button><button id="fateGuard">因果4→防御+7</button></div><section id="relicOffer" class="hidden"><h3>✨ レリック獲得：3択から1つ選択</h3><div class="cards" id="relicChoices"></div></section><h3>行動履歴</h3><div id="log" class="muted"></div></section>
 <section class="panel"><p id="notice" role="status"></p><button id="leave">この端末の接続を解除</button></section>
 </main><script src="cards.js"></script><script>
 'use strict';
@@ -13,9 +13,9 @@ const themeSelect=$('theme');
 for(const theme of duelThemes){const opt=document.createElement('option');opt.value=theme.id;opt.textContent=theme.name+' / '+theme.description;themeSelect.append(opt)}
 let deckIds=[];
 function selectedCards(){const theme=duelThemes.find(t=>t.id===themeSelect.value)||duelThemes[0];return theme.cards.map(id=>cards.find(c=>c.id===id))}
-const deck=()=>deckIds.slice();
+const deck=()=>selectedCards().map(c=>c.id);
 function updatePreview(){
- $('deckPreview').textContent='選択中 '+deckIds.length+'/12枚。'+(deckIds.length===12?'対戦可能':'12枚選んでください');
+ $('deckPreview').textContent='全30枚使用。'+(deckIds.length===12?'対戦可能':'全30枚使用');
  $('deckBuilder').replaceChildren(...selectedCards().map(card=>{const b=document.createElement('button');const selected=deckIds.includes(card.id);b.className=selected?'primary':'';b.textContent=(selected?'✓ ':'＋ ')+card.name+' ◆'+card.cost+' / '+card.desc;b.onclick=()=>{if(selected)deckIds=deckIds.filter(id=>id!==card.id);else if(deckIds.length<12)deckIds.push(card.id);else{note('12枚まで選択できます。外すカードを先にタップしてください');return}updatePreview()};return b}));
 }
 function resetDeck(){deckIds=selectedCards().filter((_,i)=>i%2===0).slice(0,12).map(c=>c.id);updatePreview()}
@@ -36,11 +36,12 @@ function render(state){
  $('selfBlock').textContent='防御 '+me.block;$('oppBlock').textContent='防御 '+op.block;
  $('resource').textContent='⚡ '+me.energy+'　因果 '+me.fate+'/6　山札 '+me.deckCount+'　相手手札 '+op.handCount+'枚';
  $('hand').replaceChildren(...me.hand.map(card=>{const b=document.createElement('button');b.disabled=busy||pending||!turn||v.over||v.relicPending||card.cost>me.energy;const title=document.createElement('b');title.textContent=card.name+' ◆'+card.cost;const desc=document.createElement('small');desc.textContent=card.desc;b.append(title,desc);b.onclick=()=>act({type:'play',uid:card.uid});return b}));
- $('end').disabled=busy||pending||!turn||v.over||v.relicPending;$('fate').disabled=busy||pending||!turn||v.over||v.relicPending||me.fate<6;
+ $('end').disabled=busy||pending||!turn||v.over||v.relicPending;$('skill').disabled=busy||pending||!turn||v.over||v.relicPending||me.energy<1||me.skillUsed;for(const [id,cost] of [['fateEnergy',2],['fateDraw',3],['fateGuard',4]])$(id).disabled=busy||pending||!turn||v.over||v.relicPending||me.fate<cost;
+ $('skill').textContent='✦ '+({ruin:'破滅：5ダメージ',guard:'守護：防御+7',fate:'因果：因果+2',blood:'血盟：HP-2、⚡+2'}[me.job]||'職業スキル')+'（⚡1、各ターン1回）';
  $('relics').textContent='✨ あなたのレリック：'+(v.relics?.[session.seat]?.map(r=>r.name).join(' / ')||'なし');
  const offer=$('relicOffer');offer.classList.toggle('hidden',!v.relicOffer);
  $('relicChoices').replaceChildren(...(v.relicOffer||[]).map(r=>{const b=document.createElement('button');b.disabled=busy||pending;b.textContent=r.name+'：'+r.desc;b.onclick=()=>act({type:'relic',id:r.id});return b}));
- $('log').replaceChildren(...v.log.slice(-16).reverse().map(e=>{const p=document.createElement('p');const who=e.seat===session.seat?'あなた':'相手';let detail=e.type==='play'?'「'+(e.name||'カード')+'」を使用':e.type==='end_turn'?'ターン終了':e.type==='relic'?'レリック「'+e.name+'」を獲得':e.type==='fate'?'⚡ 因果断絶を発動':e.type;
+ $('log').replaceChildren(...v.log.slice(-16).reverse().map(e=>{const p=document.createElement('p');const who=e.seat===session.seat?'あなた':'相手';let detail=e.type==='play'?'「'+(e.name||'カード')+'」を使用':e.type==='end_turn'?'ターン終了':e.type==='relic'?'レリック「'+e.name+'」を獲得':e.type==='fate'||e.type==='skill'?e.name+'を使用':e.type;
  if(e.type==='play'){if(e.damage)detail+=' / '+e.damage+'ダメージ';if(e.block)detail+=' / 防御+'+e.block;if(e.healing)detail+=' / HP+'+e.healing;if(e.selfDamage)detail+=' / 自傷'+e.selfDamage;if(e.fate>0)detail+=' / 因果+'+e.fate}
  p.textContent='第'+e.turn+'ターン · '+who+'：'+detail;return p}));
 }
@@ -66,7 +67,7 @@ async function sync(){
 async function begin(route){
  if(busy)return;
  const input=$('code').value.normalize('NFKC');if(!validCode(input)){note('合言葉はひらがな8文字で入力してください');return}
- if(deckIds.length!==12){note('デッキは12枚選択してください');return}
+ 
  busy=true;
  try{const result=await api(route,{code:input,deck:deck()});if(ws){ws.close();ws=null}pending=false;pendingSince=0;lastView=null;session={token:result.token,seat:result.seat,code:result.code};sessionStorage.setItem(KEY,JSON.stringify(session));note('ルームに接続しました');await syncForced()}catch(e){note('接続できません：'+e.message)}finally{busy=false;if(lastView)render(lastView)}
 }
@@ -78,7 +79,7 @@ async function act(action){
 $('share').onclick=async()=>{if(!session)return;const url=inviteUrl();try{if(navigator.share){await navigator.share({title:'因果決闘 ∞ PARADOX',text:'合言葉：'+session.code,url});return}if(await copyText(url)){note('招待リンクをコピーしました');return}note('招待リンク：'+url)}catch(e){if(e.name!=='AbortError')note('共有できません：'+e.message)}};
 $('copyCode').onclick=async()=>{if(!session)return;try{if(await copyText(session.code))note('合言葉をコピーしました');else note('合言葉：'+session.code)}catch(e){note('合言葉：'+session.code)}};
 $('create').onclick=()=>begin('create');$('join').onclick=()=>begin('join');
-$('end').onclick=()=>act({type:'end_turn'});$('fate').onclick=()=>act({type:'fate'});
+$('end').onclick=()=>act({type:'end_turn'});$('skill').onclick=()=>act({type:'skill'});$('fateEnergy').onclick=()=>act({type:'fate',mode:'energy'});$('fateDraw').onclick=()=>act({type:'fate',mode:'draw'});$('fateGuard').onclick=()=>act({type:'fate',mode:'guard'});
 $('leave').onclick=()=>{if(ws){ws.close();ws=null}pending=false;pendingSince=0;lastView=null;session=null;sessionStorage.removeItem(KEY);show('setup');note('この端末の接続情報を消去しました。部屋は期限まで残ります。')};
 try{const saved=JSON.parse(sessionStorage.getItem(KEY));if(saved&&typeof saved.token==='string'&&[0,1].includes(saved.seat))session=saved}catch(_){}
 const inviteCode=new URLSearchParams(location.search).get('code');if(inviteCode&&validCode(inviteCode))$('code').value=inviteCode.normalize('NFKC');
