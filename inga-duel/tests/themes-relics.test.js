@@ -77,3 +77,19 @@ test('all jobs can resolve actions without invalid states over several seeds',()
   assert.ok(j.match.state.over,'match must finish by turn limit');
  }
 });
+
+test('passive fate income occurs once at start of each own turn',()=>{
+ const j=ctx.IngaJournal.createJournal([duelThemes[0].cards,duelThemes[1].cards],33,catalog);
+ assert.equal(j.match.state.players[0].fate,1);
+ assert.equal(j.match.state.players[1].fate,0);
+ assert.equal(ctx.IngaJournal.dispatch(j,0,{type:'end_turn'}).ok,true);
+ assert.equal(j.match.state.players[1].fate,1);
+ assert.equal(ctx.IngaJournal.dispatch(j,1,{type:'end_turn'}).ok,true);
+ assert.equal(j.match.state.players[0].fate,2);
+});
+test('card action records gross energy spent independently of energy refunded',()=>{
+ const j=ctx.IngaJournal.createJournal([duelThemes[0].cards,duelThemes[1].cards],44,catalog);
+ const card=j.match.state.players[0].hand.find(c=>c.cost<=4);
+ assert.equal(ctx.IngaJournal.dispatch(j,0,{type:'play',uid:card.uid}).ok,true);
+ assert.equal(j.match.state.log.at(-1).energySpent,card.cost);
+});
