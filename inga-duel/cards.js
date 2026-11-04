@@ -303,12 +303,12 @@ const PVP_TACTICS={
   (c,k)=>{const n=3+c.cost*3+k%2;c.desc='敵に'+n+'ダメージ。自分の因果が偶数なら防御+5、奇数なら因果+1。';c.act=(a,b,x)=>{x.hit(b,n);if(a.fate%2===0)a.block+=5;else a.fate=Math.min(12,a.fate+1)}}
  ],
  blood:[
-  (c,k)=>{const n=7+c.cost*4+k%2;c.desc='HP2を失い、敵に'+n+'ダメージ。HP20以下なら追加4。';c.act=(a,b,x)=>{a.hp-=2;x.hit(b,n+(a.hp<=20?4:0))}},
-  (c,k)=>{const n=6+c.cost*3+k%2;c.desc='敵に'+n+'ダメージ。自分のHPが相手より低ければ因果+2。';c.act=(a,b,x)=>{x.hit(b,n);if(a.hp<b.hp)a.fate=Math.min(12,a.fate+2)}},
-  (c,k)=>{const n=9+c.cost*3+k%2;c.desc='防御を最大6消費し、敵に'+n+'＋消費量×2ダメージ。';c.act=(a,b,x)=>{const z=Math.min(6,a.block);a.block-=z;x.hit(b,n+z*2)}},
-  (c,k)=>{const n=9+c.cost*3+k%2;c.desc='HP3を失い、敵に'+n+'ダメージ。与えたHPダメージの半分（最大5）回復。';c.act=(a,b,x)=>{a.hp-=3;const z=x.hit(b,n);a.hp=Math.min(a.maxHp,a.hp+Math.min(5,Math.floor((z.dealt||0)/2)))}},
-  (c,k)=>{const n=5+c.cost*4+k%2;c.desc='HP2を失い、敵に'+n+'ダメージ。手札が1枚以下なら1枚引く（コスト1以上）。';c.act=(a,b,x)=>{a.hp-=2;x.hit(b,n);if(a.hand.length<=1&&c.cost>0)x.draw(a,1)}},
-  (c,k)=>{const n=6+c.cost*3+k%2;c.desc='敵に'+n+'ダメージ。自分のHPが15以下なら2回攻撃、そうでなければHP1を失う。';c.act=(a,b,x)=>{const low=a.hp<=15;x.hit(b,n);if(low)x.hit(b,n);else a.hp--}}
+  (c,k)=>{const n=6+c.cost*4+k%2;c.desc='HP2を失い、敵に'+n+'ダメージ。HP20以下なら追加4。';c.act=(a,b,x)=>{a.hp-=2;x.hit(b,n+(a.hp<=20?4:0))}},
+  (c,k)=>{const n=5+c.cost*3+k%2;c.desc='敵に'+n+'ダメージ。自分のHPが相手より低ければ因果+2。';c.act=(a,b,x)=>{x.hit(b,n);if(a.hp<b.hp)a.fate=Math.min(12,a.fate+2)}},
+  (c,k)=>{const n=8+c.cost*3+k%2;c.desc='防御を最大6消費し、敵に'+n+'＋消費量×2ダメージ。';c.act=(a,b,x)=>{const z=Math.min(6,a.block);a.block-=z;x.hit(b,n+z*2)}},
+  (c,k)=>{const n=8+c.cost*3+k%2;c.desc='HP3を失い、敵に'+n+'ダメージ。与えたHPダメージの半分（最大5）回復。';c.act=(a,b,x)=>{a.hp-=3;const z=x.hit(b,n);a.hp=Math.min(a.maxHp,a.hp+Math.min(5,Math.floor((z.dealt||0)/2)))}},
+  (c,k)=>{const n=4+c.cost*4+k%2;c.desc='HP2を失い、敵に'+n+'ダメージ。手札が1枚以下なら1枚引く（コスト1以上）。';c.act=(a,b,x)=>{a.hp-=2;x.hit(b,n);if(a.hand.length<=1&&c.cost>0)x.draw(a,1)}},
+  (c,k)=>{const n=5+c.cost*3+k%2;c.desc='敵に'+n+'ダメージ。自分のHPが15以下なら2回攻撃、そうでなければHP1を失う。';c.act=(a,b,x)=>{const low=a.hp<=15;x.hit(b,n);if(low)x.hit(b,n);else a.hp--}}
  ]
 };
 for(const theme of duelThemes)for(let i=0;i<30;i++){
