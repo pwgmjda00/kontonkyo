@@ -21,7 +21,7 @@ const server=http.createServer(async(req,res)=>{
    if(req.method==='POST'){
     const data=await body(req),token=auth(req);
     let result;
-    if(url.pathname==='/api/create')result=lobby.create(data.deck,data.code);
+    if(url.pathname==='/api/create')result=lobby.create(data.deck,data.code,data.mode);
     else if(url.pathname==='/api/join')result=lobby.join(data.code,data.deck);
     else if(url.pathname==='/api/action')result=lobby.action(token,data.revision,data.action);
     else if(url.pathname==='/api/close')result=lobby.close(token);
