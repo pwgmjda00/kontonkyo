@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101010">
+<title>余白と遊び | 作品と活動のアーカイブ</title>
+<meta name="description" content="ウェブ作品、ゲーム、言葉、制作の記録。余白と遊び、作者の活動をまとめた場所。">
+<meta property="og:type" content="website"><meta property="og:title" content="余白と遊び | 作品と活動のアーカイブ">
+<meta property="og:description" content="つくって、壊して、またつくる。ウェブと文学と実験の入り口。">
+<meta property="og:url" content="https://pwgmjda00.github.io/kontonkyo/author/"><meta name="twitter:card" content="summary">
+<style>
+:root{--black:#101010;--yellow:#ffe200;--paper:#fffef3;--ink:#111;--red:#ff3c22;--blue:#234dff;--gray:#858585}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);background:var(--yellow);font-family:system-ui,-apple-system,'Hiragino Kaku Gothic ProN','Noto Sans JP','Yu Gothic',sans-serif;font-weight:500}a{color:inherit;text-decoration:none}button{font:inherit}a:focus-visible,button:focus-visible{outline:4px solid var(--blue);outline-offset:3px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;border-bottom:3px solid var(--black);padding:14px clamp(16px,4vw,64px);background:var(--yellow);position:sticky;top:0;z-index:10}
+.brand{font-size:clamp(17px,2.8vw,23px);font-weight:900;letter-spacing:-.06em;line-height:1.2}.brand b{background:var(--black);color:var(--yellow);padding:3px 7px;margin-right:6px}.top-links{display:flex;align-items:center;gap:16px;font-size:12px;font-weight:900}.top-links a{border-bottom:2px solid var(--black)}
+.hero{position:relative;min-height:560px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;padding:clamp(28px,5vw,70px) clamp(16px,5vw,72px);border-bottom:5px solid var(--black)}
+.hero:before{content:'●';position:absolute;right:-8vw;top:-8vw;color:var(--red);font-size:clamp(250px,42vw,700px);line-height:1;z-index:0;opacity:.97;pointer-events:none}
+.hero:after{content:'∴';position:absolute;right:18vw;bottom:0;font-weight:900;font-size:clamp(120px,24vw,320px);line-height:1;color:var(--blue);z-index:0;pointer-events:none;transform:rotate(-17deg)}
+.hero-inner,.hero-bottom{position:relative;z-index:1}.label{font-size:12px;font-weight:900;letter-spacing:.15em;background:var(--black);color:var(--yellow);padding:7px 12px;display:inline-block;margin-bottom:24px}
+h1{font-size:clamp(64px,10vw,146px);font-weight:950;letter-spacing:-.075em;line-height:1.15;margin:0 0 28px;max-width:1050px;text-shadow:1px 1px 0 var(--yellow)}h1 em{font-style:normal;display:block;width:max-content;max-width:100%;margin-top:.075em;padding:.045em .18em .075em .09em;background:var(--black);color:var(--yellow);font-size:.9em;line-height:1.1;letter-spacing:-.06em;text-shadow:none}.hero .lead{font-size:clamp(16px,2.5vw,25px);font-weight:900;line-height:1.5;max-width:540px;background:var(--yellow);display:inline-block;padding:6px 10px 6px 0}.hero-bottom{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap}.tagline{font-weight:900;font-size:12px;letter-spacing:.13em}.down{font-size:13px;font-weight:900;padding:14px 20px;background:var(--black);color:var(--yellow);border:2px solid var(--black)}.down:hover{background:var(--blue);color:white}
+.band{background:var(--black);color:var(--yellow);display:flex;gap:40px;padding:12px 16px;border-bottom:4px solid var(--black);font-weight:900;white-space:nowrap;overflow:hidden;font-size:14px;letter-spacing:.12em}.band span{flex:1;text-align:center}
+.section{padding:clamp(55px,8vw,120px) clamp(16px,5vw,72px)}.section-light{background:var(--paper)}.section-dark{background:var(--black);color:var(--paper)}.section-head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid currentColor;margin-bottom:28px;gap:20px}.section h2{font-size:clamp(44px,7vw,100px);font-weight:950;letter-spacing:-.09em;line-height:1.05;margin:0 0 22px}.serial{font-size:12px;font-weight:900;letter-spacing:.12em;white-space:nowrap;margin-bottom:26px}
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin:28px 0}.filter-bar button{padding:10px 16px;border:2px solid var(--black);background:transparent;color:var(--black);cursor:pointer;font-weight:900;border-radius:0}.filter-bar button.active,.filter-bar button:hover{background:var(--black);color:var(--yellow)}.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-left:2px solid var(--black);border-top:2px solid var(--black)}.project{padding:clamp(18px,2.5vw,36px);border-right:2px solid var(--black);border-bottom:2px solid var(--black);display:flex;flex-direction:column;min-height:330px;background:var(--paper);transition:background .18s}.project[hidden]{display:none}.project:hover{background:var(--yellow)}.project-top{display:flex;justify-content:space-between;font:900 12px ui-monospace,monospace;letter-spacing:.12em}.project-top span:last-child{font-size:24px}.project h3{font-size:clamp(26px,3.5vw,49px);font-weight:950;letter-spacing:-.06em;line-height:1.06;overflow-wrap:anywhere;margin:26px 0 10px}.kind{font-size:12px;font-weight:900}.desc{font-size:14px;line-height:1.85;font-weight:600;max-width:340px;margin-bottom:24px}.project a{display:flex;justify-content:space-between;align-items:center;margin-top:auto;background:var(--black);color:var(--yellow);font-weight:900;padding:13px 16px;max-width:220px;min-height:44px}.project a:hover{background:var(--blue);color:white}
+.statement{display:grid;grid-template-columns:minmax(0,1fr) 1fr;gap:8vw;align-items:center}.statement p{font-size:clamp(17px,2vw,26px);line-height:1.8;font-weight:800;max-width:610px}.symbol{font-size:clamp(130px,32vw,390px);font-weight:950;color:var(--red);text-align:center;line-height:.9}
+.channels{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:2px solid var(--paper)}.channels a{border-right:2px solid var(--paper);border-bottom:2px solid var(--paper);padding:22px 18px;min-height:90px;display:flex;justify-content:space-between;gap:8px;align-items:flex-start;font-weight:900;line-height:1.3;transition:.15s}.channels a:nth-child(4n){border-right:0}.channels a:hover{background:var(--yellow);color:var(--black)}
+.foot{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;padding:28px clamp(16px,5vw,72px);background:var(--yellow);border-top:3px solid var(--black);font-size:12px;font-weight:900}.foot a{text-decoration:underline;text-underline-offset:3px}.availability{font-size:12px;line-height:1.7;color:#d0d0c4;max-width:720px;margin-top:20px}
+@media(max-width:900px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.channels{grid-template-columns:repeat(2,minmax(0,1fr))}.channels a:nth-child(4n){border-right:2px solid var(--paper)}.channels a:nth-child(2n){border-right:0}.hero{min-height:510px}.hero:after{right:12px}}
+@media(max-width:560px){.topbar{padding:12px 16px}.top-links{gap:10px;font-size:11px}.top-links a:nth-child(2){display:none}.hero{min-height:480px}.hero:before{right:-150px;top:60px}.hero:after{right:0;bottom:80px;opacity:.8}.hero h1{font-size:clamp(58px,14.4vw,86px);line-height:1.2}.hero .lead{max-width:250px}.cards{grid-template-columns:1fr}.project{min-height:245px}.project h3{margin-top:14px}.statement{grid-template-columns:1fr}.symbol{display:none}.channels{grid-template-columns:1fr}.channels a{border-right:0!important;min-height:62px}.section-head{align-items:baseline}.section h2{font-size:clamp(40px,12vw,60px)}.band span:nth-child(n+3){display:none}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<header class="topbar"><a class="brand" href="#top"><b>余</b> 余白と遊び</a><nav class="top-links" aria-label="ページ内ナビゲーション"><a href="#works">作品</a><a href="#concept">この場所</a><a href="#links">活動先</a></nav></header>
+<main id="top">
+<section class="hero" aria-labelledby="main-title"><div class="hero-inner"><span class="label">WORKS &amp; FRAGMENTS / ARCHIVE</span><h1 id="main-title">余白と<em>遊び。</em></h1><p class="lead">考える。つくる。壊す。<br>それでも、また何かをつくる。</p></div><div class="hero-bottom"><span class="tagline">ART / WEB / WORDS / EXPERIMENTS</span><a class="down" href="#works">作品を見に行く ↓</a></div></section>
+<div class="band" aria-hidden="true"><span>WORDS × SYSTEMS</span><span>NO FIXED FORM</span><span>作品と実験の記録</span><span>それぞれ別の入口</span></div>
+<section class="section section-light" id="works" aria-labelledby="works-title"><div class="section-head"><h2 id="works-title">つくったもの。</h2><div class="serial">01 / WORKS</div></div>
+<p>ゲームも文章もウェブの実験も。入口はいろいろ、作者はひとり。気になったところからどうぞ。</p>
+<div class="filter-bar" aria-label="作品の種類"><button type="button" class="active" data-filter="すべて" aria-pressed="true">すべて</button><button type="button" data-filter="ゲーム" aria-pressed="false">ゲーム</button><button type="button" data-filter="文庫" aria-pressed="false">文庫</button><button type="button" data-filter="ウェブ" aria-pressed="false">ウェブ</button><button type="button" data-filter="文章" aria-pressed="false">文章</button></div>
+<div class="cards" id="works-list"><article class="project spot-yohaku" data-filter="文庫">
+      <div class="project-top"><span>01 / 文庫</span><span aria-hidden="true">↗</span></div>
+      <h3>余白文庫</h3><p class="kind">読む / 詠む / 返す</p><p class="desc">百人一首、聖書・仏典の読書案内、短歌・俳句、返歌。画面の内側だけで言葉をつくる文庫。</p>
+      <a href="https://pwgmjda00.github.io/kontonkyo/yohaku/" target="_blank" rel="noopener noreferrer" aria-label="余白文庫 を開く">作品を見る <span aria-hidden="true">↗</span></a>
+    </article><article class="project spot-null" data-filter="ゲーム">
+      <div class="project-top"><span>02 / ゲーム</span><span aria-hidden="true">↗</span></div>
+      <h3>NULL ∞ PARADOX</h3><p class="kind">遊ぶ / 迷う / くり返す</p><p class="desc">選択と遺物が絡み合う、ブラウザの無窮迷宮。</p>
+      <a href="https://null-paradox.pages.dev/" target="_blank" rel="noopener noreferrer" aria-label="NULL ∞ PARADOX を開く">作品を見る <span aria-hidden="true">↗</span></a>
+    </article><article class="project spot-001" data-filter="ゲーム">
+      <div class="project-top"><span>03 / ゲーム</span><span aria-hidden="true">↗</span></div>
+      <h3>001 ∞</h3><p class="kind">増やす / 眺める / 戦う</p><p class="desc">数字の成長と装備、探索を重ねる放置ゲーム。</p>
+      <a href="https://pwgmjda00.github.io/kontonkyo/001-infinity/" target="_blank" rel="noopener noreferrer" aria-label="001 ∞ を開く">作品を見る <span aria-hidden="true">↗</span></a>
+    </article><article class="project spot-dopa" data-filter="ゲーム">
+      <div class="project-top"><span>04 / ゲーム</span><span aria-hidden="true">↗</span></div>
+      <h3>ドパボタン</h3><p class="kind">押す / 確率を疑う</p><p class="desc">一回の押下から始まる、数字と演出の実験。</p>
+      <a href="https://pwgmjda00.github.io/kontonkyo/dopa-button/play/" target="_blank" rel="noopener noreferrer" aria-label="ドパボタン を開く">作品を見る <span aria-hidden="true">↗</span></a>
+    </article><article class="project spot-love" data-filter="ウェブ">
+      <div class="project-top"><span>05 / ウェブ</span><span aria-hidden="true">↗</span></div>
+      <h3>恋愛不具合報告局</h3><p class="kind">報告する / 読む</p><p class="desc">恋愛のすれ違いを匿名で報告する、小さな観測所。</p>
+      <a href="https://fragrant-dawn-e0c3.tabayakisir0u.workers.dev/" target="_blank" rel="noopener noreferrer" aria-label="恋愛不具合報告局 を開く">作品を見る <span aria-hidden="true">↗</span></a>
+    </article><article class="project spot-philo" data-filter="文章">
+      <div class="project-top"><span>06 / 文章</span><span aria-hidden="true">↗</span></div>
+      <h3>哲学辞書</h3><p class="kind">読む / 考える</p><p class="desc">概念をひとつずつ言葉に置き換える、SNS上の連載。</p>
+      <a href="https://x.com/search?q=%23%E6%B7%B7%E6%B2%8C%E7%8B%82%20%23%E5%93%B2%E5%AD%A6%E8%BE%9E%E6%9B%B8" target="_blank" rel="noopener noreferrer" aria-label="哲学辞書 を開く">作品を見る <span aria-hidden="true">↗</span></a>
+    </article></div></section>
+<section class="section section-light" id="concept"><div class="section-head"><h2>この場所。</h2><div class="serial">02 / ABOUT</div></div><div class="statement"><div><p>思想でも、遊びでも、便利な道具でも。完成したものと、完成しそうにないものを、同じ棚に置いている。</p><p>見つけてくれた人が、好きなものだけ持っていけばいい。</p><p style="font-size:14px;font-weight:600">制作記録と公開先へのリンク集。特定の宗教・企画・キャラクターの公式サイトではありません。</p></div><div class="symbol" aria-hidden="true">↗</div></div></section>
+<section class="section section-dark" id="links" aria-labelledby="links-title"><div class="section-head"><h2 id="links-title">外の入口。</h2><div class="serial">03 / ELSEWHERE</div></div><div class="channels"><a href="https://x.com/cynoria_o0" target="_blank" rel="noopener noreferrer">X / 投稿 <span aria-hidden="true">↗</span></a><a href="https://note.com/mirror_is_you" target="_blank" rel="noopener noreferrer">note <span aria-hidden="true">↗</span></a><a href="https://pwgmjda00.booth.pm/" target="_blank" rel="noopener noreferrer">BOOTH / 作品 <span aria-hidden="true">↗</span></a><a href="https://mao-oam.fanbox.cc/" target="_blank" rel="noopener noreferrer">FANBOX <span aria-hidden="true">↗</span></a><a href="https://youtube.com/@pwgmjda" target="_blank" rel="noopener noreferrer">YouTube <span aria-hidden="true">↗</span></a><a href="https://www.instagram.com/mao_pwgmjda00/" target="_blank" rel="noopener noreferrer">Instagram <span aria-hidden="true">↗</span></a><a href="https://discord.gg/vzn3udqEN" target="_blank" rel="noopener noreferrer">Discord <span aria-hidden="true">↗</span></a><a href="https://whowatch.tv/profile/w:pwgmjda00_maoi" target="_blank" rel="noopener noreferrer">Whowatch / 配信 <span aria-hidden="true">↗</span></a><a href="https://love-letter.club/to/pwgmjda00/" target="_blank" rel="noopener noreferrer">Love Letter / 感想 <span aria-hidden="true">↗</span></a><a href="https://line.me/ti/p/pqNHda3zZb" target="_blank" rel="noopener noreferrer">LINE <span aria-hidden="true">↗</span></a><a href="http://escway.blog79.fc2.com/blog-category-12.html" target="_blank" rel="noopener noreferrer">旧ブログ <span aria-hidden="true">↗</span></a><a href="https://x.com/seizenkyo_duo" target="_blank" rel="noopener noreferrer">整然狂 / 共同企画 <span aria-hidden="true">↗</span></a></div><p class="availability">リンク先は外部サービスです。作品の公開状態や利用条件はそれぞれのサイトをご確認ください。</p></section>
+</main><footer class="foot"><span>余白と遊び。 © 2026</span><span><a href="https://pwgmjda00.github.io/kontonkyo/yohaku/">余白文庫へ ↗</a> ／ <a href="https://small-play-archive.foldedbrink1.chatgpt.site/" target="_blank" rel="noopener noreferrer">旧アーカイブ</a></span></footer>
+<script>
+'use strict';
+const filters=[...document.querySelectorAll('.filter-bar button')];
+filters.forEach(button=>button.addEventListener('click',()=>{
+ const value=button.dataset.filter;
+ for(const item of filters){const yes=item===button;item.classList.toggle('active',yes);item.setAttribute('aria-pressed',String(yes));}
+ for(const card of document.querySelectorAll('.project'))card.hidden=value!=='すべて'&&card.dataset.filter!==value;
+}));
+</script>
+</body></html>
