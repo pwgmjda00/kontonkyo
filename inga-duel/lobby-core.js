@@ -13,7 +13,7 @@ function createLobby(options={}){
  function bytes(n){const b=randomBytes(n);if(!b||b.length!==n||Array.from(b).some(x=>!Number.isInteger(x)||x<0||x>255))throw Error('Invalid secure random bytes');return b}
  function secret(){return Array.from(bytes(32),b=>b.toString(16).padStart(2,'0')).join('')}
  function sweep(){const time=now();for(const [key,r] of rooms){if(r.expiresAt<=time){rooms.delete(key);tokens.delete(r.hostToken);if(r.guestToken)tokens.delete(r.guestToken);notify(key);subscribers.delete(key)}}}
- function validateDeck(deck){if(!Array.isArray(deck)||deck.length!==30||deck.some(id=>!Number.isInteger(id)||!catalog.some(c=>c.id===id)))throw Error('Invalid 30-card deck');return deck.slice()}
+ function validateDeck(deck){if(!Array.isArray(deck)||![12,30].includes(deck.length)||deck.some(id=>!Number.isInteger(id)||!catalog.some(c=>c.id===id)))throw Error('Invalid 30-card deck');return deck.slice()}
  function create(deck,requestedCode){
   sweep();if(rooms.size>=maxRooms)return {ok:false,reason:'room_limit'};
   const hostDeck=validateDeck(deck);
