@@ -34,7 +34,7 @@ function render(state){
  show('battle');$('phase').textContent=v.over?'決闘終了':turn?'あなたのターン':'相手のターン';$('revision').textContent='第'+v.turn+'ターン';
  $('selfHp').textContent='HP '+me.hp+'/'+me.maxHp;$('oppHp').textContent='HP '+op.hp+'/'+op.maxHp;
  $('selfBlock').textContent='防御 '+me.block;$('oppBlock').textContent='防御 '+op.block;
- $('resource').textContent='⚡ '+me.energy+'　因果 '+me.fate+'/6　山札 '+me.deckCount+'　相手手札 '+op.handCount+'枚';
+ $('resource').textContent='⚡ '+me.energy+'　因果 '+me.fate+'　山札 '+me.deckCount+'　相手手札 '+op.handCount+'枚';
  $('hand').replaceChildren(...me.hand.map(card=>{const b=document.createElement('button');b.disabled=busy||pending||!turn||v.over||v.relicPending||card.cost>me.energy;const title=document.createElement('b');title.textContent=card.name+' ◆'+card.cost;const desc=document.createElement('small');desc.textContent=card.desc;b.append(title,desc);b.onclick=()=>act({type:'play',uid:card.uid});return b}));
  $('end').disabled=busy||pending||!turn||v.over||v.relicPending;$('skill').disabled=busy||pending||!turn||v.over||v.relicPending||me.energy<1||me.skillUsed;for(const [id,cost] of [['fateEnergy',2],['fateDraw',3],['fateGuard',4]])$(id).disabled=busy||pending||!turn||v.over||v.relicPending||me.fate<cost;
  $('skill').textContent='✦ '+({ruin:'破滅：5ダメージ',guard:'守護：防御+7',fate:'因果：因果+2',blood:'血盟：HP-2、⚡+2'}[me.job]||'職業スキル')+'（⚡1、各ターン1回）';
