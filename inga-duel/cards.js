@@ -260,7 +260,7 @@ for(const theme of duelThemes)for(let i=0;i<theme.cards.length;i++){
   c.desc='防御を3削り、敵に'+damage+'ダメージ'+(cost===5?'を2回':'')+'。'+(cost>=2?'相手の因果を1削る。':'');
   c.act=cost===5?(a,b,ctx)=>{b.block=Math.max(0,b.block-3);ctx.hit(b,damage);ctx.hit(b,damage);seal(b)}:(a,b,ctx)=>{b.block=Math.max(0,b.block-3);ctx.hit(b,damage);seal(b)};
  }else if(theme.id==='guard'){
-  const block=2+cost*2,damage=2+cost*3+(tier%2);
+  const block=1+cost*2,damage=3+cost*3+(tier%2);
   c.desc='防御'+block+'。敵に'+damage+'ダメージ。'+(cost>=4?'HP2回復。':'');
   c.act=(a,b,ctx)=>{a.block+=block;ctx.hit(b,damage);if(cost>=4)a.hp=Math.min(a.maxHp,a.hp+2)};
  }else if(theme.id==='fate'){
