@@ -1,0 +1,1011 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#151916"><title>余白文庫 | Y O H A K U</title><style>
+:root{--bg:#f5f2e9;--ink:#252b25;--muted:#777c70;--accent:#556b55;--line:#dcded3;--paper:#fffdf7}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:'Yu Mincho','Hiragino Mincho ProN',serif}button,input,select{font:inherit}button{cursor:pointer}header{background:#1b241e;color:#f5f2e9;padding:22px max(5vw,18px)}header .top{max-width:1100px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:15px}h1{font-size:28px;letter-spacing:.28em;font-weight:500;margin:0}.roman{font:10px sans-serif;letter-spacing:.38em;color:#b9c3b6;margin-top:7px}.mark{font-size:11px;letter-spacing:.2em;color:#c8d1c6}.hero{padding:58px 20px 48px;text-align:center;background:#26352b;color:#f3f1e7}.hero .kicker{letter-spacing:.4em;font-size:12px;color:#bac7b8}.hero h2{font-size:clamp(26px,5vw,48px);font-weight:400;letter-spacing:.12em;line-height:1.7;margin:18px 0}.hero p{font-size:13px;color:#d0d8cf;line-height:2}.shell{max-width:1100px;margin:auto;padding:28px 18px 90px}.tabs{display:flex;gap:8px;overflow:auto;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:25px}.tab{border:1px solid transparent;background:transparent;padding:12px 18px;white-space:nowrap;color:#666}.tab.active{background:#344738;color:white;border-radius:3px}.panel{display:none}.panel.active{display:block}.sectionhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin:12px 0 22px}.sectionhead h2{font-size:24px;font-weight:400;letter-spacing:.15em;margin:0}.sub{color:var(--muted);font-size:12px}.controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px}.controls input,.controls select,.generator select{border:1px solid var(--line);background:var(--paper);padding:12px 13px;color:var(--ink);border-radius:2px;min-width:140px}.controls input{flex:1;min-width:200px}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:15px}.poem,.author,.saved{background:var(--paper);border:1px solid #e1e1d6;padding:25px;position:relative;min-height:195px}.eyebrow{font:11px sans-serif;color:#7d897b;letter-spacing:.12em}.poemtext{white-space:pre-line;font-size:19px;line-height:2;letter-spacing:.08em;margin:22px 0 20px;overflow-wrap:anywhere}.meta{font-size:12px;color:#777e73;line-height:1.8}.actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}.smallbtn{border:1px solid #d5d9d0;background:transparent;padding:8px 11px;color:#536350;font-size:12px;border-radius:2px}.smallbtn:hover{background:#eaf0e8}.generator{background:var(--paper);border:1px solid var(--line);padding:clamp(20px,5vw,46px);max-width:850px;margin:auto}.genrow{display:flex;gap:15px;flex-wrap:wrap}.field{display:flex;flex-direction:column;gap:9px;flex:1;min-width:140px;font-size:12px;color:#657365}.primary{background:#344738;color:white;border:0;padding:15px 30px;letter-spacing:.15em;margin-top:24px}.result{border-top:1px solid var(--line);margin-top:28px;padding-top:28px;text-align:center}.result .poemtext{font-size:clamp(21px,4vw,29px);line-height:2.2}.note{font-size:12px;color:#777e73;line-height:1.9}.author h3{font-size:22px;font-weight:400;margin:12px 0}.author p{font-size:13px;line-height:1.9;color:#656d63}.empty{text-align:center;color:#888;padding:50px}.footer{background:#1b241e;color:#c3cbc0;text-align:center;padding:35px 20px;font-size:12px;line-height:2}a{color:inherit}.counter{font:12px sans-serif;color:#888}.toast{position:fixed;bottom:25px;left:50%;transform:translateX(-50%);background:#243429;color:white;padding:12px 20px;opacity:0;pointer-events:none;transition:.2s;font-size:13px;z-index:10}.toast.show{opacity:1}@media(max-width:600px){header{padding:18px}.hero{padding:38px 16px}.shell{padding:20px 12px 65px}.poem{min-height:unset}.tab{padding:10px 13px}.grid{grid-template-columns:1fr}.mark{display:none}}
+ .vertical .poemtext{writing-mode:vertical-rl;text-orientation:mixed;white-space:pre-line;max-height:360px;min-height:220px;overflow-x:auto;line-height:2.1;margin:20px auto;letter-spacing:.1em}.vertical .poem{min-height:430px}.vertical .grid{align-items:stretch}.vertical #generated{max-height:340px;min-height:200px}.source{font-size:11px;color:#667969;overflow-wrap:anywhere}.source a{text-decoration:underline;text-underline-offset:3px}.viewbar{display:flex;gap:8px;justify-content:flex-end;margin-bottom:12px}@media(max-width:600px){.vertical .poem{min-height:350px}} .waka-art{margin:0 0 14px;border-radius:8px;overflow:hidden}.waka-art svg{display:block;width:100%;height:auto;max-height:220px}.waka-notes{margin:14px 0;border-top:1px solid #b6ad9a;padding-top:10px;font-size:14px;line-height:1.8}.waka-notes summary{cursor:pointer;font-weight:700}.waka-notes p{white-space:normal}.waka-notes .sub{font-size:12px;opacity:.7}
+.bible-entry{padding:18px}.bible-entry h3{font-size:17px;margin:0 0 6px}.bible-entry p{white-space:normal;line-height:1.8}.bible-entry details{border-top:1px solid #d9d4c9;padding-top:10px}.bible-entry summary{cursor:pointer}
+.ai-workflow{border:1px solid #c8bdab;border-radius:12px;padding:16px;margin:16px 0;background:#faf7ef}.ai-workflow h3{font-size:18px;margin:0 0 8px}.ai-workflow p{line-height:1.6}.ai-workflow textarea{display:block;width:100%;min-height:100px;margin:8px 0 10px;padding:10px;border:1px solid #ccc4b6;border-radius:8px;background:#fffdf9;font:16px/1.7 serif}.ai-workflow .field{display:block;margin-top:12px}
+/* Mobile-first v2.6: preserve existing desktop panels and all legacy features */
+.mobile-nav{display:none}.home-hello{font-size:25px;font-weight:bold;margin:8px 0 20px}.home-hello small{font-size:10px;letter-spacing:.2em;color:var(--muted);display:block}.home-card{background:#eae5da;border-radius:18px;padding:24px 16px;text-align:center;margin-bottom:16px}.home-verse{white-space:pre-line;font-size:23px;line-height:2;letter-spacing:.08em;margin:20px auto}.home-actions{display:flex;justify-content:center;gap:10px;margin-top:16px}.quick-create{background:#29483b;color:#fff;border-radius:18px;padding:22px 18px;margin:16px 0}.quick-create h2{font-size:21px;margin:0}.quick-create p{font-size:13px;color:#d7e6db}.quick-moods{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:15px 0}.quick-moods button{border:1px solid #d2ded4;background:#f7f4ed;color:#29483b;border-radius:22px;padding:12px 2px;font-size:13px}.quick-moods button.chosen{background:#d1e5d3;outline:2px solid #fff;outline-offset:2px}.quick-create .primary{width:100%;background:#fff;color:#29483b}.home-two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.home-two button{background:#fffdf7;border:1px solid var(--line);border-radius:14px;padding:22px 12px;text-align:left;font-size:17px}.home-two small{display:block;font-size:11px;margin-top:7px;color:var(--muted)}.home-sub{margin:24px 0;display:flex;align-items:center;gap:12px;flex-wrap:wrap}.more-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.more-grid button{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:20px 10px;text-align:left}.advanced-gen,.image-advanced{border:1px solid var(--line);border-radius:12px;padding:10px;margin:12px 0}.advanced-gen summary,.image-advanced summary{cursor:pointer;padding:9px;min-height:40px}.image-advanced:not([open]){padding:4px 10px}
+@media(max-width:720px){body{padding-bottom:calc(90px + env(safe-area-inset-bottom))}header{padding:13px 18px}header .top h1{font-size:21px}.hero{display:none}.tabs{display:none!important}.shell{padding:12px 14px}.panel{padding:4px 0 20px}.panel.active{display:block}.mobile-nav{position:fixed;z-index:1000;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));background:#fffdf8;border-top:1px solid #d8d8ce;padding:7px 4px calc(7px + env(safe-area-inset-bottom));box-shadow:0 -4px 20px #00000012}.mobile-nav button{background:transparent;border:0;border-radius:10px;color:#526256;min-height:53px;font-size:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}.mobile-nav button small{font-size:10px}.mobile-nav button.selected{background:#e9eee7;color:#1c4331;font-weight:bold}.actions{gap:7px}.actions button{min-height:44px}.generator{padding:14px}.sectionhead h2{font-size:22px}button,input,select,textarea{font-size:16px}button{touch-action:manipulation}.home-verse{font-size:clamp(19px,5.5vw,25px)}}
+</style><style>.scripture-home{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0 20px}.scripture-home button{border:1px solid #c7cbbb;border-radius:14px;background:#f7f6ef;color:#293d34;padding:16px 10px;text-align:left;font:600 16px serif;min-height:84px}.scripture-home small{display:block;font:12px sans-serif;color:#67756c;margin-top:8px}.scripture-toolbar{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:12px 0}.scripture-toolbar input{grid-column:1/-1}.scripture-toolbar input,.scripture-toolbar select{min-width:0;width:100%;padding:12px;border:1px solid #ccd2c7;border-radius:10px;background:white;font-size:16px}.scripture-entry{background:#fffdf8;border:1px solid #e0e2d9;border-radius:14px;padding:16px;margin:12px 0}.scripture-entry h3{font-size:18px;margin:0 0 6px}.scripture-entry .reference{font-size:12px;color:#6a766e}.scripture-entry p{line-height:1.85;white-space:pre-wrap}.scripture-entry button{border:1px solid #c8d0c7;border-radius:9px;padding:10px 12px;background:#f6f7f1;color:#263f34;margin:4px 6px 0 0;min-height:44px}.scripture-results{max-width:760px}.scripture-note{font-size:12px;color:#68756b;line-height:1.7}@media(max-width:380px){.scripture-home{grid-template-columns:1fr}.scripture-toolbar{grid-template-columns:1fr}}</style><style>
+/* v3.1 reading-first mobile controls */
+.scripture-tools{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.scripture-tools button{border:1px solid #b9c6b9;background:#f5f8f1;border-radius:12px;min-height:44px;padding:10px 14px;color:#243d30}.scripture-entry{position:relative}.scripture-entry .scripture-tools{margin-top:12px}.scripture-entry .scripture-tools button{font-size:13px}.scripture-entry[aria-current="true"]{border:2px solid #466b53}.reading-status{background:#eaf0e8;border-radius:12px;padding:14px;margin:12px 0;line-height:1.7}.reading-list{display:grid;gap:10px}.reading-list article{padding:14px;border:1px solid #d7ddd4;border-radius:12px;background:#fffefa}.reading-list small{display:block;color:#69766d;margin:6px 0}.reading-list button{min-height:44px;padding:9px 14px;border-radius:9px;border:1px solid #bac7bc;background:#f7f8f3}.scripture-search-global{display:flex;gap:8px}.scripture-search-global input{flex:1;min-width:0;padding:12px;font-size:16px;border:1px solid #cbd3c9;border-radius:10px}.scripture-search-global button{padding:12px;border-radius:10px;border:1px solid #bac7bc;background:#edf1e9}@media(max-width:600px){.scripture-tools{display:grid;grid-template-columns:1fr 1fr}.scripture-entry{padding:14px}.scripture-search-global{flex-direction:column}}
+</style></head><body><header><div class="top"><div><h1>余白文庫</h1><div class="roman">Y O H A K U · WORDS BEYOND TIME</div></div><span class="mark">言葉の、余白へ。</span></div></header><div class="hero"><div class="kicker">古典と創作の小さな書庫</div><h2>千年前の言葉と、<br>まだ生まれていない一行。</h2><p>読む。探す。蒐める。詠む。<br>時代と思想を越えて、言葉に触れる。</p></div><main class="shell"><nav class="tabs" aria-label="画面切替"><button class="tab" data-tab="library">文庫を読む</button><button class="tab" data-tab="generate">詩をつくる</button><button class="tab" data-tab="bibleHub">聖書まとめ</button><button class="tab" data-tab="buddhaHub">仏典まとめ</button><button class="tab" data-tab="scriptureShelf">ことばの栞</button><button class="tab" data-tab="bibleCorner">聖書と言葉</button><button class="tab" data-tab="bibleText">聖書原文</button><button class="tab" data-tab="bibleStudy">聖書の思想</button><button class="tab" data-tab="authors">作者図鑑</button><button class="tab" data-tab="saved">蒐集帳 <span id="favcount">0</span></button><button class="tab" data-tab="community">会わない歌会</button><button class="tab" data-tab="atelier">創作工房</button><button class="tab" data-tab="studyPlus">学びと遊び</button><button class="tab" data-tab="journal">歌日記・歌集</button><button class="tab" data-tab="about">この文庫について</button></nav><section class="panel active" id="home"><div class="home-hello">余白文庫 <small>Y O H A K U</small></div><div class="home-card"><div class="eyebrow">今日の一首</div><div class="home-verse" id="todayVerse"></div><div class="meta" id="todayAuthor"></div><div class="home-actions"><button class="smallbtn" id="todayRead">意味を読む</button><button class="smallbtn" id="todayReply">返歌する</button></div></div><div class="quick-create"><h2>今すぐ一首</h2><p>気分を選ぶだけ。言葉にしよう。</p><div class="quick-moods" role="group" aria-label="今日の気分"><button data-mood="愛">恋</button><button data-mood="孤独">孤独</button><button data-mood="希望">希望</button><button data-mood="random" class="chosen">おまかせ</button></div><button class="primary" id="quickCompose">この気分で詠む ↗</button></div><div class="home-two"><button id="quickBlank">✎ 自分で詠む<small>白紙から自由に</small></button><button id="quickReply">↩ 返歌する<small>誰かの歌に返事を</small></button></div><div class="scripture-home"><button id="quickBibleHub">📖 聖書まとめ<small>旧約・新約を読む</small></button><button id="quickBuddhaHub">☸ 仏典まとめ<small>無常・慈悲・空を読む</small></button></div><div class="home-two"><button id="quickBible">✧ 聖書と言葉<small>旧約・新約から詠む</small></button><button id="quickCross">☯ 思想の交差点<small>仏典と聖書を読む</small></button></div><div class="home-sub"><button class="smallbtn" id="quickScriptureShelf">🔖 ことばの栞</button><button class="smallbtn" id="todayPrompt">今日のお題を見る</button><span id="dailyPrompt" aria-live="polite"></span></div></section><section class="panel" id="more"><div class="sectionhead"><h2>もっと楽しむ</h2></div><div class="more-grid" id="moreGrid"></div></section><section class="panel" id="library"><div class="sectionhead"><h2>言葉の標本室</h2><span class="counter" id="count"></span></div><div class="controls"><input id="search" placeholder="作者・本文・主題から探す" aria-label="作品検索"><select id="kind"><option value="all">すべての形式</option><option>俳句</option><option>短歌</option><option>古典</option><option>聖書</option><option>仏典</option></select><select id="mood"><option value="all">すべての主題</option><option>自然</option><option>愛</option><option>無常</option><option>孤独</option><option>祈り</option></select></div><div class="viewbar"><button class="smallbtn" id="viewMode" aria-pressed="false">縦書きに切替</button></div><label class="field">収録区分<select id="originFilter" aria-label="作品の収録区分"><option value="all">すべて</option><option value="historical" selected>古典・要旨のみ</option><option value="sample">自動構成サンプルのみ</option><option value="hyakunin">小倉百人一首 全100首</option><option value="bible">聖書の思想資料</option></select></label><p class="sub">小倉百人一首は第1首から第100首まで収録。原文の表記には諸本の異同があります。出典：Wikisource「小倉百人一首」。解説は独自の簡易鑑賞メモです。</p><div class="grid" id="poems"></div></section><section class="panel" id="generate"><div class="sectionhead"><h2>詩の生成室</h2><span class="sub">偶然から、一首を。</span></div><div class="generator"><details class="advanced-gen"><summary>詳細設定（思想・形式・季節）</summary><div class="genrow"><label class="field">思想<select id="genmode"><option value="mix">混沌（仏典×聖書×歌人）</option><option value="buddha">仏典だけ</option><option value="bible">聖書だけ</option><option value="poet">歌人だけ</option></select></label><label class="field">生成方法<select id="gentype"><option value="new">新作を詠む</option><option value="real">実在作品を鑑賞</option></select></label><label class="field">形式<select id="genkind"><option>俳句</option><option>短歌</option><option>自由詩</option></select></label><label class="field">聖書の主題<select id="genBibleTheme"><option value="random">主題をおまかせ</option></select></label><label class="field">季節<select id="season"><option>春</option><option>夏</option><option>秋</option><option>冬</option><option>季節なし</option></select></label><label class="field">感情<select id="emotion"><option>静寂</option><option>愛</option><option>孤独</option><option>希望</option><option>無常</option></select></label></div></details><button class="smallbtn" id="viewModeGen" aria-pressed="false">縦書きに切替</button><button class="primary" id="blankPoem">✎ オリジナルを自分で詠む</button><button class="smallbtn" id="randomSettings">おまかせ設定 🎲</button><button class="primary" id="generateBtn">新しい一篇を詠む ↗</button><div class="ai-workflow"><h3>AI即興室 <span class="sub">ChatGPT連携・手動</span></h3><p>この端末だけでAIを直接呼ぶことはできません。条件をコピーしてChatGPTで詠み、作品をここへ貼り付けて音数を確認できます。</p><button class="smallbtn" id="aiPrompt">この条件でAIに詠ませる指示をコピー</button><label class="field">AIの詩を貼り付ける<textarea id="aiDraft" rows="5" placeholder="五・七・五、または五・七・五・七・七の改行で貼り付け"></textarea></label><button class="smallbtn" id="aiValidate">音数を検査して作品に取り込む</button><div id="aiFeedback" class="meta" role="status"></div><p class="sub">かな表記の音数を検査します。漢字の読みの自動確定や、意味の良し悪しの保証はできません。</p></div><div class="result" id="result"><div class="eyebrow">ORIGINAL · GENERATIVE POETRY</div><div class="poemtext" id="generated">言葉の生まれる場所を、<br>まだ誰も知らない。</div><div class="meta" id="meter"></div><label class="field" style="display:block;margin:14px 0 6px">自分で推敲する<textarea id="editPoem" rows="5" aria-label="生成した詩を編集" style="width:100%;min-height:125px;margin-top:8px;padding:12px;border:1px solid #dcded3;border-radius:8px;background:#fffdf7;font:17px/1.7 serif"></textarea></label><div class="meta" id="genmeta">形式と主題を選んで生成してください。</div><div class="note" id="genexplain" aria-live="polite"></div><div class="actions"><button class="smallbtn" id="undoEdit">↶ 取り消す</button><button class="smallbtn" id="redoEdit">↷ やり直す</button><button class="smallbtn" id="undoGen">一つ前に戻す</button><button class="smallbtn" id="saveGen">蒐集する ♡</button><button class="smallbtn" id="copyGen">コピー</button><button class="smallbtn" id="readPoem">朗読 ▶</button><button class="smallbtn" id="stopRead">停止 ■</button><label class="field">朗読速度<select id="readRate"><option value="0.75">ゆっくり</option><option value="1" selected>標準</option><option value="1.2">速め</option></select></label><label class="field" style="display:block">投稿画像の背景色（16種類）<select id="imageTheme"><option value="paper">和紙</option><option value="ink">墨夜</option><option value="rose">朱色</option><option value="blue">群青</option><option value="sakura">桜霞</option><option value="matcha">抹茶</option><option value="sunset">夕焼け</option><option value="lavender">藤紫</option><option value="gold">金砂</option><option value="night">星夜</option><option value="mint">薄荷</option><option value="mono">白黒</option><option value="peach">桃色</option><option value="ocean">海玻璃</option><option value="wine">葡萄酒</option><option value="sepia">古書</option></select></label><label class="field">画像の書字方向<select id="imageDirection"><option value="horizontal">横書き</option><option value="vertical">縦書き</option></select></label><label class="field">余白<select id="imageMargin"><option value="normal">標準</option><option value="wide">広い</option><option value="compact">狭い</option></select></label><label class="field">文字サイズ<select id="imageScale"><option value="1">標準</option><option value="0.8">小さめ</option><option value="1.15">大きめ</option></select></label><label class="field">飾り<select id="imageDecor"><option value="none">なし</option><option value="moon">月</option><option value="line">二重枠</option><option value="petals">花びら</option></select></label><label class="field">署名<input id="imageSignature" maxlength="30" placeholder="あなた / 筆名"></label><button class="primary" id="quickImage">画像をすぐ作る</button><details class="image-advanced"><summary>画像の細かな設定</summary><button class="smallbtn" id="previewImage">背景をプレビュー</button><div id="imagePreviewWrap" style="display:none;width:100%;max-width:320px"><canvas id="imagePreview" width="540" height="675" style="display:block;width:100%;height:auto;border-radius:12px;box-shadow:0 4px 20px #0002" aria-label="投稿画像のプレビュー"></canvas></div><button class="smallbtn" id="imageGen">画像保存 PNG</button></details><button class="smallbtn" id="shareGen">画像付きで共有・Xへ投稿 #会わない歌会余白文庫</button></div></div><p class="note">※ 端末内生成です。AIによる自由な文章生成にはAPIとサーバー側の安全な鍵管理が必要です。<br>思想モードと鑑賞モードを搭載。経典は独自要旨、歌人の作品は出典付きで表示します。この生成機能は端末内の語彙と組み合わせ規則で動作します。端末内生成はAPIを使いません。AI即興室は条件をコピーして外部ChatGPTで生成し、貼り付けた詩を検査する方式です。定型詩は読みを固定したかな語句テンプレートを使い、五七五・五七五七七の音数を生成時に検査します。漢字の読み方や字余りなどの一般的な判定は対象外です。生成物は古典の引用ではなく独自創作です。</p></div></section><section class="panel" id="bibleHub"><div class="sectionhead"><h2>聖書まとめ</h2><span class="sub">読む・知る・詠む</span></div><div class="generator"><p>旧約・新約の主題を、章節と一緒にたどる。英語の原文を読める項目もあります。</p><div class="scripture-toolbar"><input id="bibleHubSearch" placeholder="主題・書名・言葉で検索" aria-label="聖書まとめを検索"><select id="bibleHubEra" aria-label="旧約新約"><option value="all">旧約・新約</option><option>旧約</option><option>新約</option></select><select id="bibleHubTheme" aria-label="主題"><option value="all">すべての主題</option></select></div><div id="bibleHubCount" class="meta" role="status"></div><div id="bibleHubResults" class="scripture-results"></div><p class="scripture-note">解説は独自の要旨です。聖書本文の引用とは区別しています。原文は「聖書原文」コーナーの収録分を参照してください。</p></div></section><section class="panel" id="buddhaHub"><div class="sectionhead"><h2>仏典まとめ</h2><span class="sub">無常・縁起・慈悲・空</span></div><div class="generator"><p>仏教の言葉を、経典の参照箇所と独自の解説で読む。宗派による解釈の違いも尊重します。</p><div class="scripture-toolbar"><input id="buddhaHubSearch" placeholder="経典・主題・言葉で検索" aria-label="仏典まとめを検索"><select id="buddhaHubText" aria-label="経典"><option value="all">すべての経典</option></select><select id="buddhaHubTheme" aria-label="主題"><option value="all">すべての主題</option></select></div><div id="buddhaHubCount" class="meta" role="status"></div><div id="buddhaHubResults" class="scripture-results"></div><p class="scripture-note">ここにある文章は原典の逐語訳ではなく、余白文庫独自の要旨です。参照箇所は読書の手がかりです。</p></div></section><section class="panel" id="scriptureShelf"><div class="sectionhead"><h2>ことばの栞</h2><span class="sub">聖書と仏典を、少しずつ。</span></div><div class="generator"><p>気になった章節に栞を挟む。読んだ印をつける。すべてこの端末内に保存されます。</p><div class="reading-status" id="scriptureProgress" role="status"></div><div class="scripture-search-global"><input id="scriptureGlobalSearch" placeholder="聖書・仏典をまとめて検索" aria-label="経典を横断検索"><button id="scriptureGlobalGo">検索</button></div><div id="scriptureGlobalResults" class="reading-list"></div><h3>栞を挟んだ言葉</h3><div id="scriptureBookmarks" class="reading-list"></div><div class="scripture-tools"><button id="scriptureBackup">栞・読書記録をJSON保存</button><button id="scriptureRandom">今日の言葉をひとつ</button></div><p class="note">聖書は章節に基づく独自要旨、仏典は参照箇所に基づく独自要旨。原典本文を読んだ記録ではなく、アプリ内の要旨を読んだ記録です。</p></div></section><section class="panel" id="bibleCorner"><div class="sectionhead"><h2>聖書と言葉</h2><span class="sub">旧約・新約から、一首の種を。</span></div><div class="generator"><p>このコーナーでは章節に基づく<strong>独自の要旨</strong>を読み、その主題から詩を詠みます。仏典との交差も選べます。</p><div class="genrow"><label class="field">旧約・新約<select id="cornerTestament"><option value="all">両方</option><option value="旧約">旧約</option><option value="新約">新約</option></select></label><label class="field">主題<select id="cornerTheme"><option value="random">おまかせ</option></select></label><label class="field">詩の形式<select id="cornerKind"><option>短歌</option><option>俳句</option><option>自由詩</option></select></label><label class="field">詠み方<select id="cornerMode"><option value="bible">聖書から詠む</option><option value="mix">仏典と交差させる</option></select></label></div><article class="poem" aria-live="polite"><div class="eyebrow" id="cornerRef">章節を選ぶ</div><div class="poemtext" id="cornerSummary">聖書の主題をここに表示します。</div><p class="meta" id="cornerExplain"></p></article><div class="actions"><button class="smallbtn" id="cornerNext">別の章節を読む</button><button class="primary" id="cornerCompose">この言葉から一首を詠む ↗</button><button class="smallbtn" id="cornerOriginal">聖書原文を読む</button><button class="smallbtn" id="cornerStudy">聖書の思想地図を見る</button></div><p class="note">「聖書だけ」「混沌」の定型生成は、原典本文を引用するのではなく、主題とモチーフを使ったオフライン創作です。仏典との交差は思想の比較・創作であり、両宗教の教義を同一視するものではありません。</p></div></section><section class="panel" id="bibleText"><div class="sectionhead"><h2>聖書の原文を読む</h2><span class="sub">World English Bible · English / 日本語の独自訳</span></div><div class="generator"><p>英語の聖句はパブリックドメインの <b>World English Bible</b> から収録。日本語は余白文庫による独自の参考訳で、既存の日本語聖書翻訳の転載ではありません。</p><label class="field">聖句を選ぶ<select id="webVerseSelect"></select></label><article class="poem"><div class="eyebrow" id="webVerseRef"></div><div class="poemtext" id="webVerseEnglish" lang="en"></div><p id="webVerseJapanese"></p><p class="meta" id="webVerseNote"></p></article><div class="actions"><button class="smallbtn" id="webVerseNext">次の聖句</button><button class="smallbtn" id="webVerseCopy">英語原文をコピー</button><button class="smallbtn" id="webVerseRead">英語で朗読 ▶</button><button class="primary" id="webVerseCompose">この言葉から詠む ↗</button></div><p class="note">本文はWEBの英語原文として引用。詩の生成は原文の機械的な音数変換ではなく、主題に基づく独自創作です。英語の聖句を改変した場合、WEBの名称を改変版に付けないでください。出典：<a href="https://ebible.org/find/show.php?id=engwebp" target="_blank" rel="noopener">eBible.org / World English Bible</a>。</p></div></section><section class="panel" id="bibleStudy"><div class="sectionhead"><h2>聖書の思想地図</h2><span class="sub">原文引用ではなく、章節に基づく独自要旨と鑑賞</span></div><div class="generator"><p>旧約と新約を通して、創造・苦難・正義・赦し・愛・希望をたどる。聖書は一冊の単一思想ではなく、複数の時代とジャンルの文書からなる。</p><div class="genrow"><label class="field">範囲<select id="bibleTestament"><option value="all">旧約・新約</option><option value="旧約">旧約</option><option value="新約">新約</option></select></label><label class="field">主題<select id="bibleTheme"><option value="all">すべて</option></select></label></div><div class="grid" id="bibleCards"></div><p class="note">章節は参照の手がかりです。表示文は独自の要旨・鑑賞文で、特定の日本語聖書訳の本文ではありません。神学的解釈には伝統による違いがあります。</p></div></section><section class="panel" id="authors"><div class="sectionhead"><h2>作者図鑑</h2><span class="sub">時代を渡る書き手たち</span></div><div class="grid" id="authorgrid"></div></section><section class="panel" id="saved"><div class="sectionhead"><h2>蒐集帳</h2><div><button class="smallbtn" id="export">JSONで書き出す</button> <button class="smallbtn" id="importBtn">JSONを読み込む</button><input type="file" id="importFile" accept="application/json,.json" hidden></div></div><label class="field">作品帳を検索<input id="savedSearch" placeholder="本文・作者・主題"></label><div class="grid" id="savedgrid"></div><p class="note">お気に入りはこのブラウザ内に保存されます。端末やブラウザを変更すると引き継がれません。JSONを書き出して保管してください。</p></section><section class="panel" id="community"><div class="sectionhead"><h2>#会わない歌会余白文庫</h2><span class="sub">会わずに、詠む。</span></div><div class="generator"><p>作品を画像にして投稿し、同じハッシュタグの作品をXで読む。投稿は各自のXアカウントから行います。</p><p><a class="smallbtn" href="https://x.com/search?q=%23%E4%BC%9A%E3%82%8F%E3%81%AA%E3%81%84%E6%AD%8C%E4%BC%9A%E4%BD%99%E7%99%BD%E6%96%87%E5%BA%AB&f=live" target="_blank" rel="noopener noreferrer">Xで #会わない歌会余白文庫 の新着を見る ↗</a></p><p class="note">Xの投稿をサイト内に自動収集・掲載する機能はありません。参加者の投稿を無断転載しない設計です。</p></div></section><section class="panel" id="about"><div class="sectionhead"><h2>文庫の約束</h2></div><div class="generator"><p>ここでは作品を三種類に区別します。</p><p><b>原典</b>：古典作品として伝わる本文。<br><b>要旨・再構成</b>：聖書や仏典の思想を踏まえた、このアプリ独自の説明文。原文引用ではありません。<br><b>生成作品</b>：語彙と規則を組み合わせたオリジナルの詩。</p><p class="note">日本では原則として著作者の死後70年で著作権が満了しますが、翻訳者・編集者の権利や外国作品の戦時加算などは別途確認が必要です。古典・要旨と自動構成サンプル600篇を明確に区別しています。収録作品は初期サンプルであり、本文の校訂・底本照合を完了した学術データベースではありません。公開前の増補時は個別の底本と権利状況を確認してください。</p><p class="note">参照先：<a href="https://www.aozora.gr.jp/" target="_blank" rel="noopener">青空文庫</a> ／ <a href="https://www.bunka.go.jp/seisaku/chosakuken/" target="_blank" rel="noopener">文化庁・著作権</a> ／ <a href="https://www.gutenberg.org/" target="_blank" rel="noopener">Project Gutenberg</a></p></div></section><section class="panel" id="atelier"><div class="sectionhead"><h2>創作工房</h2><span class="sub">推敲・詠みの種・返歌</span></div><div class="generator"><h3>詠みの種</h3><div class="genrow"><label class="field">一つめの種<select id="seedA"><option>月</option><option>雨</option><option>花</option><option>海</option><option>雪</option><option>風</option></select></label><label class="field">二つめの種<select id="seedB"><option>孤独</option><option>愛</option><option>希望</option><option>赦し</option><option>無常</option></select></label><label class="field">形式<select id="seedKind"><option>短歌</option><option>俳句</option></select></label></div><button class="primary" id="seedGo">種から一首を詠む</button><p class="note">かな表記の定型句を組み合わせ、意味の流れを保つ定型テンプレート方式。指定した種は着想と解説に反映されます。全組み合わせで固有の詩になるわけではありません。</p><hr><h3>推敲工房</h3><p>詩の生成室で編集中の作品を、一行ずつ推敲。かなの音数を照合し、同じ音数の代替表現を提示します。</p><div class="genrow"><label class="field">行<select id="polishLine"></select></label><label class="field">候補<select id="polishChoice"></select></label></div><button class="smallbtn" id="polishSuggest">候補を探す</button> <button class="primary" id="polishApply">この一行に差し替える</button><div id="polishStatus" class="note" aria-live="polite"></div><hr><h3>返歌</h3><label class="field">返歌を送る相手の歌<textarea id="replySource" rows="4" placeholder="返事を詠みたい一首を入力"></textarea></label><label class="field">返歌の立場<select id="replyStance"><option>待つ人</option><option>旅立つ人</option><option>赦す人</option><option>忘れない人</option></select></label><button class="primary" id="replyGo">返歌を詠む</button><div id="replyAnalysis" class="note" aria-live="polite"></div><label class="field">返歌の方向<select id="replyTone"><option value="echo">原歌の情景を受け継ぐ</option><option value="contrast">情景を反転する</option><option value="comfort">慰めを返す</option></select></label><button class="smallbtn" id="replyUseCurrent">今編集中の歌を原歌にする</button><button class="smallbtn" id="replyCopyPair">原歌と返歌を一緒にコピー</button><p class="note">原歌から月・雨・花などの情景語と、待望・別離などの感情語を検出し、選んだ立場で応答します。検出内容は作品の説明に表示します。AIによる意味理解ではありません。</p></div></section>
+<section class="panel" id="studyPlus"><div class="sectionhead"><h2>学びと遊び</h2></div><div class="generator"><h3>百人一首・現代語鑑賞と語句辞典</h3><label class="field">歌番号<select id="wakaSelect"></select></label><div id="wakaStudy" class="note"></div><label class="field">語句を調べる<select id="glossSelect"></select></label><div id="glossResult" class="note"></div><p class="sub">現代語の説明は既存の独自鑑賞メモを利用した意訳的な解説で、100首の逐語訳ではありません。語句辞典は収録語のみ対応。</p><hr><h3>季節の文庫</h3><label class="field">季節<select id="seasonStudy"><option>春</option><option>夏</option><option>秋</option><option>冬</option></select></label><button class="smallbtn" id="seasonFind">季節の歌を探す</button><div id="seasonResults" class="note"></div><hr><h3>百人一首の遊び場</h3><div id="quizPrompt" class="note"></div><div id="quizAnswers" class="actions"></div><div id="quizFeedback" class="note" aria-live="polite"></div><button class="smallbtn" id="quizNext">次の問題</button><hr><h3>思想の交差点</h3><label class="field">対話の主題<select id="crossTheme"><option>慈悲と赦し</option><option>無常と永遠</option><option>空と創造</option><option>苦と希望</option></select></label><div id="crossResult" class="note"></div><button class="smallbtn" id="crossWrite">この主題で詠む</button></div></section>
+<section class="panel" id="journal"><div class="sectionhead"><h2>一日一首と私家歌集</h2></div><div class="generator"><h3>歌日記</h3><label class="field">日付<input type="date" id="diaryDate"></label><label class="field">気分<select id="diaryMood"><option>静寂</option><option>希望</option><option>愛</option><option>孤独</option><option>無常</option></select></label><label class="field">天気<select id="diaryWeather"><option>記録しない</option><option>晴れ</option><option>曇り</option><option>雨</option><option>雪</option></select></label><label class="field">日記メモ<textarea id="diaryMemo" rows="3" maxlength="500"></textarea></label><button class="primary" id="diarySave">現在の自作を日記に残す</button><div id="diaryEntries" class="grid"></div><hr><h3>私家歌集メーカー</h3><label class="field">歌集の題<input id="bookTitle" value="わたしの余白"></label><label class="field">序文<textarea id="bookPreface" rows="3" placeholder="序文を綴る"></textarea></label><div id="bookSelection" class="note"></div><button class="smallbtn" id="bookPrint">印刷・PDF保存</button> <button class="smallbtn" id="bookHtml">歌集HTMLを保存</button><p class="sub">端末内の蒐集作品と歌日記から選択。PDFはブラウザの印刷機能で保存します。</p></div></section></main><footer>余白文庫 · Y O H A K U<br>古い言葉は、新しい沈黙をつくる。<br>Edition 2026 · Offline · v3.2</footer><div class="toast" id="toast" role="status"></div><script>
+const works=[
+
+{id:'basho4',author:'松尾芭蕉',kind:'俳句',theme:'自然',text:'五月雨を\nあつめて早し\n最上川',note:'『おくのほそ道』'},
+{id:'basho5',author:'松尾芭蕉',kind:'俳句',theme:'自然',text:'荒海や\n佐渡によこたふ\n天河',note:'『おくのほそ道』'},
+{id:'basho6',author:'松尾芭蕉',kind:'俳句',theme:'無常',text:'旅に病んで\n夢は枯野を\nかけ廻る',note:'晩年の句'},
+{id:'buson3',author:'与謝蕪村',kind:'俳句',theme:'自然',text:'五月雨や\n大河を前に\n家二軒',note:'蕪村句'},
+{id:'buson4',author:'与謝蕪村',kind:'俳句',theme:'自然',text:'さみだれや\n名もなき川の\nおそろしき',note:'蕪村句'},
+{id:'issa3',author:'小林一茶',kind:'俳句',theme:'自然',text:'雀の子\nそこのけそこのけ\nお馬が通る',note:'一茶句'},
+{id:'issa4',author:'小林一茶',kind:'俳句',theme:'自然',text:'名月を\nとってくれろと\n泣く子かな',note:'一茶句'},
+{id:'shiki3',author:'正岡子規',kind:'俳句',theme:'自然',text:'鶏頭の\n十四五本も\nありぬべし',note:'子規句'},
+{id:'takuboku3',author:'石川啄木',kind:'短歌',theme:'孤独',text:'ふるさとの\n訛なつかし\n停車場の\n人ごみの中に\nそを聴きにゆく',note:'『一握の砂』'},
+{id:'hyakunin3',author:'紀貫之',kind:'短歌',theme:'自然',text:'人はいさ\n心も知らず\nふるさとは\n花ぞ昔の\n香ににほひける',note:'『古今和歌集』'},
+{id:'hyakunin4',author:'藤原定家',kind:'短歌',theme:'自然',text:'来ぬ人を\nまつほの浦の\n夕なぎに\n焼くや藻塩の\n身もこがれつつ',note:'『新勅撰和歌集』'},
+{id:'hyakunin5',author:'清少納言',kind:'短歌',theme:'愛',text:'夜をこめて\n鳥のそら音は\nはかるとも\nよに逢坂の\n関はゆるさじ',note:'『後拾遺和歌集』'},
+{id:'hyakunin6',author:'紫式部',kind:'短歌',theme:'愛',text:'めぐり逢ひて\n見しやそれとも\nわかぬ間に\n雲がくれにし\n夜半の月かな',note:'『新古今和歌集』'},
+{id:'hyakunin7',author:'和泉式部',kind:'短歌',theme:'愛',text:'あらざらむ\nこの世のほかの\n思ひ出に\n今ひとたびの\n逢ふこともがな',note:'『後拾遺和歌集』'},
+{id:'hyakunin8',author:'山部赤人',kind:'短歌',theme:'自然',text:'田子の浦に\nうち出でてみれば\n白妙の\n富士の高嶺に\n雪は降りつつ',note:'『新古今和歌集』系本文'},
+{id:'bible4',author:'聖書（詩編）',kind:'聖書',theme:'祈り',text:'空を見上げる者は、\n自分の小ささと世界の広さを知る。',note:'詩編8編の独自要旨・原文引用ではありません',derived:true},
+{id:'bible5',author:'聖書（マタイによる福音書）',kind:'聖書',theme:'希望',text:'明日の不安を先取りしすぎず、\n今日という一日を生きる。',note:'マタイ6章の独自要旨・原文引用ではありません',derived:true},
+{id:'buddha4',author:'仏典（法句経）',kind:'仏典',theme:'祈り',text:'心は行いに先立つ。\n何を思い、どう振る舞うかが日々を形づくる。',note:'法句経冒頭の独自要旨',derived:true},
+{id:'buddha5',author:'仏典（法句経）',kind:'仏典',theme:'無常',text:'自分自身を見つめ、\n他者を傷つけない道を選ぶ。',note:'法句経の教えを踏まえた独自要旨',derived:true},
+
+{id:'basho1',author:'松尾芭蕉',kind:'俳句',theme:'自然',text:'古池や\n蛙飛びこむ\n水の音',note:'江戸時代・俳諧'},
+{id:'basho2',author:'松尾芭蕉',kind:'俳句',theme:'孤独',text:'閑さや\n岩にしみ入る\n蝉の声',note:'『おくのほそ道』'},
+{id:'basho3',author:'松尾芭蕉',kind:'俳句',theme:'自然',text:'夏草や\n兵どもが\n夢の跡',note:'『おくのほそ道』'},
+{id:'buson1',author:'与謝蕪村',kind:'俳句',theme:'自然',text:'春の海\nひねもすのたり\nのたりかな',note:'江戸時代・俳諧'},
+{id:'buson2',author:'与謝蕪村',kind:'俳句',theme:'自然',text:'菜の花や\n月は東に\n日は西に',note:'江戸時代・俳諧'},
+{id:'issa1',author:'小林一茶',kind:'俳句',theme:'自然',text:'やせ蛙\nまけるな一茶\nこれにあり',note:'江戸時代・俳諧'},
+{id:'issa2',author:'小林一茶',kind:'俳句',theme:'無常',text:'露の世は\n露の世ながら\nさりながら',note:'江戸時代・俳諧'},
+{id:'shiki1',author:'正岡子規',kind:'俳句',theme:'自然',text:'柿くへば\n鐘が鳴るなり\n法隆寺',note:'明治時代・俳句'},
+{id:'shiki2',author:'正岡子規',kind:'俳句',theme:'自然',text:'いくたびも\n雪の深さを\n尋ねけり',note:'明治時代・俳句'},
+{id:'takuboku1',author:'石川啄木',kind:'短歌',theme:'孤独',text:'はたらけど\nはたらけど猶わが生活楽にならざり\nぢつと手を見る',note:'『一握の砂』'},
+{id:'takuboku2',author:'石川啄木',kind:'短歌',theme:'孤独',text:'東海の小島の磯の白砂に\nわれ泣きぬれて\n蟹とたはむる',note:'『一握の砂』'},
+{id:'akiko1',author:'与謝野晶子',kind:'短歌',theme:'愛',text:'やは肌の\nあつき血汐にふれも見で\nさびしからずや道を説く君',note:'『みだれ髪』'},
+{id:'akiko2',author:'与謝野晶子',kind:'短歌',theme:'愛',text:'その子二十\n櫛にながるる黒髪の\nおごりの春のうつくしきかな',note:'『みだれ髪』'},
+{id:'saigyo1',author:'西行',kind:'短歌',theme:'無常',text:'願はくは\n花の下にて春死なむ\nそのきさらぎの望月のころ',note:'『山家集』'},
+{id:'hyakunin1',author:'在原業平',kind:'短歌',theme:'愛',text:'ちはやぶる\n神代もきかず竜田川\nからくれなゐに水くくるとは',note:'『古今和歌集』'},
+{id:'hyakunin2',author:'小野小町',kind:'短歌',theme:'無常',text:'花の色は\nうつりにけりないたづらに\nわが身世にふるながめせしまに',note:'『古今和歌集』'},
+{id:'hogyoki',author:'鴨長明',kind:'古典',theme:'無常',text:'ゆく河の流れは絶えずして、しかももとの水にあらず。',note:'『方丈記』冒頭'},
+{id:'bible1',author:'聖書（創世記）',kind:'聖書',theme:'祈り',text:'光が生まれ、闇と分けられる。\n世界は、区別することから始まった。',note:'創世記1章の独自要旨・原文引用ではありません',derived:true},
+{id:'bible2',author:'聖書（コヘレトの言葉）',kind:'聖書',theme:'無常',text:'生まれる時があり、死ぬ時がある。\n物事には、それぞれの時がある。',note:'コヘレトの言葉3章の独自要旨・原文引用ではありません',derived:true},
+{id:'bible3',author:'聖書（コリントの信徒への手紙）',kind:'聖書',theme:'愛',text:'愛は忍耐し、思いやりを持つ。\n自分の利益だけを求めない。',note:'一コリント13章の独自要旨・原文引用ではありません',derived:true},
+{id:'buddha1',author:'仏典（法句経）',kind:'仏典',theme:'無常',text:'形あるものは移ろい続ける。\n変わらぬものとして握りしめれば、苦しみが生じる。',note:'法句経の無常観を踏まえた独自再構成',derived:true},
+{id:'buddha2',author:'仏典（般若心経）',kind:'仏典',theme:'無常',text:'形は独立した実体ではなく、\n空もまた形と切り離された別物ではない。',note:'般若心経の空観を踏まえた独自再構成',derived:true},
+{id:'buddha3',author:'仏典（法句経）',kind:'仏典',theme:'祈り',text:'怒りに怒りを返しても、怒りは尽きない。\n憎しみを手放すところに、静けさがある。',note:'法句経の教えを踏まえた独自再構成',derived:true},
+{id:'ogura0',author:"天智天皇",kind:'短歌',theme:'古典',text:"秋の田の\nかりほの庵の\n苫をあらみ\nわが衣手は\n露にぬれつつ",note:"『小倉百人一首』／『後撰和歌集』。解説：仮小屋の粗い屋根から夜露が降り、袖を濡らす。 ※本文表記には異同あり"},
+{id:'ogura1',author:"持統天皇",kind:'短歌',theme:'古典',text:"春過ぎて\n夏来にけらし\n白妙の\n衣ほすてふ\n天の香具山",note:"『小倉百人一首』／『新古今和歌集』。解説：衣の白さによって季節の移り変わりを捉える。 ※本文表記には異同あり"},
+{id:'ogura2',author:"柿本人麻呂",kind:'短歌',theme:'古典',text:"あしびきの\n山鳥の尾の\nしだり尾の\nながながし夜を\nひとりかも寝む",note:"『小倉百人一首』／『拾遺和歌集』。解説：長い尾を夜の長さに重ね、孤独を表す。 ※本文表記には異同あり"},
+{id:'ogura4',author:"猿丸大夫",kind:'短歌',theme:'古典',text:"奥山に\n紅葉踏み分け\n鳴く鹿の\n声聞く時ぞ\n秋は悲しき",note:"『小倉百人一首』／『古今和歌集』。解説：鹿の声を聞き、秋の寂しさを感じる。 ※本文表記には異同あり"},
+{id:'ogura5',author:"中納言家持",kind:'短歌',theme:'古典',text:"かささぎの\n渡せる橋に\n置く霜の\n白きを見れば\n夜ぞ更けにける",note:"『小倉百人一首』／『新古今和歌集』。解説：霜の白さが夜の深まりを示す。 ※本文表記には異同あり"},
+{id:'ogura6',author:"安倍仲麿",kind:'短歌',theme:'古典',text:"天の原\nふりさけ見れば\n春日なる\n三笠の山に\n出でし月かも",note:"『小倉百人一首』／『古今和歌集』。解説：異国から月を見て故郷を思う。 ※本文表記には異同あり"},
+{id:'ogura7',author:"喜撰法師",kind:'短歌',theme:'古典',text:"わが庵は\n都のたつみ\nしかぞ住む\n世をうぢ山と\n人はいふなり",note:"『小倉百人一首』／『古今和歌集』。解説：隠棲の暮らしと地名の掛詞。 ※本文表記には異同あり"},
+{id:'ogura9',author:"蝉丸",kind:'短歌',theme:'古典',text:"これやこの\n行くも帰るも\n別れては\n知るも知らぬも\n逢坂の関",note:"『小倉百人一首』／『後撰和歌集』。解説：往来する人々が交差する関所を詠む。 ※本文表記には異同あり"},
+{id:'ogura10',author:"参議篁",kind:'短歌',theme:'古典',text:"わたの原\n八十島かけて\n漕ぎ出でぬと\n人には告げよ\n海人の釣舟",note:"『小倉百人一首』／『古今和歌集』。解説：海へ旅立つ別れを漁船に託す。 ※本文表記には異同あり"},
+{id:'ogura11',author:"僧正遍昭",kind:'短歌',theme:'古典',text:"天つ風\n雲の通ひ路\n吹きとぢよ\n乙女の姿\nしばしとどめむ",note:"『小倉百人一首』／『古今和歌集』。解説：天女に見立てた舞姫を引き留める。 ※本文表記には異同あり"},
+{id:'ogura13',author:"陽成院",kind:'短歌',theme:'古典',text:"筑波嶺の\n峰より落つる\nみなの川\n恋ぞつもりて\n淵となりぬる",note:"『小倉百人一首』／『後撰和歌集』。解説：流れが深くなる川に恋心を重ねる。 ※本文表記には異同あり"},
+{id:'ogura14',author:"河原左大臣",kind:'短歌',theme:'古典',text:"陸奥の\nしのぶもぢずり\n誰ゆゑに\n乱れそめにし\nわれならなくに",note:"『小倉百人一首』／『古今和歌集』。解説：模様の乱れを恋心に見立てる。 ※本文表記には異同あり"},
+{id:'ogura15',author:"光孝天皇",kind:'短歌',theme:'古典',text:"君がため\n春の野に出でて\n若菜摘む\nわが衣手に\n雪は降りつつ",note:"『小倉百人一首』／『古今和歌集』。解説：相手を思い若菜を摘む春の雪。 ※本文表記には異同あり"},
+{id:'ogura16',author:"中納言行平",kind:'短歌',theme:'古典',text:"立ち別れ\nいなばの山の\n峰に生ふる\nまつとし聞かば\n今帰り来む",note:"『小倉百人一首』／『古今和歌集』。解説：地名と待つの掛詞で帰還を願う。 ※本文表記には異同あり"},
+{id:'ogura17',author:"伊勢",kind:'短歌',theme:'古典',text:"難波潟\n短き蘆の\nふしの間も\n逢はでこの世を\n過ぐしてよとや",note:"『小倉百人一首』／『新古今和歌集』。解説：わずかな間さえ会えない恋の切実さ。 ※本文表記には異同あり"},
+{id:'ogura18',author:"元良親王",kind:'短歌',theme:'古典',text:"わびぬれば\n今はた同じ\n難波なる\nみをつくしても\n逢はむとぞ思ふ",note:"『小倉百人一首』／『後撰和歌集』。解説：身を尽くす決意と澪標の掛詞。 ※本文表記には異同あり"},
+{id:'ogura19',author:"素性法師",kind:'短歌',theme:'古典',text:"今来むと\nいひしばかりに\n長月の\n有明の月を\n待ち出でつるかな",note:"『小倉百人一首』／『古今和歌集』。解説：約束を待ち続けて夜が明ける。 ※本文表記には異同あり"},
+{id:'ogura20',author:"文屋康秀",kind:'短歌',theme:'古典',text:"吹くからに\n秋の草木の\nしをるれば\nむべ山風を\n嵐といふらむ",note:"『小倉百人一首』／『古今和歌集』。解説：山と風を組み合わせた文字遊び。 ※本文表記には異同あり"},
+{id:'ogura21',author:"大江千里",kind:'短歌',theme:'古典',text:"月見れば\n千々に物こそ\n悲しけれ\nわが身一つの\n秋にはあらねど",note:"『小倉百人一首』／『古今和歌集』。解説：月が呼び起こす個人的な秋の悲しみ。 ※本文表記には異同あり"},
+{id:'ogura22',author:"菅家",kind:'短歌',theme:'古典',text:"このたびは\n幣も取りあへず\n手向山\n紅葉の錦\n神のまにまに",note:"『小倉百人一首』／『古今和歌集』。解説：紅葉を神への捧げ物に見立てる。 ※本文表記には異同あり"},
+{id:'ogura23',author:"三条右大臣",kind:'短歌',theme:'古典',text:"名にし負はば\n逢坂山の\nさねかづら\n人に知られで\n来るよしもがな",note:"『小倉百人一首』／『後撰和歌集』。解説：植物の名と逢瀬を結びつける。 ※本文表記には異同あり"},
+{id:'ogura24',author:"貞信公",kind:'短歌',theme:'古典',text:"小倉山\n峰のもみぢ葉\n心あらば\n今ひとたびの\nみゆき待たなむ",note:"『小倉百人一首』／『拾遺和歌集』。解説：紅葉に行幸を待つよう呼びかける。 ※本文表記には異同あり"},
+{id:'ogura25',author:"中納言兼輔",kind:'短歌',theme:'古典',text:"みかの原\nわきて流るる\n泉川\nいつ見きとてか\n恋しかるらむ",note:"『小倉百人一首』／『新古今和歌集』。解説：まだ会わぬ相手を恋う不思議。 ※本文表記には異同あり"},
+{id:'ogura26',author:"源宗于朝臣",kind:'短歌',theme:'古典',text:"山里は\n冬ぞ寂しさ\nまさりける\n人目も草も\nかれぬと思へば",note:"『小倉百人一首』／『古今和歌集』。解説：人も草も離れる冬の山里。 ※本文表記には異同あり"},
+{id:'ogura27',author:"凡河内躬恒",kind:'短歌',theme:'古典',text:"心あてに\n折らばや折らむ\n初霜の\n置きまどはせる\n白菊の花",note:"『小倉百人一首』／『古今和歌集』。解説：白菊と霜の白さが溶け合う。 ※本文表記には異同あり"},
+{id:'ogura28',author:"壬生忠岑",kind:'短歌',theme:'古典',text:"有明の\nつれなく見えし\n別れより\n暁ばかり\n憂きものはなし",note:"『小倉百人一首』／『古今和歌集』。解説：夜明けの別れの辛さ。 ※本文表記には異同あり"},
+{id:'ogura29',author:"坂上是則",kind:'短歌',theme:'古典',text:"朝ぼらけ\n有明の月と\n見るまでに\n吉野の里に\n降れる白雪",note:"『小倉百人一首』／『古今和歌集』。解説：雪景色を月明かりに見立てる。 ※本文表記には異同あり"},
+];
+const HYAKUNIN_DATA="天智天皇|秋の田の かりほの庵の とまをあらみ わが衣手は 露にぬれつつ|後撰和歌集\n持統天皇|春過ぎて 夏来にけらし 白妙の 衣ほすてふ 天の香具山|新古今和歌集\n柿本人麻呂|あしびきの 山鳥の尾の しだり尾の ながながし夜を ひとりかも寝む|拾遺和歌集\n山部赤人|田子の浦に うち出でてみれば 白妙の 富士の高嶺に 雪は降りつつ|新古今和歌集\n猿丸大夫|奥山に 紅葉踏み分け 鳴く鹿の 声聞く時ぞ 秋は悲しき|古今和歌集\n中納言家持|かささぎの 渡せる橋に 置く霜の 白きを見れば 夜ぞ更けにける|新古今和歌集\n阿倍仲麻呂|天の原 ふりさけ見れば 春日なる 三笠の山に 出でし月かも|古今和歌集\n喜撰法師|わが庵は 都のたつみ しかぞ住む 世をうぢ山と 人はいふなり|古今和歌集\n小野小町|花の色は うつりにけりな いたづらに わが身世にふる ながめせしまに|古今和歌集\n蝉丸|これやこの 行くも帰るも 別れては 知るも知らぬも 逢坂の関|後撰和歌集\n参議篁|わたの原 八十島かけて 漕ぎ出でぬと 人には告げよ 海人の釣舟|古今和歌集\n僧正遍昭|天つ風 雲の通ひ路 吹きとぢよ 乙女の姿 しばしとどめむ|古今和歌集\n陽成院|筑波嶺の 峰より落つる みなの川 恋ぞつもりて 淵となりぬる|後撰和歌集\n河原左大臣|陸奥の しのぶもぢずり 誰ゆゑに 乱れそめにし われならなくに|古今和歌集\n光孝天皇|君がため 春の野に出でて 若菜摘む わが衣手に 雪は降りつつ|古今和歌集\n中納言行平|立ち別れ いなばの山の 峰に生ふる まつとし聞かば 今帰り来む|古今和歌集\n在原業平朝臣|ちはやぶる 神代も聞かず 竜田川 からくれなゐに 水くくるとは|古今和歌集\n藤原敏行朝臣|住の江の 岸に寄る波 よるさへや 夢の通ひ路 人目よくらむ|古今和歌集\n伊勢|難波潟 短き蘆の ふしの間も 逢はでこの世を 過ぐしてよとや|新古今和歌集\n元良親王|わびぬれば 今はた同じ 難波なる みをつくしても 逢はむとぞ思ふ|後撰和歌集\n素性法師|今来むと いひしばかりに 長月の 有明の月を 待ち出でつるかな|古今和歌集\n文屋康秀|吹くからに 秋の草木の しをるれば むべ山風を 嵐といふらむ|古今和歌集\n大江千里|月見れば 千々に物こそ 悲しけれ わが身一つの 秋にはあらねど|古今和歌集\n菅家|このたびは 幣も取りあへず 手向山 紅葉の錦 神のまにまに|古今和歌集\n三条右大臣|名にし負はば 逢坂山の さねかづら 人に知られで 来るよしもがな|後撰和歌集\n貞信公|小倉山 峰のもみぢ葉 心あらば 今ひとたびの みゆき待たなむ|拾遺和歌集\n中納言兼輔|みかの原 わきて流るる 泉川 いつ見きとてか 恋しかるらむ|新古今和歌集\n源宗于朝臣|山里は 冬ぞ寂しさ まさりける 人目も草も かれぬと思へば|古今和歌集\n凡河内躬恒|心あてに 折らばや折らむ 初霜の 置きまどはせる 白菊の花|古今和歌集\n壬生忠岑|有明の つれなく見えし 別れより 暁ばかり 憂きものはなし|古今和歌集\n坂上是則|朝ぼらけ 有明の月と 見るまでに 吉野の里に 降れる白雪|古今和歌集\n春道列樹|山川に 風のかけたる しがらみは 流れもあへぬ 紅葉なりけり|古今和歌集\n紀友則|ひさかたの 光のどけき 春の日に しづ心なく 花の散るらむ|古今和歌集\n藤原興風|誰をかも 知る人にせむ 高砂の 松も昔の 友ならなくに|古今和歌集\n紀貫之|人はいさ 心も知らず ふるさとは 花ぞ昔の 香ににほひける|古今和歌集\n清原深養父|夏の夜は まだ宵ながら 明けぬるを 雲のいづこに 月宿るらむ|古今和歌集\n文屋朝康|白露に 風の吹きしく 秋の野は つらぬきとめぬ 玉ぞ散りける|後撰和歌集\n右近|忘らるる 身をば思はず 誓ひてし 人の命の 惜しくもあるかな|拾遺和歌集\n参議等|浅茅生の 小野の篠原 忍ぶれど あまりてなどか 人の恋しき|後撰和歌集\n平兼盛|忍ぶれど 色に出でにけり わが恋は ものや思ふと 人の問ふまで|拾遺和歌集\n壬生忠見|恋すてふ わが名はまだき 立ちにけり 人知れずこそ 思ひそめしか|拾遺和歌集\n清原元輔|契りきな かたみに袖を しぼりつつ 末の松山 波越さじとは|後拾遺和歌集\n権中納言敦忠|逢ひ見ての のちの心に くらぶれば 昔はものを 思はざりけり|拾遺和歌集\n中納言朝忠|逢ふことの 絶えてしなくば なかなかに 人をも身をも 恨みざらまし|拾遺和歌集\n謙徳公|あはれとも いふべき人は 思ほえで 身のいたづらに なりぬべきかな|拾遺和歌集\n曽禰好忠|由良の門を 渡る舟人 かぢを絶え 行方も知らぬ 恋の道かな|新古今和歌集\n恵慶法師|八重葎 しげれる宿の さびしきに 人こそ見えね 秋は来にけり|拾遺和歌集\n源重之|風をいたみ 岩うつ波の おのれのみ くだけてものを 思ふころかな|詞花和歌集\n大中臣能宣朝臣|御垣守 衛士のたく火の 夜は燃え 昼は消えつつ ものをこそ思へ|詞花和歌集\n藤原義孝|君がため 惜しからざりし 命さへ 長くもがなと 思ひけるかな|後拾遺和歌集\n藤原実方朝臣|かくとだに えやはいぶきの さしも草 さしも知らじな 燃ゆる思ひを|後拾遺和歌集\n藤原道信朝臣|明けぬれば 暮るるものとは 知りながら なほ恨めしき 朝ぼらけかな|後拾遺和歌集\n右大将道綱母|嘆きつつ ひとり寝る夜の 明くる間は いかに久しき ものとかは知る|拾遺和歌集\n儀同三司母|忘れじの 行く末までは かたければ 今日を限りの 命ともがな|新古今和歌集\n大納言公任|滝の音は 絶えて久しく なりぬれど 名こそ流れて なほ聞こえけれ|千載和歌集\n和泉式部|あらざらむ この世のほかの 思ひ出に 今ひとたびの 逢ふこともがな|後拾遺和歌集\n紫式部|めぐり逢ひて 見しやそれとも わかぬ間に 雲隠れにし 夜半の月かな|新古今和歌集\n大弐三位|有馬山 猪名の笹原 風吹けば いでそよ人を 忘れやはする|後拾遺和歌集\n赤染衛門|やすらはで 寝なましものを 小夜更けて 傾くまでの 月を見しかな|後拾遺和歌集\n小式部内侍|大江山 いく野の道の 遠ければ まだふみも見ず 天の橋立|金葉和歌集\n伊勢大輔|いにしへの 奈良の都の 八重桜 今日九重に 匂ひぬるかな|詞花和歌集\n清少納言|夜をこめて 鳥のそら音は はかるとも よに逢坂の 関は許さじ|後拾遺和歌集\n左京大夫道雅|今はただ 思ひ絶えなむ とばかりを 人づてならで 言ふよしもがな|後拾遺和歌集\n権中納言定頼|朝ぼらけ 宇治の川霧 絶え絶えに あらはれわたる 瀬々の網代木|千載和歌集\n相模|恨みわび ほさぬ袖だに あるものを 恋に朽ちなむ 名こそ惜しけれ|後拾遺和歌集\n前大僧正行尊|もろともに あはれと思へ 山桜 花よりほかに 知る人もなし|金葉和歌集\n周防内侍|春の夜の 夢ばかりなる 手枕に かひなく立たむ 名こそ惜しけれ|千載和歌集\n三条院|心にも あらで憂き世に ながらへば 恋しかるべき 夜半の月かな|後拾遺和歌集\n能因法師|嵐吹く 三室の山の もみぢ葉は 竜田の川の 錦なりけり|後拾遺和歌集\n良暹法師|寂しさに 宿を立ち出でて ながむれば いづこも同じ 秋の夕暮れ|後拾遺和歌集\n大納言経信|夕されば 門田の稲葉 おとづれて 蘆のまろ屋に 秋風ぞ吹く|金葉和歌集\n祐子内親王家紀伊|音に聞く 高師の浜の あだ波は かけじや袖の 濡れもこそすれ|金葉和歌集\n権中納言匡房|高砂の 尾の上の桜 咲きにけり 外山の霞 立たずもあらなむ|後拾遺和歌集\n源俊頼朝臣|憂かりける 人を初瀬の 山おろしよ はげしかれとは 祈らぬものを|千載和歌集\n藤原基俊|契りおきし させもが露を 命にて あはれ今年の 秋もいぬめり|千載和歌集\n法性寺入道前関白太政大臣|わたの原 漕ぎ出でて見れば 久方の 雲居にまがふ 沖つ白波|詞花和歌集\n崇徳院|瀬を早み 岩にせかるる 滝川の われても末に 逢はむとぞ思ふ|詞花和歌集\n源兼昌|淡路島 通ふ千鳥の 鳴く声に 幾夜寝覚めぬ 須磨の関守|金葉和歌集\n左京大夫顕輔|秋風に たなびく雲の 絶え間より 漏れ出づる月の 影のさやけさ|新古今和歌集\n待賢門院堀河|長からむ 心も知らず 黒髪の 乱れて今朝は ものをこそ思へ|千載和歌集\n後徳大寺左大臣|ほととぎす 鳴きつる方を ながむれば ただ有明の 月ぞ残れる|千載和歌集\n道因法師|思ひわび さても命は あるものを 憂きに堪へぬは 涙なりけり|千載和歌集\n皇太后宮大夫俊成|世の中よ 道こそなけれ 思ひ入る 山の奥にも 鹿ぞ鳴くなる|千載和歌集\n藤原清輔朝臣|長らへば またこの頃や しのばれむ 憂しと見し世ぞ 今は恋しき|新古今和歌集\n俊恵法師|夜もすがら もの思ふ頃は 明けやらで 閨のひまさへ つれなかりけり|千載和歌集\n西行法師|嘆けとて 月やはものを 思はする かこち顔なる わが涙かな|千載和歌集\n寂蓮法師|村雨の 露もまだひぬ 槙の葉に 霧立ちのぼる 秋の夕暮れ|新古今和歌集\n皇嘉門院別当|難波江の 蘆のかり寝の ひと夜ゆゑ 身を尽くしてや 恋ひわたるべき|千載和歌集\n式子内親王|玉の緒よ 絶えなば絶えね ながらへば 忍ぶることの 弱りもぞする|新古今和歌集\n殷富門院大輔|見せばやな 雄島の海人の 袖だにも 濡れにぞ濡れし 色は変はらず|千載和歌集\n後京極摂政前太政大臣|きりぎりす 鳴くや霜夜の さむしろに 衣かたしき ひとりかも寝む|新古今和歌集\n二条院讃岐|わが袖は 潮干に見えぬ 沖の石の 人こそ知らね 乾く間もなし|千載和歌集\n鎌倉右大臣|世の中は 常にもがもな 渚漕ぐ 海人の小舟の 綱手かなしも|新勅撰和歌集\n参議雅経|み吉野の 山の秋風 さ夜更けて ふるさと寒く 衣打つなり|新古今和歌集\n前大僧正慈円|おほけなく 憂き世の民に おほふかな わが立つ杣に 墨染の袖|千載和歌集\n入道前太政大臣|花さそふ 嵐の庭の 雪ならで ふりゆくものは わが身なりけり|新勅撰和歌集\n権中納言定家|来ぬ人を 松帆の浦の 夕なぎに 焼くや藻塩の 身もこがれつつ|新勅撰和歌集\n従二位家隆|風そよぐ 楢の小川の 夕暮れは 禊ぞ夏の しるしなりける|新勅撰和歌集\n後鳥羽院|人もをし 人もうらめし あぢきなく 世を思ふゆゑに もの思ふ身は|続後撰和歌集\n順徳院|ももしきや 古き軒端の しのぶにも なほあまりある 昔なりけり|続後撰和歌集";
+
+const removedOgura=works.filter(w=>w.id.startsWith('ogura'));
+for(const old of removedOgura){const index=works.indexOf(old);if(index>=0)works.splice(index,1)}
+const HYAKUNIN_SOURCE='https://ja.wikisource.org/wiki/小倉百人一首';
+const hyakuninRows=HYAKUNIN_DATA.trim().split('\n').map((line,index)=>{
+ const [author,poem,collection]=line.split('|');
+ return {id:'hyakunin-'+String(index+1).padStart(3,'0'),number:index+1,author,
+ kind:'短歌',theme:'百人一首',text:poem.split(' ').join('\n'),
+ note:'『小倉百人一首』第'+(index+1)+'首／『'+collection+'』。原歌。本文には異同があります。',
+ source:collection};
+});
+works.push(...hyakuninRows);
+
+const authors=[['松尾芭蕉','1644–1694','俳諧を芸術の高みへ導いた江戸の俳人。旅、自然、寂び。'],['与謝蕪村','1716–1784','絵画的な風景描写で知られる俳人・画家。'],['小林一茶','1763–1828','小さな生き物や庶民の暮らしに目を向けた俳人。'],['正岡子規','1867–1902','近代俳句・短歌の革新者。写生を重視。'],['石川啄木','1886–1912','生活と孤独を率直な言葉で詠んだ歌人。'],['与謝野晶子','1878–1942','情熱的な恋愛表現と近代短歌で知られる歌人。'],['西行','1118–1190','自然、旅、仏教的無常を詠んだ平安末期の歌人。'],['在原業平','825–880','六歌仙の一人。恋歌で名高い。'],['小野小町','9世紀頃','六歌仙の一人。恋と美、時の移ろいを詠んだ。'],['鴨長明','1155頃–1216','『方丈記』で無常を描いた随筆家。'],['紀貫之','872頃–945頃','古今和歌集の撰者の一人。'],['藤原定家','1162–1241','新古今和歌集の撰者、百人一首の編者。'],['清少納言','10–11世紀','枕草子の作者。'],['紫式部','10–11世紀','源氏物語の作者。'],['和泉式部','10–11世紀','情熱的な恋歌で知られる歌人。'],['山部赤人','8世紀','万葉集を代表する歌人。'],['聖書','古代に成立','多くの時代と著者にわたる文書群。掲載は独自要旨のみ。'],['仏典','古代以降に成立','多様な経典の集合。掲載は独自再構成のみ。']];
+const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));let favorites=[];try{favorites=JSON.parse(localStorage.getItem('yohaku-favs')||'[]');if(!Array.isArray(favorites))favorites=[]}catch{}let current=null;let previousPoem=null;function persist(){try{localStorage.setItem('yohaku-favs',JSON.stringify(favorites))}catch{toast('保存できませんでした')}$('#favcount').textContent=favorites.length}function toast(t){$('#toast').textContent=t;$('#toast').classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(()=>$('#toast').classList.remove('show'),2000)}
+const hyakuninNotes=[
+'秋の仮小屋で露に濡れる袖を詠む。収穫を見守る人の身体感覚が伝わる。',
+'香具山に干す白い衣を手がかりに、春から夏への変化を知る。',
+'山鳥の長い尾を長い夜へ重ね、独り寝の寂しさを強調する。',
+'富士山の高峰に降る雪を、海辺から見上げる雄大な景色。',
+'鹿の声が響く奥山。紅葉と鳴き声が秋の悲しみを深める。',
+'霜の白さと天上の橋の伝説を結び、夜の深まりを描く。',
+'異郷の空に見える月から、故郷の三笠山を思い起こす。',
+'宇治山の庵に住むことを、地名と「憂し」の響きで洒落る。',
+'花の色あせと自身の時の流れを、雨と物思いの「ながめ」に重ねる。',
+'逢坂の関を行き交う人々。出会いと別れが同時にある場所。',
+'海へ漕ぎ出す船を見送り、遠く離れることを人々へ告げる。',
+'舞う乙女を天女に見立て、風に雲の道を閉ざしてと願う。',
+'川が淵になるように、恋心が積もって深くなってゆく。',
+'乱れ模様の布を恋に重ね、思いが乱れるのは誰のためかと問う。',
+'相手のために若菜を摘む春の野。袖にはまだ雪が降る。',
+'別れの地名「因幡」と「往なば」を重ね、待つなら帰ろうと歌う。',
+'紅葉が川を深紅に染める驚きを、神代にもない景色として詠む。',
+'波が寄る「夜」に夢の道さえ人目を避けるのかと恋人を思う。',
+'蘆の節ほどの短い間も会えずに生きよというのか、と嘆く。',
+'澪標と身を尽くすを掛け、すべてを賭けても会いたいと願う。',
+'来るという言葉を信じて待つうち、有明の月が昇る。',
+'草木をしおれさせる山風。山と風を合わせて「嵐」と読む。',
+'月を見れば悲しみが千々に分かれる。秋は自分だけのものではない。',
+'手向山の紅葉を錦の幣に見立て、神へ捧げる。',
+'逢坂山のさねかずらを頼りに、人知れず会いに行く道を願う。',
+'小倉山の紅葉に、もう一度の行幸まで散らないでと呼びかける。',
+'泉川の「いつ」と「いつ見た」を掛け、見ぬ人への恋を不思議がる。',
+'人も草も枯れる冬の山里で、寂しさはいっそう募る。',
+'霜と白菊の白さがまぎれ、手探りで花を折ろうとする。',
+'つれない有明の月が、別れた夜明けの辛さを呼び戻す。',
+'吉野の雪景色が、有明の月光のように白く広がる。',
+'流れをせき止める紅葉を、風の作ったしがらみに見立てる。',
+'のどかな春の日なのに、桜は落ち着きなく散っていく。',
+'長寿の松でさえ昔からの友ではない。人を失った孤独。',
+'人の心は変わっても、故郷の梅の香りは昔のまま。',
+'短い夏の夜はすぐ明ける。月はいったいどこに宿ったのか。',
+'風に散る白露を、糸の切れた玉のように捉える。',
+'忘れられる自分より、誓いを破る相手の身を案じる。',
+'忍んでもあふれる恋。篠原の草の繁みが隠しきれぬ心を映す。',
+'隠していた恋が顔色に出て、人から気づかれてしまう。',
+'人知れず始めた恋が、もう世間の噂になっている。',
+'袖を絞って誓った「末の松山」を引き、約束を思い出す。',
+'会ってしまった後の恋心は、以前とは比べようもない。',
+'会わなければ、相手も自分も恨まずに済んだだろうに。',
+'哀れと言ってくれる人もなく、むなしく命が終わりそうだ。',
+'舵を失った船のように、恋の行方がわからない。',
+'人の来ない荒れた宿にも、秋だけは変わらず訪れる。',
+'岩に砕ける波に、ひとり傷つく心を映す。',
+'衛士の火が夜に燃え昼に消えるように、恋の思いが揺れる。',
+'惜しくなかった命も、恋を知ってから長くあってほしい。',
+'燃えるさしも草に秘めた恋を重ね、相手には伝わらないと嘆く。',
+'また夜が来ると知りながら、別れの朝が恨めしい。',
+'ひとり寝の夜の長さを、相手に知ってほしいと訴える。',
+'忘れないという誓いが続かぬなら、今日を命の限りにしたい。',
+'滝の音は消えても名声は残る。流れるものの二重の意味。',
+'死を前にして、もう一度だけ愛する人に会いたいと願う。',
+'久しぶりの友との再会は短く、月が雲に隠れるように別れる。',
+'有馬山の笹を揺らす風を引き、忘れるはずがないと応じる。',
+'待たずに寝ればよかったのに、月が傾くまで待ってしまった。',
+'大江山と生野を経る遠い道。手紙と踏むを掛けて機知を示す。',
+'奈良の八重桜が宮中に咲き、古都と今を結びつける。',
+'鶏の鳴きまねで夜明けを偽っても、逢坂の関は開かない。',
+'思いを断つという一言だけは、人づてでなく直接伝えたい。',
+'朝霧が切れ、宇治川の網代木が少しずつ姿を現す。',
+'涙で濡れた袖よりも、恋で傷つく評判を惜しむ。',
+'山桜に向かい、互いに哀れと思い合おうと語りかける。',
+'春の夜の夢ほど短い手枕のために、噂が立つのを惜しむ。',
+'望まず生きながらえたなら、今夜の月を懐かしく思うだろう。',
+'紅葉を錦に見立て、山から川へ流れる色を描く。',
+'寂しさに外へ出ても、秋の夕暮れはどこも同じ。',
+'門田の稲葉を揺らす秋風が、粗末な小屋に吹き寄せる。',
+'高師の浜の荒波にたとえ、軽々しく心を許さない。',
+'遠い山の桜が咲いた。霞に隠れず見せてほしいと願う。',
+'初瀬の山おろしに、人のつれなさが激しくなることを嘆く。',
+'露のように頼りない約束を命綱に、また秋を迎える。',
+'沖へ漕ぎ出すと白波が雲と見まがうほど広がる。',
+'岩で分かれた急流がまた合うように、再会を信じる。',
+'須磨の関守は、淡路島を渡る千鳥の声に幾夜も目覚める。',
+'雲の切れ間から差す月光の澄んだ美しさ。',
+'長く変わらぬ愛かどうかも知らず、黒髪の乱れに思いを託す。',
+'ほととぎすの鳴いた方を見ると、空には有明の月だけが残る。',
+'思い悩んでも命は続く。耐えられずこぼれるのは涙だ。',
+'世の中に逃れる道はなく、山奥にも鹿の悲しい声がする。',
+'つらい今も、長生きすれば懐かしい昔になるのだろうか。',
+'物思いの夜は明けず、寝室の隙間さえつれなく感じる。',
+'嘆けと月が命じたわけではないのに、涙を月のせいにする。',
+'夕立の露が乾かぬ槙の葉に、秋の霧が立ち上る。',
+'仮寝の一夜のために、一生恋し続けるのだろうか。',
+'隠す恋が露見するくらいなら、命の糸は切れてしまえ。',
+'海人の袖は濡れても色が変わらない。自分の涙の色を思う。',
+'霜の夜、狭いむしろでひとり衣を敷いて寝る寂しさ。',
+'沖の石がいつも濡れているように、涙の袖は乾かない。',
+'漁船を引く綱手の風景に、変わらぬ世への願いを託す。',
+'吉野の山に秋風が吹き、夜更けに衣を打つ音が聞こえる。',
+'墨染めの袖で世の人を覆おうとする僧の大きな願い。',
+'散る花は雪ではない。古びてゆくのは自分自身だ。',
+'松帆の浦の藻塩の煙に、来ぬ人を待ち焦がれる身を重ねる。',
+'夏の禊の場面なのに、夕暮れの風は秋を思わせる。',
+'人が愛おしくも恨めしくもある。世を思う心の複雑さ。',
+'古い宮殿の軒端に生える忍ぶ草から、昔をしのぶ。'
+];
+const hyakuninMotifs=['field','mountain','bird','mountain','deer','moon','moon','mountain','flower','road','sea','cloud','river','pattern','field','mountain','river','wave','reed','sea','moon','wind','moon','leaf','leaf','river','river','snow','flower','moon','snow','river','flower','pine','flower','moon','dew','house','grass','face','face','wave','heart','heart','heart','sea','house','wave','fire','grass','sun','moon','moon','moon','waterfall','heart','moon','wind','moon','mountain','flower','bird','road','river','wave','flower','moon','moon','leaf','sun','wind','wave','flower','mountain','grass','sea','river','bird','moon','hair','bird','tear','deer','moon','room','moon','rain','reed','thread','sea','insect','rock','sea','mountain','robe','flower','fire','river','people','grass'];
+function artSVG(w){
+ const n=w.number||1,m=hyakuninMotifs[n-1]||'moon';
+ const colors=[['#e7dfcb','#526b64','#b06b52'],['#dce7e5','#516a8b','#a57b67'],['#efe3da','#756478','#b77b61'],['#dfe5d3','#55765b','#a9855b']];
+ const [bg,ink,accent]=colors[(n-1)%4],cx=80+(n*43)%220,cy=70+(n*31)%90;
+ const moon=`<circle cx="${cx}" cy="${cy}" r="43" fill="${accent}" opacity=".62"/>`;
+ const hill=`<path d="M0 225 Q65 120 145 215 Q220 90 340 215 L340 260 L0 260Z" fill="${ink}" opacity=".58"/>`;
+ const waves=Array.from({length:4},(_,i)=>`<path d="M-15 ${160+i*25} Q65 ${120+i*25} 140 ${160+i*25} T320 ${160+i*25} T420 ${160+i*25}" fill="none" stroke="${ink}" stroke-width="4" opacity=".45"/>`).join('');
+ const branches=`<path d="M40 260 Q95 110 280 70 M90 180 Q180 170 220 115" fill="none" stroke="${ink}" stroke-width="8"/>`+Array.from({length:9},(_,i)=>`<ellipse cx="${80+i*23}" cy="${170-i*11+(i%3)*14}" rx="17" ry="8" transform="rotate(${i*19} ${80+i*23} ${170-i*11+(i%3)*14})" fill="${accent}" opacity=".8"/>`).join('');
+ const motifs={mountain:hill,river:waves,sea:waves,wave:waves,waterfall:waves,field:branches,leaf:branches,flower:branches,grass:branches,pine:branches,reed:branches,snow:hill+moon,deer:hill+moon,bird:hill+moon,cloud:hill+moon,moon:moon,fire:moon,wind:waves,tear:waves};
+ const content=motifs[m]||moon+hill;
+ return `<svg viewBox="0 0 340 260" role="img" aria-label="第${n}首の${m}を題材にした創作挿絵" xmlns="http://www.w3.org/2000/svg"><rect width="340" height="260" fill="${bg}"/>${content}<circle cx="290" cy="215" r="19" fill="${accent}" opacity=".8"/><text x="290" y="221" text-anchor="middle" font-size="14" fill="white" font-family="serif">${n}</text></svg>`;
+}
+
+function card(w,saved=false){let article=document.createElement('article');article.className='poem';article.innerHTML=`<div class="eyebrow">${esc(w.kind)} · ${esc(w.theme||'創作')}${w.derived?' · 独自要旨':w.id.startsWith('original-')?' · 自動構成':w.id.startsWith('ogura')?' · 古典原歌（底本照合中）':''}</div>${w.id.startsWith("hyakunin-")?`<div class="waka-art">${artSVG(w)}</div>`:""}<div class="poemtext">${esc(w.text)}</div>${w.id.startsWith("hyakunin-")?`<details class="waka-notes"><summary>この歌の解説を読む</summary><p>${esc(hyakuninNotes[w.number-1])}</p><p class="sub">独自の鑑賞文。本文の表記異同や出典歌集の厳密な校訂は未完了です。</p></details>`:""}<div class="meta">${esc(w.author)}<br>${esc(w.note||'')}</div><div class="actions"><button class="smallbtn" data-action="fav">${favorites.some(x=>x.id===w.id)?'蒐集済 ♥':'蒐集する ♡'}</button><button class="smallbtn" data-action="copy">コピー</button></div>`;article.querySelector('[data-action=fav]').onclick=()=>{if(favorites.some(x=>x.id===w.id)){favorites=favorites.filter(x=>x.id!==w.id);toast('蒐集帳から外しました')}else{favorites.unshift(w);toast('蒐集しました')}persist();renderLibrary();renderSaved()};article.querySelector('[data-action=copy]').onclick=()=>copy(`${w.text}\n— ${w.author}`);return article}function copy(t){if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(t).then(()=>toast('コピーしました')).catch(()=>fallbackCopy(t));else fallbackCopy(t)}function fallbackCopy(t){let a=document.createElement('textarea');a.value=t;document.body.append(a);a.select();try{document.execCommand('copy');toast('コピーしました')}catch{toast('コピーできませんでした')}a.remove()}function renderLibrary(){let origin=$('#originFilter').value;let q=$('#search').value.trim().toLowerCase(),k=$('#kind').value,m=$('#mood').value;let items=works.filter(w=>(origin==='all'||(origin==='sample'?w.id.startsWith('original-'):origin==='hyakunin'?w.id.startsWith('hyakunin-'):origin==='bible'?w.id.startsWith('bible-study-'):!w.id.startsWith('original-')))&&(k==='all'||w.kind===k)&&(m==='all'||w.theme===m)&&[w.author,w.text,w.note,w.kind,w.theme].join(' ').toLowerCase().includes(q));$('#count').textContent=`${items.length} / ${works.length} 篇`;$('#poems').replaceChildren(...items.slice(0,60).map(w=>card(w)));let shown=60;const more=document.createElement('button');more.className='primary';more.textContent='さらに60篇を読む';more.onclick=()=>{const next=items.slice(shown,shown+60);$('#poems').append(...next.map(w=>card(w)));shown+=next.length;if(shown>=items.length)more.remove()};if(items.length>shown)$('#poems').after(more);document.querySelectorAll('#library > .primary').forEach(b=>{if(b!==more)b.remove()});if(!items.length)$('#poems').innerHTML='<div class="empty">該当する作品がありません。</div>'}function renderSaved(){$('#savedgrid').replaceChildren(...favorites.map(w=>card(w,true)));if(!favorites.length)$('#savedgrid').innerHTML='<div class="empty">まだ何も蒐めていません。<br>気になる言葉を一篇、残してみましょう。</div>'}$('#authorgrid').replaceChildren(...authors.map(a=>{let d=document.createElement('article');d.className='author';d.innerHTML=`<div class="eyebrow">${esc(a[1])}</div><h3>${esc(a[0])}</h3><p>${esc(a[2])}</p><button class="smallbtn">作品を見る ↗</button>`;d.querySelector('button').onclick=()=>{$('#search').value=a[0]==='聖書'?'聖書':a[0]==='仏典'?'仏典':a[0];$('#kind').value='all';$('#mood').value='all';activate('library');renderLibrary()};return d}));function activate(id){document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id===id));if(id==='saved')renderSaved();window.scrollTo({top:document.querySelector('.tabs').getBoundingClientRect().top+window.scrollY-15,behavior:'smooth'})}document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>activate(b.dataset.tab));['search','kind','mood','originFilter'].forEach(id=>$('#'+id).addEventListener(id==='search'?'input':'change',renderLibrary));
+const phrase5={春:['はるのかぜ','さくらちる','はなのかげ'],夏:['なつのそら','せみのこえ','あおいそら'],秋:['あきのつき','もみじちる','ほしのよる'],冬:['ふゆのうみ','ゆきのあさ','しろいいき'],'季節なし':['とおいまち','よるのはて','ひとのかげ']};
+const phrase7={静寂:['しずけさのなか','ことばをとじて','こえなきままで'],愛:['あなたをおもう','ぬくもりのなか','なまえをよんで'],孤独:['ひとりのよるに','だれもいなくて','かげだけのこる'],希望:['あしたをしんじ','ひかりをさがす','あさひをまって'],無常:['すべてはかわる','きのうはとおく','ときだけがゆく']};
+const ending5=['つきがわらう','かぜがわたる','ほしはひかる','ゆめはのこる','あさがくる'];
+const ending7=['こころはまだある','ひかりはのこるよ','またあえるひまで','なみだをかくして','あしたへとつづく'];
+
+// 600 generated sample entries (some combinations may repeat). Never attribute these to historical authors.
+const anthologySeasons=['春','夏','秋','冬','季節なし'];
+const anthologyEmotions=['静寂','愛','孤独','希望','無常'];
+const anthologyFives=['つきがわらう','かぜがわたる','ほしはひかる','ゆめはのこる','あさがくる'];
+const anthologySevens=['こころはまだある','ひかりはのこるよ','またあえるひまで','なみだをかくして','あしたへとつづく'];
+for(let i=0;i<600;i++){
+  const season=anthologySeasons[i%5],emotion=anthologyEmotions[Math.floor(i/5)%5];
+  const a=phrase5[season][Math.floor(i/25)%3],b=phrase7[emotion][Math.floor(i/75)%3];
+  const c=anthologyFives[Math.floor(i/225+i)%5];
+  const kind=i%2===0?'俳句':'短歌';
+  const lines=kind==='俳句'?[a,b,c]:[a,b,c,anthologySevens[Math.floor(i/3)%5],anthologySevens[(Math.floor(i/11)+2)%5]];
+  works.push({id:'original-'+i,author:'余白文庫（自動構成）',kind,theme:emotion,
+    text:lines.join('\n'),note:'創作サンプル / '+season+' / '+emotion+'（歴史作品ではありません）'});
+}
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function pickMeter(a,n){const valid=a.filter(s=>mora(s)===n);return pick(valid.length?valid:(n===5?['あさがくる']:['あなたをおもう']));}
+function mora(s){return [...s.normalize('NFKC')].filter(c=>!/[ぁぃぅぇぉゃゅょァィゥェォャュョ\s、。]/.test(c)).length}
+const sourceReadings=[
+ {mode:'poet',author:'松尾芭蕉',kind:'俳句',text:'古池や\n蛙飛びこむ\n水の音',source:'『春の日』所収（初期の異文あり）',url:'https://crd.ndl.go.jp/reference/entry/index.php?id=1000182507&page=ref_view',explain:'蛙の水音によって周囲の静けさを際立たせる。表記には異文がある。'},
+ {mode:'poet',author:'与謝野晶子',kind:'短歌',text:'その子二十\n櫛にながるる\n黒髪の\nおごりの春の\nうつくしきかな',source:'『みだれ髪』「臙脂紫」',url:'https://www.aozora.gr.jp/cards/000885/files/51307_47033.html',explain:'若さと美しさへの誇りを、自ら肯定する一首。'},
+ {mode:'bible',author:'聖書・創世記',kind:'聖書',text:'光が生まれ、闇と分けられる。',source:'創世記 1章3〜5節（独自要旨、聖書本文の引用ではありません）',url:'https://www.bible.or.jp/read/bible_copyright.html',explain:'光と闇の区別によって創造が語られる。これはアプリによる要約。'},
+ {mode:'bible',author:'聖書・コヘレトの言葉',kind:'聖書',text:'生まれる時があり、死ぬ時がある。',source:'コヘレトの言葉 3章1〜2節（独自要旨）',url:'https://www.bible.or.jp/read/bible_copyright.html',explain:'人間の営みにそれぞれの時があるという主題。'},
+ {mode:'bible',author:'聖書・コリントの信徒への手紙一',kind:'聖書',text:'愛は忍耐と思いやりを伴う。',source:'コリントの信徒への手紙一 13章4〜7節（独自要旨）',url:'https://www.bible.or.jp/read/bible_copyright.html',explain:'愛を感情だけでなく行為の性質として捉える。'},
+ {mode:'buddha',author:'仏典・法句経',kind:'仏典',text:'つくられたものは移り変わる。',source:'法句経 277偈（独自要旨）',url:'https://suttacentral.net/dhp277',explain:'諸行無常の教え。原典の翻訳ではなく主旨を短くまとめたもの。'},
+ {mode:'buddha',author:'仏典・法句経',kind:'仏典',text:'憎しみに憎しみを返しても鎮まらない。',source:'法句経 5偈（独自要旨）',url:'https://suttacentral.net/dhp5',explain:'憎悪の連鎖を断つことを説く。'},
+ {mode:'buddha',author:'仏典・般若心経',kind:'仏典',text:'形は独立した固定の実体ではない。',source:'『般若心経』色即是空の思想（独自要旨）',url:'https://ja.wikisource.org/wiki/般若波羅蜜多心経',explain:'空を単なる虚無ではなく、固定的実体がないこととして読む。'}
+];
+// Reuse historical entries in the anthology for the 'real works' generator.
+// These are not newly invented quotations; source labels are carried from the catalogue.
+const historicReadings=hyakuninRows.map(w=>{
+ const themes=[
+ ['月','月の姿を通じて、時間や心情の移ろいを感じさせる。'],
+ ['恋','恋心を直接語るだけでなく、比喩や余情に託している。'],
+ ['袖','袖を濡らす表現には、涙や露を重ねる古典的な含意がある。'],
+ ['秋','秋の景色が、寂しさや季節の変化を際立たせる。'],
+ ['春','春の自然を通じて、喜びや移ろいを表している。'],
+ ['花','花の姿に、美しさと儚さを重ねて読むことができる。'],
+ ['山','山や自然の情景が、歌の感情を支えている。'],
+ ['波','水の動きが、心の揺れや隔たりを印象づける。']
+ ];
+ const found=themes.find(x=>w.text.includes(x[0]));
+ const explain=hyakuninNotes[w.number-1]+'（独自の鑑賞文。表記異同は未校訂）';
+ return {mode:'poet',author:w.author,kind:w.kind,text:w.text,
+ source:'『小倉百人一首』第'+w.number+'首／『'+w.source+'』',
+ url:HYAKUNIN_SOURCE,explain};
+});
+sourceReadings.push(...historicReadings);
+const lexicon={buddha:{five:['うつろうよ','そらのなか','ちりとなる','むすぶいと'],seven:['すべてはかわる','かたちはほどけ','えにしをたどる','こころをほどく'],last:['つきはみる','かぜはふく','はなはちる'],ideas:['無常','空','縁起','慈悲'],reference:'法句経 277偈・5偈／般若心経（思想参照、引用ではありません）'},bible:{five:['ひかりあれ','あいをまつ','いのるよる','あさがくる'],seven:['ゆるしをねがう','ひかりをさがす','あなたをおもう','やみをわけゆく'],last:['ほしがふる','あさがくる','あいはある'],ideas:['創造','愛','赦し','祈り'],reference:'創世記1章／コリント一13章／コヘレト3章（思想参照、引用ではありません）'},poet:{five:['はるのかぜ','さくらちる','あきのつき','ふゆのうみ'],seven:['こころはゆれる','ことばをのこす','あなたをおもう','きのうはとおく'],last:['つきはみる','はなはちる','ゆめのあと'],ideas:['恋','季節','別離','孤独'],reference:'芭蕉『春の日』／晶子『みだれ髪』（作風・主題参照、引用ではありません）'}};
+const extra7=['あなたをおもう','ひかりをさがす','こころはゆれる','すべてはかわる'];
+function setExplanation(html){$('#genexplain').innerHTML=html}
+
+const biblePassages=[{"book":"創世記","verses":"1:1–5","theme":"創造","summary":"闇のただ中で光が生まれ、世界に区別と秩序が与えられる。","explain":"光は闇の不在ではなく、闇の中へ語りかけられるものとして描かれる。","motif":"光と闇","testament":"旧約"},{"book":"創世記","verses":"2:7","theme":"いのち","summary":"土から形づくられた人は、息を受けて生きる者となる。","explain":"人の命を、土の有限性と与えられる息の両面から捉える。","motif":"土と息","testament":"旧約"},{"book":"創世記","verses":"4:8–10","theme":"倫理","summary":"兄弟への暴力のあと、血が地から訴えるという物語が続く。","explain":"見えない被害が沈黙するわけではないという倫理的な問い。","motif":"地と声","testament":"旧約"},{"book":"出エジプト記","verses":"3:1–12","theme":"召命","summary":"燃えても尽きない柴の場で、苦しむ人々を救う使命が託される。","explain":"神聖な呼びかけは個人の体験に閉じず、他者の苦しみに向かう。","motif":"炎と呼び声","testament":"旧約"},{"book":"出エジプト記","verses":"16:13–21","theme":"信頼","summary":"荒野で日ごとの食物を与えられ、人々は必要な分を集める。","explain":"蓄えへの不安と、その日の必要を信頼することの緊張。","motif":"荒野と糧","testament":"旧約"},{"book":"レビ記","verses":"19:17–18","theme":"隣人","summary":"恨みを抱え続けず、隣人を自分自身のように大切にするよう命じる。","explain":"愛を感情ではなく共同体の実践として位置づける。","motif":"隣人と境界","testament":"旧約"},{"book":"申命記","verses":"30:15–20","theme":"選択","summary":"命につながる道と滅びにつながる道が示され、命を選ぶよう促される。","explain":"自由な選択には、他者と未来に対する責任が伴う。","motif":"道と選択","testament":"旧約"},{"book":"詩編","verses":"23:1–4","theme":"信頼","summary":"暗い谷を歩くときにも、導きと慰めが失われないと歌う。","explain":"苦難の消滅ではなく、苦難のただ中の伴走を描く。","motif":"谷と杖","testament":"旧約"},{"book":"詩編","verses":"42:2–6","theme":"渇望","summary":"渇いた鹿が水を求めるように、魂が神を求めている。","explain":"欠乏や不在の感覚そのものが祈りの言葉になる。","motif":"鹿と水","testament":"旧約"},{"book":"詩編","verses":"90:1–12","theme":"時間","summary":"人の生は短く、日々の有限さを知る知恵が求められる。","explain":"永遠と有限な生の対照から、今を数える感覚が生まれる。","motif":"砂と日々","testament":"旧約"},{"book":"箴言","verses":"8:1–11","theme":"知恵","summary":"知恵は人々の行き交う場所で声を上げ、聞くよう呼びかける。","explain":"知恵を隠された秘儀ではなく公共の呼びかけとして描く。","motif":"門と声","testament":"旧約"},{"book":"コヘレトの言葉","verses":"1:2–11","theme":"無常","summary":"人の営みは繰り返され、手でつかもうとする確かさはすり抜ける。","explain":"「空しさ」は単なる絶望ではなく、所有や達成の限界への洞察。","motif":"風と循環","testament":"旧約"},{"book":"コヘレトの言葉","verses":"3:1–8","theme":"時間","summary":"生まれる時と死ぬ時、抱く時と離れる時など、営みにはそれぞれの時がある。","explain":"相反する出来事を一つの時間のなかに置く詩的な構造。","motif":"時と対","testament":"旧約"},{"book":"イザヤ書","verses":"40:28–31","theme":"希望","summary":"疲れた者に新たな力が与えられるという希望が語られる。","explain":"希望を気分ではなく、疲弊の現実に差し込む力として表す。","motif":"翼と風","testament":"旧約"},{"book":"イザヤ書","verses":"43:18–19","theme":"再生","summary":"過去だけにとらわれず、荒野に新しい道が開かれると告げる。","explain":"新しさは過去の否認ではなく、閉塞を越える可能性。","motif":"荒野と道","testament":"旧約"},{"book":"ミカ書","verses":"6:6–8","theme":"正義","summary":"儀礼の量より、公正を行い、慈しみを愛し、謙虚に歩むことが問われる。","explain":"信仰を日々の倫理と切り離さない預言者的批判。","motif":"歩みと正義","testament":"旧約"},{"book":"ヨブ記","verses":"38:1–11","theme":"苦難","summary":"苦しむ人に対し、世界の広大さをめぐる問いが返される。","explain":"苦難の理由を簡単に説明せず、人間の理解の限界を突きつける。","motif":"嵐と海","testament":"旧約"},{"book":"マタイによる福音書","verses":"5:3–10","theme":"逆説","summary":"貧しさや悲しみの中にある人々に、幸いが語られる。","explain":"通常の強さや成功とは異なる価値の逆転がある。","motif":"涙と祝福","testament":"新約"},{"book":"マタイによる福音書","verses":"6:25–34","theme":"不安","summary":"鳥や野の花を例に、明日の心配に呑まれない生き方が説かれる。","explain":"無責任を勧めるのではなく、不安が生を支配することを問い直す。","motif":"鳥と花","testament":"新約"},{"book":"ルカによる福音書","verses":"10:25–37","theme":"隣人","summary":"傷ついた旅人を助けたのは、境界の外側にいると見なされた人物だった。","explain":"隣人とは所属ではなく、具体的な行為によって生まれる関係。","motif":"道と傷","testament":"新約"},{"book":"ルカによる福音書","verses":"15:11–32","theme":"赦し","summary":"家を離れた子が戻り、父が迎える一方、兄には葛藤が残る。","explain":"赦しの喜びと公平さをめぐる緊張を同時に描く。","motif":"帰郷と門","testament":"新約"},{"book":"ヨハネによる福音書","verses":"1:1–5","theme":"ことば","summary":"はじめにあった言葉と命と光が結びつけられ、闇の中で光が輝く。","explain":"創世記の光の主題を受け継ぎつつ、新たな神学的意味を与える。","motif":"言葉と光","testament":"新約"},{"book":"ローマの信徒への手紙","verses":"12:9–21","theme":"非報復","summary":"悪に悪を返さず、可能な限り平和を求めるよう勧める。","explain":"敵対をそのまま反復しない実践的な倫理。","motif":"火と平和","testament":"新約"},{"book":"コリントの信徒への手紙一","verses":"13:1–13","theme":"愛","summary":"能力や知識があっても、愛がなければ空しいという論旨が展開する。","explain":"愛を高揚した感情だけでなく、忍耐と他者への態度として捉える。","motif":"愛と時間","testament":"新約"},{"book":"コリントの信徒への手紙二","verses":"4:7–10","theme":"弱さ","summary":"壊れやすい器の中に宝があるという比喩で、人の弱さと力を語る。","explain":"脆さが価値の欠如を意味しないという逆説。","motif":"器と光","testament":"新約"},{"book":"ヤコブの手紙","verses":"2:14–17","theme":"行為","summary":"困っている人を助けない言葉だけの信仰が問われる。","explain":"信じることと具体的に行うことの距離を縮める。","motif":"手とパン","testament":"新約"},{"book":"ヨハネの黙示録","verses":"21:1–5","theme":"再生","summary":"涙や死が過去となる新しい世界の幻が描かれる。","explain":"破局だけでなく、回復と慰めの終末像がある。","motif":"涙と新天地","testament":"新約"}];
+const bibleThemes=[...new Set(biblePassages.map(p=>p.theme))];
+for(const theme of bibleThemes){for(const id of ['bibleTheme','genBibleTheme']){const opt=document.createElement('option');opt.value=theme;opt.textContent=theme;$('#'+id).appendChild(opt)}}
+for(const [i,p] of biblePassages.entries()){
+ const ref=p.book+' '+p.verses;
+ const work={id:'bible-study-'+String(i+1).padStart(2,'0'),kind:'聖書',theme:p.theme,author:'聖書・'+p.book,text:p.summary,note:ref+'（独自要旨） '+p.explain};
+ works.push(work);
+ sourceReadings.push({mode:'bible',author:work.author,kind:'聖書',text:p.summary,source:ref+'（独自要旨）',url:'https://www.bible.or.jp/read/bible_copyright.html',explain:p.explain,theme:p.theme});
+}
+function renderBibleStudy(){const testament=$('#bibleTestament').value,theme=$('#bibleTheme').value;
+ const found=biblePassages.filter(p=>(testament==='all'||p.testament===testament)&&(theme==='all'||p.theme===theme));
+ $('#bibleCards').replaceChildren(...found.map(p=>{const item=document.createElement('article');item.className='poemcard bible-entry';
+ const title=document.createElement('h3');title.textContent=p.book+' '+p.verses;
+ const tag=document.createElement('div');tag.className='meta';tag.textContent=p.testament+' · '+p.theme+' · '+p.motif;
+ const summary=document.createElement('p');summary.textContent=p.summary;
+ const detail=document.createElement('details'),head=document.createElement('summary');head.textContent='解説と問いを読む';
+ const explanation=document.createElement('p');explanation.textContent=p.explain;
+ const note=document.createElement('p');note.className='sub';note.textContent='原文引用ではありません。章節をもとにした独自要旨です。';
+ detail.append(head,explanation,note);item.append(title,tag,summary,detail);return item}));}
+$('#bibleTestament').addEventListener('change',renderBibleStudy);
+$('#bibleTheme').addEventListener('change',renderBibleStudy);
+renderBibleStudy();
+const biblePoems={
+ '創造':['闇を消さずに','名を呼んだ朝','ひかりの輪郭'],
+ 'いのち':['土から起きる','息は借りもの','返す日のこと'],
+ '倫理':['地の底から','聞こえない声','まだ止まらない'],
+ '召命':['燃える枝先','消えない問いに','歩きだす影'],
+ '信頼':['今日のパンだけ','荒野の夜に','明日を置いて'],
+ '隣人':['境界線を','越えて差し出す','名前のない手'],
+ '選択':['二つの道に','足跡ひとつ','誰のための灯'],
+ '渇望':['水を探して','魂は歩く','渇きのままで'],
+ '時間':['数えた日々は','指の隙間に','それでも今日を'],
+ '知恵':['門の向こうで','知恵が呼んでる','聞こえぬふりを'],
+ '無常':['風をつかめず','同じ日はなく','また陽がのぼる'],
+ '希望':['疲れた翼','まだ風を待つ','空は閉じない'],
+ '再生':['荒野のなかに','見えない道が','涙を越えて'],
+ '正義':['祭壇よりも','隣の痛み','先に見つめる'],
+ '苦難':['嵐の奥に','答えではなく','問いが残った'],
+ '逆説':['泣いた人から','祝福が来る','逆さの王国'],
+ '不安':['野の花はまだ','明日を知らずに','今日を咲いてる'],
+ '赦し':['帰る足音','開いた門と','残る問いかけ'],
+ 'ことば':['言葉はひかり','闇の底にも','消えない響き'],
+ '非報復':['火を火で消さず','差し出した手に','夜明けを託す'],
+ '愛':['愛は急がず','傷のある手を','そっと支える'],
+ '弱さ':['ひび割れた器','光をこぼす','弱さのままで'],
+ '行為':['言葉の外で','差し出すパンが','祈りをつくる']
+};
+// All lines are phonetic kana. The small-kana counter treats っ and ん as one mora.
+// Unlike orthographic character counts, this guarantees a metrical pattern for generated text.
+const meterPools={
+ five:['ひかりさす','やみのなか','こえをきく','かぜがふく','いまここに','つきのした','なみのこえ','あさがくる','ほしひとつ','はなひらく','みずのうえ','いのちとは','てをのばす','ゆるすこと','かげひとつ','きみをまつ','ひとはみな','かえりみち','とおいそら','あめがふる','ときをまつ','ゆめのあと','つちのうえ','なをよべば'],
+ seven:['ひかりをわける','いのりはつづく','こたえはこない','となりにすわる','なみだをぬぐう','よるをこえてく','あしたをえらぶ','こころをほどく','なまえをよんだ','きずをかかえて','だれかのために','あいをたずねる','つみをゆるして','うまれかわれる','ことばをのこす','みえないみちを','ちいさなひかり','いまをいきてる','あめにうたれて','みずをわたって','つきまでとどけ','こえをひろって','そらへといのる','なにももたずに']
+};
+const themeMeter={
+ '創造':{five:['ひかりさす','やみのなか'],seven:['ひかりをわける','なまえをよんだ']},
+ '愛':{five:['てをのばす','きみをまつ'],seven:['あいをたずねる','となりにすわる']},
+ '赦し':{five:['ゆるすこと','かえりみち'],seven:['つみをゆるして','なみだをぬぐう']},
+ '苦難':{five:['やみのなか','あめがふる'],seven:['きずをかかえて','こたえはこない']},
+ '希望':{five:['あさがくる','ほしひとつ'],seven:['あしたをえらぶ','ちいさなひかり']},
+ '無常':{five:['ゆめのあと','ときをまつ'],seven:['こころをほどく','いまをいきてる']},
+ '隣人':{five:['てをのばす','ひとはみな'],seven:['となりにすわる','だれかのために']}
+};
+function metricalLines(kind,theme,mix=false){
+ const targets=kind==='俳句'?[5,7,5]:[5,7,5,7,7];
+ const p=themeMeter[theme]||{};
+ const buddhist={five:['ゆめのあと','いまここに','かげひとつ'],seven:['こころをほどく','なにももたずに']};
+ const lines=targets.map((n,i)=>{
+  const key=n===5?'five':'seven';
+  const bank=mix&&i>=2&&i<=3?buddhist[key]:(p[key]||meterPools[key]);
+  const good=bank.filter(t=>mora(t)===n);
+  if(!good.length)throw new Error('音数辞書の検査に失敗: '+theme+' / '+n);
+  return pick(good);
+ });
+ if(lines.some((line,i)=>mora(line)!==targets[i]))throw new Error('定型音数の保証に失敗');
+ return lines;
+}
+const composedVerses={"創造": [["やみのそこ", "なまえをよべば", "あさがくる", "まだないものに", "ひかりをわける"]], "愛": [["てをのばす", "となりにすわる", "あめのよる", "きずをかかえて", "それでもここに"]], "赦し": [["かえりみち", "なまえをよんだ", "あさがくる", "つみをゆるして", "とびらをひらく"]], "苦難": [["あめがふる", "こたえはこない", "よるのそこ", "きずをかかえて", "あしたをえらぶ"]], "希望": [["ほしひとつ", "こたえはこない", "あさをまつ", "ちいさなひかり", "それでもすすむ"]], "無常": [["ゆめのあと", "こころをほどく", "かぜがふく", "とどめられない", "いまをいきてる"]], "隣人": [["てをのばす", "となりにすわる", "ひとはみな", "なまえもきかず", "みずをわたして"]], "時間": [["つきのした", "かぞえたひびを", "てにのせる", "もどらぬきょうを", "あしたにわたす"]], "正義": [["こえをきく", "となりのいたみ", "みつめれば", "いのりのさきに", "ひとのてがある"]], "弱さ": [["ひびのある", "うつわにひかり", "あさがくる", "こぼれるものを", "てのひらにうけ"]], "再生": [["やけたのに", "あたらしいめが", "かぜにゆれ", "おわりのむこう", "あさがくるまで"]], "非報復": [["ひをけさず", "ひにひをかえす", "よるをこえ", "さしだすてから", "あさがはじまる"]], "不安": [["ののはなは", "あしたをしらず", "かぜにゆれ", "きょうだけのいろ", "そらへとひらく"]], "渇望": [["みずをくむ", "かわきのふかさ", "しらぬまま", "いずみをさがす", "よるをあるいて"]], "逆説": [["なみだふく", "ひとからさきに", "あさがくる", "つよさのかたち", "だれがきめたの"]], "ことば": [["こえひとつ", "やみのむこうへ", "とどくまで", "なまえをよんで", "まちつづけてる"]], "混沌": [["てをのばす", "となりにすわる", "ゆめのあと", "こころをほどく", "それでもここに"], ["あめがふる", "こたえはこない", "かぜがふく", "なにももたずに", "ひとのてをとる"], ["ほしひとつ", "よるをこえてく", "ゆめのあと", "いのりをのこし", "あさをまつひと"]]};
+
+// Scene-to-turn variants: each complete poem has a semantic arc, rather than
+// independently shuffled lines. Meter is checked on every selected candidate.
+const narrativeVariants={
+ '愛':[
+ ['あめのよる','となりにすわる','てをのばす','なまえをよばず','ただここにいる'],
+ ['ほしひとつ','となりにすわる','てをのばす','こたえはいらぬ','ただここにいる']],
+ '赦し':[
+ ['かえりみち','なまえをよんだ','ゆめのあと','ゆるせぬままで','とびらをひらく']],
+ '苦難':[
+ ['あめがふる','こたえはこない','よるのそこ','それでもあした','てをのばすひと']],
+ '希望':[
+ ['ほしひとつ','こたえはこない','あさをまつ','それでもひとは','ひかりをえらぶ']],
+ '無常':[
+ ['ゆめのあと','こころをほどく','かぜがふく','のこせぬものを','いまだけいだく']],
+ '隣人':[
+ ['てをのばす','となりにすわる','あめのよる','なまえもきかず','みずをわたして']],
+ '混沌':[
+ ['かぜがふく','こたえはこない','ゆめのあと','いのりはのこる','こころをほどく'],
+ ['てをのばす','となりにすわる','あめのよる','なにももたずに','ただここにいる']]
+};
+function validatedVerse(lines,kind){
+ const expected=kind==='俳句'?[5,7,5]:[5,7,5,7,7];
+ return lines.length===expected.length&&lines.every((line,i)=>mora(line)===expected[i]);
+}
+function curatedVerse(kind,theme,mix){
+ const pool=[...(narrativeVariants[mix?'混沌':theme]||[]),...(composedVerses[mix?'混沌':theme]||[])];
+ const candidates=pool.map(lines=>kind==='俳句'?lines.slice(0,3):lines).filter(lines=>validatedVerse(lines,kind));
+ if(!candidates.length)return null;
+ // Prevent immediate repetition when multiple valid alternatives exist.
+ const last=window.__lastCurated||'';
+ const fresh=candidates.filter(lines=>lines.join('|')!==last);
+ const result=pick(fresh.length?fresh:candidates);
+ window.__lastCurated=result.join('|');return result;
+}
+
+function coherentMetricalLines(kind,theme,mix=false){
+ const curated=curatedVerse(kind,theme,mix);if(curated)return curated;
+ const pool=composedVerses[mix?'混沌':theme]||[];
+ if(pool.length){
+  const verse=pick(pool).slice(0,kind==='俳句'?3:5);
+  const expected=kind==='俳句'?[5,7,5]:[5,7,5,7,7];
+  if(verse.every((line,i)=>mora(line)===expected[i]))return verse;
+ }
+ return metricalLines(kind,theme,mix);
+}
+
+
+// v2.8: expanded, passage-sensitive compositional bank. Each slot is checked
+// at runtime; no unchecked phrase can enter a metrical verse.
+const expandedBibleScenes={
+ 創造:['やみのそこ','ひかりさす','あさがくる'],いのち:['つちのうえ','いきがある','はるのあめ'],倫理:['ちのこえを','やみのなか','こえをきく'],召命:['ひがともる','やみのなか','てをのばす'],信頼:['あさがくる','ほしひとつ','やみのなか'],隣人:['てをのばす','あめのよる','みずのうえ'],選択:['みちのさき','あさがくる','かぜがふく'],渇望:['みずのこえ','やみのなか','ほしひとつ'],時間:['ゆめのあと','ときはゆく','あさがくる'],知恵:['こえをきく','みちのさき','ひかりさす'],無常:['ゆめのあと','かぜがふく','つきのした'],希望:['ほしひとつ','あさがくる','ひかりさす'],再生:['あさがくる','はなひらく','かぜがふく'],正義:['てをのばす','みちのさき','こえをきく'],苦難:['あめがふる','やみのなか','ほしひとつ'],逆説:['なみだあと','やみのなか','ひかりさす'],不安:['あめのよる','ときをまつ','ほしひとつ'],赦し:['かえりみち','ゆめのあと','てをのばす'],ことば:['こえをきく','やみのなか','ひかりさす'],非報復:['てをのばす','あめのよる','かぜがふく'],愛:['きみをまつ','てをのばす','はなのかげ'],弱さ:['ゆめのあと','なみのこえ','やみのなか'],行為:['てをのばす','みちのさき','はなひらく']
+};
+const expandedBibleMiddle={
+ 創造:['ひかりをわける','なまえをよんだ'],いのち:['こころをほどく','となりにすわる'],倫理:['こたえはこない','なみだをぬぐう'],召命:['なまえをよんだ','あしたをえらぶ'],信頼:['いのりはつづく','あしたをえらぶ'],隣人:['となりにすわる','なみだをぬぐう'],選択:['あしたをえらぶ','とおくのまちへ'],渇望:['ひかりをさがす','いのりはつづく'],時間:['わすれないまま','ことばをのこす'],知恵:['なまえをよんだ','ことばをのこす'],無常:['こころをほどく','わすれないまま'],希望:['ひかりをさがす','あしたをえらぶ'],再生:['あしたをえらぶ','こころをほどく'],正義:['となりにすわる','ことばをのこす'],苦難:['こたえはこない','なみだをぬぐう'],逆説:['なみだをぬぐう','ひかりをさがす'],不安:['あしたをえらぶ','こころをほどく'],赦し:['こころをほどく','なみだをぬぐう'],ことば:['なまえをよんだ','ひかりをさがす'],非報復:['こころをほどく','となりにすわる'],愛:['となりにすわる','なまえをよんだ'],弱さ:['ひかりをさがす','なみだをぬぐう'],行為:['となりにすわる','ことばをのこす']
+};
+const expandedBibleTurns={
+ 創造:[['まだないものに','ひかりをわける'],['ことばをのこす','あしたをえらぶ']],
+ 愛:[['こころをほどく','ただここにいる'],['なまえをよばず','ただここにいる']],
+ 赦し:[['ゆるせぬままで','とびらをひらく'],['なみだをぬぐう','ただここにいる']],
+ 苦難:[['それでもあした','てをのばすひと'],['こたえはいらぬ','ただここにいる']],
+ 希望:[['それでもひとは','ひかりをえらぶ'],['ことばをのこす','ただここにいる']],
+ 無常:[['のこせぬものを','いまだけいだく'],['わすれないまま','ただここにいる']],
+ 隣人:[['なまえもきかず','みずをわたして'],['となりにすわる','ただここにいる']],
+ 再生:[['それでもあした','てをのばすひと'],['こころをほどく','ただここにいる']],
+ 信頼:[['こたえはいらぬ','ただここにいる'],['いのりはのこる','こころをほどく']]
+};
+const genericBibleTurns=[['ことばをのこす','ただここにいる'],['こころをほどく','ただここにいる'],['わすれないまま','ただここにいる'],['あしたをえらぶ','ひかりをさがす']];
+let bibleVerseHistory=[];
+function expandedBibleVerse(kind,theme,mix){
+ const targets=kind==='俳句'?[5,7,5]:[5,7,5,7,7];
+ const scenes=(expandedBibleScenes[theme]||meterPools.five).filter(x=>mora(x)===5);
+ const middles=(expandedBibleMiddle[theme]||meterPools.seven).filter(x=>mora(x)===7);
+ const turns=(expandedBibleTurns[theme]||genericBibleTurns).filter(pair=>pair.length===2&&pair.every(x=>mora(x)===7));
+ if(!scenes.length||!middles.length||!turns.length)return null;
+ const candidates=[];
+ for(const first of scenes)for(const second of middles)for(const third of scenes){
+  if(first===third)continue;
+  if(kind==='俳句')candidates.push([first,second,third]);
+  else for(const [fourth,fifth] of turns)candidates.push([first,second,third,fourth,fifth]);
+ }
+ const eligible=candidates.filter(v=>v.length===targets.length&&v.every((x,i)=>mora(x)===targets[i]));
+ if(!eligible.length)return null;
+ const fresh=eligible.filter(v=>!bibleVerseHistory.includes(v.join('|')));
+ const verse=pick(fresh.length?fresh:eligible);
+ bibleVerseHistory.push(verse.join('|'));if(bibleVerseHistory.length>40)bibleVerseHistory.shift();
+ return verse;
+}
+
+function biblePoem(theme,kind,mix=false){
+ const p=pick(biblePassages.filter(x=>theme==='random'||x.theme===theme));
+ const lines=kind==='自由詩'?(biblePoems[p.theme]||['荒野の夜に','声を探して','明日を待ってる']):(expandedBibleVerse(kind,p.theme,mix)||coherentMetricalLines(kind,p.theme,mix));
+ return {lines,passage:p};
+}
+
+function make(){
+ previousPoem=current?{...current}:null;
+ const mode=$('#genmode').value,type=$('#gentype').value,kind=$('#genkind').value,season=$('#season').value,emotion=$('#emotion').value;
+ const modes=mode==='mix'?['buddha','bible','poet']:[mode];
+ const bibleTheme=$('#genBibleTheme').value;
+ if(type==='real'){
+  const candidates=sourceReadings.filter(w=>modes.includes(w.mode)&&(w.mode!=='bible'||bibleTheme==='random'||w.theme===bibleTheme));const preferred=candidates.filter(w=>w.kind===kind);const choices=preferred.length?preferred:candidates;const w=pick(choices);
+  current={id:'source-'+Date.now(),kind:w.kind,theme:'鑑賞',text:w.text,author:w.author,note:w.source};
+  $('#generated').textContent=w.text;$('#editPoem').value=w.text;$('#genmeta').textContent='資料表示 · '+w.author;
+  $('#meter').textContent=w.mode==='poet'?'実在作品（底本照合中・表記異同あり）':'経典の独自要旨（原文ではありません）';
+  setExplanation('<b>出典：</b>'+esc(w.source)+'<br><b>解説：</b>'+esc(w.explain)+'<br><a target="_blank" rel="noopener noreferrer" href="'+esc(w.url)+'">参照資料 ↗</a><br>※ 編集・投稿する場合は原典ではなく改作として扱ってください。');return;
+ }
+ if(mode==='bible'||mode==='mix'){
+  const result=biblePoem(bibleTheme,kind,mode==='mix'),p=result.passage;
+  const lines=result.lines,txt=lines.join('\n');
+  current={id:'gen-'+Date.now()+'-'+Math.random().toString(36).slice(2),kind,theme:p.theme,text:txt,author:'余白文庫・生成作品',note:'聖書の主題 '+p.book+' '+p.verses+'をもとにした創作。原典の引用ではありません。'};
+  $('#generated').textContent=txt;$('#editPoem').value=txt;
+  $('#genmeta').textContent=(mode==='mix'?'混沌 · 仏教との対話':'聖書 · '+p.theme)+' / 独自創作';
+  $('#meter').textContent=kind==='自由詩'?'自由詩（定型音数なし）':'音数：'+lines.map(mora).join('・')+' ✓ 定型保証（かな表記） · 連作単位で構成';
+  setExplanation('<b>参照箇所：</b>'+esc(p.book+' '+p.verses)+'<br><b>主題：</b>'+esc(p.theme)+'<br><b>鑑賞：</b>'+esc(p.explain)+(mode==='mix'?'<br><b>対話：</b>仏教と聖書を同一視せず、執着と応答という異なる問いを並置しています。':'')+'<br>※ 本文は創作です。聖書の翻訳・引用ではありません。');
+  return;
+ }
+ const chosen=kind==='俳句'?[modes[0],modes[Math.min(1,modes.length-1)],modes[modes.length-1]]:kind==='短歌'?[modes[0],modes[Math.min(1,modes.length-1)],modes[modes.length-1],modes[0],modes[Math.min(1,modes.length-1)]]:[modes[0],modes[Math.min(1,modes.length-1)],modes[modes.length-1]];
+ const lines=chosen.map((m,i)=>{const d=lexicon[m],n=kind==='俳句'?[5,7,5][i]:kind==='短歌'?[5,7,5,7,7][i]:[5,7,5][i];return pickMeter(n===5?(i===2?d.last:d.five):d.seven,n)});
+ const txt=lines.join('\n');current={id:'gen-'+Date.now()+'-'+Math.random().toString(36).slice(2),kind,theme:emotion,text:txt,author:'余白文庫・生成作品',note:'規則生成 / '+modes.join('×')};
+ $('#generated').textContent=txt;$('#editPoem').value=txt;$('#genmeta').textContent=kind+' · '+({mix:'混沌',buddha:'仏典',bible:'聖書',poet:'歌人'}[mode])+' / 規則生成の新作（原典ではありません）';
+ $('#meter').textContent=kind==='自由詩'?'自由詩':'音数：'+lines.map(mora).join('・')+(validatedVerse(lines,kind)?' ✓ 定型':' ※ 要確認');
+ setExplanation('<b>着想源：</b>'+modes.map(m=>esc(lexicon[m].reference)).join('<br>')+'<br><b>解説：</b>'+esc(modes.map(m=>lexicon[m].ideas.join('・')).join(' × '))+'を主題として組み合わせた創作。特定の作者の実在作品ではありません。');
+}
+
+$('#aiPrompt').onclick=()=>{
+ const kind=$('#genkind').value,mode=$('#genmode').selectedOptions[0].textContent,theme=$('#genBibleTheme').selectedOptions[0].textContent;
+ const prompt=`余白文庫のために新作の${kind}を一首詠んでください。思想：${mode}。聖書の主題：${theme}。季節：${$('#season').value}。感情：${$('#emotion').value}。聖書や仏典は引用・翻訳を捏造せず、思想の着想として扱ってください。短歌なら5・7・5・7・7、俳句なら5・7・5の音数（モーラ）を厳守。句ごとに改行。語のつながり、意味の転回、自然な助詞、余韻を優先し、音数合わせの不自然な言い回しを避けてください。本文はかな表記で出し、末尾に各行の音数を書いてください。本文と音数以外の説明は不要です。`;
+ navigator.clipboard?.writeText(prompt).then(()=>toast('AIへの指示をコピーしました')).catch(()=>window.prompt('この指示をコピー',prompt));
+};
+$('#aiValidate').onclick=()=>{
+ const kind=$('#genkind').value;
+ const lines=$('#aiDraft').value.trim().split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+ if(kind==='自由詩'){
+  if(!lines.length)return toast('詩を入力してください');
+ }else if(!validatedVerse(lines,kind)){
+  const expected=kind==='俳句'?'5・7・5':'5・7・5・7・7';
+  $('#aiFeedback').textContent='不合格：現在 '+lines.map(mora).join('・')+'音。必要：'+expected+'。かな表記で入力してください。';return;
+ }
+ previousPoem=current?{...current}:null;
+ current={id:'ai-'+Date.now(),kind,theme:'AI即興',text:lines.join('\n'),author:'AI生成・要確認',note:'外部AIの出力を利用者が貼り付けた作品。出典・独自性は未検証。'};
+ $('#generated').textContent=current.text;$('#editPoem').value=current.text;
+ $('#genmeta').textContent='AI即興 · 貼り付け作品';
+ $('#meter').textContent=kind==='自由詩'?'自由詩':'音数：'+lines.map(mora).join('・')+' ✓ かな表記で検査済み';
+ $('#aiFeedback').textContent='音数検査を通過し、作品に取り込みました。';
+ setExplanation('外部AIで生成された作品です。原典の引用ではありません。');
+};
+
+$('#randomSettings').onclick=()=>{
+ const ids=['genmode','genkind','season','emotion'];
+ ids.forEach(id=>{const el=$('#'+id);el.selectedIndex=Math.floor(Math.random()*el.options.length)});
+ $('#gentype').value='new';make();
+};
+$('#undoGen').onclick=()=>{
+ if(!previousPoem)return toast('戻せる作品がありません');
+ const tmp=current;current=previousPoem;previousPoem=tmp;
+ $('#editPoem').value=current.text;$('#generated').textContent=current.text;
+ $('#genmeta').textContent='復元 · '+(current.author||'自作');
+ $('#meter').textContent='推敲して保存できます';
+ setExplanation('一つ前の作品を復元しました。');
+};
+$('#blankPoem').onclick=()=>{previousPoem=current?{...current}:null;
+ const kind=$('#genkind').value;
+ current={id:'self-'+Date.now(),kind,theme:'自作',text:'',author:'あなた',note:'自作・#会わない歌会余白文庫 #オリジナル'};
+ $('#editPoem').value='';$('#generated').textContent='ここに、あなたの言葉を。';
+ $('#meter').textContent=kind==='俳句'?'五・七・五を目安に自由に詠めます':kind==='短歌'?'五・七・五・七・七を目安に自由に詠めます':'自由詩：音数制限なし';$('#genmeta').textContent='自作作品';setExplanation('あなた自身の創作です。');
+ $('#editPoem').focus();
+};
+$('#generateBtn').onclick=make;
+$('#editPoem').addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();$('#saveGen').click()}});
+const draftKey='yohaku-current-draft';
+try{const draft=JSON.parse(localStorage.getItem(draftKey)||'null');if(draft&&typeof draft.text==='string'&&draft.text.length<=1000){current=draft;$('#editPoem').value=draft.text;$('#generated').textContent=draft.text;$('#genmeta').textContent='前回の下書きを復元しました';}}catch{}
+$('#editPoem').addEventListener('input',()=>{try{if(current)localStorage.setItem(draftKey,JSON.stringify(current))}catch{}});
+$('#editPoem').addEventListener('input',()=>{if(!current)return;const edited=$('#editPoem').value.slice(0,1000);
+ if(current.id.startsWith('source-')&&edited!==current.text){current.author='あなた（古典からの改作）';current.id='adapt-'+Date.now();current.note='原典をもとにした改作。原文ではありません';}
+ current.text=edited;$('#generated').textContent=current.text;const lines=current.text.split('\n');$('#meter').textContent=current.kind==='自由詩'?'自由詩（定型音数なし）':'音数：'+lines.map(mora).join('・')+(JSON.stringify(lines.map(mora))===JSON.stringify(current.kind==='俳句'?[5,7,5]:[5,7,5,7,7])?' ✓ 定型':' ※ 定型から外れています');});function isUserOriginal(poem){return !!poem && (String(poem.id||'').startsWith('self-') || (poem.author==='あなた' && poem.theme==='自作'));}
+function postHashtags(poem){return '#会わない歌会余白文庫'+(isUserOriginal(poem)?' #オリジナル':'');}
+$('#shareGen').onclick=async()=>{
+ if(!current||!current.text.trim())return toast('まず作品を書いてください');
+ const caption=current.text+'\n'+(current.author&&current.author!=='あなた'?'作者：'+current.author+'\n'+(current.note?'出典等：'+current.note.slice(0,100)+'\n':''):'')+'\n'+postHashtags(current);
+ const canvas=renderPoemImage(current),blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
+ if(!blob)return toast('画像を作成できませんでした');
+ const file=new File([blob],'awanai-kakai.png',{type:'image/png'});
+ if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+   try{await navigator.share({files:[file],text:caption,title:'会わない歌会'});return}
+   catch(e){if(e.name==='AbortError')return}
+ }
+ // Browsers cannot attach a local image to X via a URL intent.
+ downloadCanvas(canvas,'awanai-kakai.png');
+ try{await navigator.clipboard.writeText(caption)}catch{}
+ window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(caption),'_blank','noopener,noreferrer');
+ toast('画像を保存しました。Xで画像を添付してください');
+};$('#saveGen').onclick=()=>{if(!current){toast('まず作品を生成してください');return}if(!favorites.some(w=>w.id===current.id)){favorites.unshift({...current});persist();toast('生成作品を蒐集しました')}else toast('蒐集済みです')};$('#copyGen').onclick=()=>current?copy(current.text):toast('まず作品を生成してください');$('#export').onclick=()=>{let blob=new Blob([JSON.stringify({app:'余白文庫',exportedAt:new Date().toISOString(),works:favorites},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='yohaku-collection.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
+$('#importBtn').onclick=()=>$('#importFile').click();
+$('#importFile').onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let obj=JSON.parse(await f.text());if(!Array.isArray(obj.works)||f.size>2000000)throw Error('format');let valid=obj.works.filter(w=>w&&typeof w.id==='string'&&typeof w.text==='string'&&typeof w.author==='string'&&w.text.length<5000&&w.id.length<200&&w.author.length<200).slice(0,2000);favorites=[...valid,...favorites].filter((w,i,a)=>a.findIndex(x=>x.id===w.id)===i);persist();renderSaved();toast(valid.length+'篇を読み込みました')}catch{toast('JSONの形式を確認してください')}e.target.value=''};
+// Preserve author-entered verse lines. For a single unbroken kana poem,
+// split only at 5-7-5 or 5-7-5-7-7 mora boundaries, never at pixel width.
+// Kanji readings cannot be determined safely offline, so require manual breaks.
+function splitMoraUnits(text){
+ const units=[];
+ for(const c of [...text.normalize('NFKC')]){
+  if(/[ぁぃぅぇぉゃゅょァィゥェォャュョ]/.test(c)&&units.length)units[units.length-1]+=c;
+  else units.push(c);
+ }
+ return units;
+}
+function verseImageLines(poem){
+ const raw=String(poem.text||'').replace(/\r/g,'').trim();
+ if(raw.includes('\n'))return raw.split('\n').map(x=>x.trim());
+ const pattern=poem.kind==='俳句'?[5,7,5]:poem.kind==='短歌'?[5,7,5,7,7]:null;
+ if(!pattern)return [raw];
+ if(!/^[\p{Script=Hiragana}\p{Script=Katakana}ー\s]+$/u.test(raw))return [raw];
+ const units=splitMoraUnits(raw.replace(/\s/g,''));
+ if(units.length!==pattern.reduce((a,b)=>a+b,0))return [raw];
+ const out=[];let at=0;
+ for(const n of pattern){out.push(units.slice(at,at+n).join(''));at+=n}
+ return out;
+}
+function renderPoemImage(poem){
+ const c=document.createElement('canvas');c.width=1080;c.height=1350;
+ const ctx=c.getContext('2d');
+ const themes={paper:['#f5f2e9','#34473b'],ink:['#15191c','#f3f0e8'],rose:['#a63236','#fff4eb'],blue:['#19345c','#f2f4fa'],sakura:['#f8e4e7','#753b53'],matcha:['#d8e4c7','#324c36'],sunset:['#ec985f','#482b3a'],lavender:['#dcd2ed','#4d386d'],gold:['#e7cc8a','#4b3927'],night:['#101b38','#e5dcba'],mint:['#d6f2e7','#255e56'],mono:['#fff','#151515'],peach:['#f7d5bb', '#6b4141'],ocean:['#b9e3e7','#1d536c'],wine:['#542439','#f6e8df'],sepia:['#dbc7a5','#463d33']};
+ const colors=themes[$('#imageTheme').value]||themes.paper;
+ const vertical=$('#imageDirection')?.value==='vertical';
+ ctx.fillStyle=colors[0];ctx.fillRect(0,0,c.width,c.height);
+ ctx.fillStyle=colors[1];ctx.font='40px serif';ctx.fillText('余白文庫  /  Y O H A K U',90,130);
+ ctx.fillRect(90,165,900,2);
+ const deco=$("#imageDecor")?.value||"none";ctx.save();ctx.globalAlpha=.18;ctx.strokeStyle=colors[1];ctx.fillStyle=colors[1];if(deco==="line"){ctx.strokeRect(45,45,990,1260);ctx.strokeRect(58,58,964,1234)}if(deco==="moon"){ctx.beginPath();ctx.arc(880,980,100,0,Math.PI*2);ctx.fill();ctx.globalCompositeOperation="destination-out";ctx.beginPath();ctx.arc(925,940,95,0,Math.PI*2);ctx.fill();ctx.globalCompositeOperation="source-over"}if(deco==="petals")for(let i=0;i<12;i++){ctx.beginPath();ctx.ellipse(130+(i*71)%810,230+(i*127)%830,10,24,i*.7,0,Math.PI*2);ctx.fill()}ctx.restore();
+ const lines=verseImageLines(poem);
+ const scale=Number($("#imageScale")?.value||1);const margin=$("#imageMargin")?.value||"normal";const room=margin==="wide"?.84:margin==="compact"?1.08:1;
+ // No silent cropping and no visual-width wrapping. Scale type to fit instead.
+ if(vertical){
+  const cols=lines.length, maxChars=Math.max(1,...lines.map(x=>[...x].length));
+  const size=Math.max(6,Math.min(60,780/(Math.max(maxChars,1)*1.35),830/Math.max(cols,1)*.68)*scale*room);
+  const colGap=Math.min(125,840/Math.max(cols,1));
+  ctx.font=size+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+  lines.forEach((line,i)=>{
+   const x=960-i*colGap;
+   [...line].forEach((ch,j)=>ctx.fillText(ch,x,255+j*(size*1.35)));
+  });
+  ctx.textAlign='left';ctx.textBaseline='alphabetic';
+ }else{
+  const maxWidth=880;
+  const maxChars=Math.max(1,...lines.map(x=>[...x].length));
+  const size=Math.max(6,Math.min(64,850/Math.max(maxChars,1),760/Math.max(lines.length,1)*.72)*scale*room);
+  const height=Math.min(120,820/Math.max(lines.length,1));
+  ctx.font=size+'px serif';ctx.textAlign='center';
+  lines.forEach((line,i)=>ctx.fillText(line,540,270+i*height));
+  ctx.textAlign='left';
+ }
+ ctx.font='31px serif';
+ ctx.fillText((poem.kind||'詩')+'  ·  '+($('#imageSignature')?.value.trim()||poem.author||'あなた').slice(0,18),90,1160);
+ ctx.fillText(postHashtags(poem),90,1235);
+ if(poem.note){ctx.font='22px serif';ctx.fillText(poem.note.slice(0,48),90,1290)}
+ return c;
+}
+function previewCurrentImage(){
+ if(!current||!current.text.trim())return toast('詩を書いてからプレビューしてください');
+ const canvas=renderPoemImage(current),dest=$('#imagePreview');
+ dest.getContext('2d').clearRect(0,0,dest.width,dest.height);
+ dest.getContext('2d').drawImage(canvas,0,0,dest.width,dest.height);
+ $('#imagePreviewWrap').style.display='block';
+}
+$('#previewImage').onclick=previewCurrentImage;
+for(const imageOption of ['imageTheme','imageDirection','imageMargin','imageScale','imageDecor','imageSignature'])$('#'+imageOption).addEventListener('change',()=>{if($('#imagePreviewWrap').style.display!=='none'&&current?.text?.trim())previewCurrentImage()});
+function downloadCanvas(c,name){const a=document.createElement('a');a.href=c.toDataURL('image/png');a.download=name;a.click()}
+$('#imageGen').onclick=()=>{if(!current||!current.text.trim())return toast('まず作品を書いてください');downloadCanvas(renderPoemImage(current),'awanai-kakai.png');toast('PNGを書き出しました')};
+
+// Vertical reading preference, shared between the library and generator.
+let verticalReading=false;
+function updateReading(){document.body.classList.toggle('vertical',verticalReading);for(const id of ['viewMode','viewModeGen']){const b=document.getElementById(id);if(b){b.textContent=verticalReading?'横書きに切替':'縦書きに切替';b.setAttribute('aria-pressed',String(verticalReading));}}}
+for(const id of ['viewMode','viewModeGen'])document.getElementById(id).addEventListener('click',()=>{verticalReading=!verticalReading;updateReading()});
+// Make the provenance policy visible in the interface.
+const provenance=document.createElement('p');provenance.className='note';provenance.textContent='作品本文は初期サンプルです。表記異同や底本との照合は継続中。宗教文献の文章は独自要旨であり、翻訳文の転載ではありません。';document.getElementById('library').appendChild(provenance);
+
+const corpusInfo=document.createElement('p');corpusInfo.className='note';corpusInfo.textContent=`文庫内訳：自動構成600篇／古典・独自要旨など${works.filter(w=>!w.id.startsWith('original-')).length}篇。出典は各作品カードを参照。`;document.querySelector('#library').prepend(corpusInfo);
+
+// v2.0: self-contained, offline creative studio
+const atelierPool={
+5:['はるのあめ','ふゆのつき','なつのかぜ','あきのそら','きみをまつ','ゆめのあと','てをのばす','ほしのよる','はなのかげ','こえをきく'],
+7:['ひかりをさがす','こころをほどく','となりにすわる','なみだをぬぐう','とおくのまちへ','しずかなみなも','かえらぬひとへ','あしたをまとう','ことばをのこす','わすれないまま']
+};
+const seedThemes={
+月:['ふゆのつき','ほしのよる'],雨:['はるのあめ','なみだをぬぐう'],花:['はなのかげ','あきのそら'],海:['なつのかぜ','しずかなみなも'],雪:['ふゆのつき','しずかなみなも'],風:['なつのかぜ','あきのそら'],
+孤独:['きみをまつ','かえらぬひとへ'],愛:['てをのばす','となりにすわる'],希望:['ほしのよる','あしたをまとう'],赦し:['ゆめのあと','こころをほどく'],無常:['あきのそら','わすれないまま']
+};
+const seedScenes={
+ 月:[['ふゆのつき','しずかなみなも','きみをまつ','ことばをのこす','ただここにいる'],['ほしのよる','かえらぬひとへ','てをのばす','あしたをまとう','こころをほどく']],
+ 雨:[['はるのあめ','なみだをぬぐう','ゆめのあと','となりにすわる','ただここにいる'],['あめのよる','ひかりをさがす','きみをまつ','ことばをのこす','わすれないまま']],
+ 花:[['はなのかげ','となりにすわる','こえをきく','こころをほどく','ただここにいる'],['あきのそら','しずかなみなも','はなのかげ','あしたをまとう','わすれないまま']],
+ 海:[['なつのかぜ','とおくのまちへ','てをのばす','ことばをのこす','ただここにいる']],
+ 雪:[['ふゆのつき','しずかなみなも','きみをまつ','あしたをまとう','こころをほどく']],
+ 風:[['なつのかぜ','ひかりをさがす','ゆめのあと','ことばをのこす','ただここにいる']]
+};
+const themeClosings={
+ 孤独:[['かえらぬひとへ','わすれないまま'],['ことばをのこす','ただここにいる']],
+ 愛:[['となりにすわる','ただここにいる'],['こころをほどく','てをのばす']],
+ 希望:[['あしたをまとう','ひかりをさがす'],['ことばをのこす','ただここにいる']],
+ 赦し:[['こころをほどく','ただここにいる'],['なみだをぬぐう','わすれないまま']],
+ 無常:[['ことばをのこす','わすれないまま'],['かえらぬひとへ','ただここにいる']]
+};
+function makeSeedVerse(a,b,kind){
+ const scenes=(seedScenes[a]||seedScenes['月']).filter(x=>validatedVerse(x,'短歌'));
+ const chosen=pick(scenes).slice();
+ const closings=(themeClosings[b]||themeClosings['希望']).filter(x=>x.length===2&&x.every(y=>mora(y)===7));
+ if(kind==='短歌'&&closings.length){const pair=pick(closings);chosen[3]=pair[0];chosen[4]=pair[1]}
+ const lines=kind==='俳句'?chosen.slice(0,3):chosen;
+ return validatedVerse(lines,kind)?lines:null;
+}
+function setCreative(lines,kind,theme,note){
+ if(!lines||!validatedVerse(lines,kind)){toast('音数が一致しないため生成を中止しました');return false}
+ previousPoem=current?{...current}:null;
+ current={id:'gen-'+Date.now()+'-'+Math.random().toString(36).slice(2),kind,theme,text:lines.join('\n'),author:'余白文庫・生成作品',note};
+ $('#genkind').value=kind;$('#generated').textContent=current.text;$('#editPoem').value=current.text;
+ $('#genmeta').textContent=theme+' / 独自創作';$('#meter').textContent='音数：'+lines.map(mora).join('・')+' ✓';
+ setExplanation(esc(note));activate('generate');return true;
+}
+$('#seedGo').onclick=()=>{const a=$('#seedA').value,b=$('#seedB').value,k=$('#seedKind').value;setCreative(makeSeedVerse(a,b,k),k,a+' × '+b,'「'+a+'」「'+b+'」から着想した定型詩。指定語の文字列そのものが必ず含まれるわけではありません。')};
+// Source-sensitive reply: infer a small, explicit image vocabulary, not unrestricted AI understanding.
+const replyImages=[
+ {name:'月',re:/月|つき|ムーン|夜|よる|星|ほし/,open:['ふゆのつき','ほしのよる'],echo:'夜と月'},
+ {name:'雨',re:/雨|あめ|涙|なみだ|泣|なく/,open:['はるのあめ','あめのよる'],echo:'雨と涙'},
+ {name:'花',re:/花|はな|桜|さくら|梅|うめ/,open:['はなのかげ','はるのあめ'],echo:'花と春'},
+ {name:'海',re:/海|うみ|波|なみ|舟|ふね/,open:['なつのかぜ','ほしのよる'],echo:'海と旅'},
+ {name:'雪',re:/雪|ゆき|霜|しも|冬|ふゆ/,open:['ふゆのつき','ほしのよる'],echo:'冬と雪'},
+ {name:'風',re:/風|かぜ|空|そら|雲|くも/,open:['なつのかぜ','あきのそら'],echo:'風と空'}
+];
+const replyEmotions=[
+ {name:'待望',re:/待|まつ|来ぬ|こぬ|恋|こい|逢|あう/,close:['きみをまつ','かえらぬひとへ']},
+ {name:'別離',re:/別|わかれ|去|さる|遠|とお|帰|かえら|旅/,close:['かえらぬひとへ','わすれないまま']},
+ {name:'悲嘆',re:/悲|かな|涙|なみだ|泣|なく|寂|さび|孤独/,close:['なみだをぬぐう','こころをほどく']},
+ {name:'祈願',re:/祈|いの|願|ねが|神|かみ|仏|ほとけ/,close:['あしたをまとう','ただここにいる']}
+];
+const replyStanceLines={
+ '待つ人':{mid:['しずかなみなも','ひかりをさがす'],turn:['きみをまつ','ゆめのあと'],close:['ことばをのこす','ただここにいる']},
+ '旅立つ人':{mid:['とおくのまちへ','ひかりをさがす'],turn:['てをのばす','ゆめのあと'],close:['あしたをまとう','わすれないまま']},
+ '赦す人':{mid:['なみだをぬぐう','こころをほどく'],turn:['ゆめのあと','てをのばす'],close:['こころをほどく','ただここにいる']},
+ '忘れない人':{mid:['ことばをのこす','かえらぬひとへ'],turn:['ゆめのあと','きみをまつ'],close:['かえらぬひとへ','わすれないまま']}
+};
+let lastReplySignature='';
+let lastReplyPair=null;
+const replyOpposites={月:'花',雨:'風',花:'雪',海:'月',雪:'花',風:'雨'};
+const replyComfort={mid:['なみだをぬぐう','こころをほどく'],turn:['てをのばす','ゆめのあと'],close:['ただここにいる','あしたをまとう']};
+function analyzeReply(src){
+ const hits=replyImages.filter(x=>x.re.test(src));
+ const emotions=replyEmotions.filter(x=>x.re.test(src));
+ return {hits,emotions, image:hits[0]||null,emotion:emotions[0]||null};
+}
+function replyFromSource(src,stance,tone){
+ const analysis=analyzeReply(src),image=analysis.image,emotion=analysis.emotion;
+ const parts=tone==='comfort'?replyComfort:(replyStanceLines[stance]||replyStanceLines['待つ人']);
+ const actualImage=tone==='contrast'&&image?replyImages.find(x=>x.name===replyOpposites[image.name])||image:image;
+ const openings=actualImage?actualImage.open:['ほしのよる','はなのかげ','あきのそら'];
+ const options=[];
+ for(const first of openings)for(const second of parts.mid)for(const third of parts.turn){
+  const endings=[parts.close,emotion?.close].filter(Boolean);
+  for(const end of endings){
+   const lines=[first,second,third,...end];
+   if(validatedVerse(lines,'短歌'))options.push(lines);
+  }
+ }
+ if(!options.length)return null;
+ const fresh=options.filter(x=>x.join('|')!==lastReplySignature);
+ const lines=pick(fresh.length?fresh:options);
+ lastReplySignature=lines.join('|');
+ return {lines,image:image?.name||'特定できず',echo:actualImage?.name||'自由な情景',emotion:emotion?.name||'特定できず',analysis};
+}
+function renderReplyAnalysis(){
+ const src=$('#replySource').value.trim(),el=$('#replyAnalysis');
+ if(!src){el.textContent='原歌を入力すると、読み取れた情景語と感情語をここに表示します。';return}
+ const a=analyzeReply(src);
+ el.textContent='読み取った情景：'+(a.hits.map(x=>x.name).join('・')||'未検出')+' ／ 感情：'+(a.emotions.map(x=>x.name).join('・')||'未検出')+'。検出できない比喩や古語もあります。';
+}
+$('#replySource').addEventListener('input',renderReplyAnalysis);
+$('#replyUseCurrent').onclick=()=>{$('#replySource').value=$('#editPoem').value;renderReplyAnalysis();toast('編集中の歌を原歌にしました')};
+$('#replyGo').onclick=()=>{
+ const src=$('#replySource').value.trim(),stance=$('#replyStance').value,tone=$('#replyTone').value;
+ if(!src){toast('返歌の相手となる歌を入力してください');return}
+ const result=replyFromSource(src,stance,tone);
+ if(!result){toast('音数保証できる返歌候補がありません');return}
+ const note='原歌「'+src.slice(0,70)+'」から検出した情景：'+result.image+'／感情：'+result.emotion+'。応答の情景：'+result.echo+'。'+stance+'の視点。語彙パターンによる限定的な応答で、原歌の意味を完全に理解するものではありません。';
+ if(setCreative(result.lines,'短歌','返歌 · '+stance,note))lastReplyPair={source:src,reply:result.lines.join('\n'),stance,tone};
+};
+$('#replyCopyPair').onclick=()=>{
+ if(!lastReplyPair){toast('まず返歌を詠んでください');return}
+ const pair='【原歌】\n'+lastReplyPair.source+'\n\n【返歌】\n'+lastReplyPair.reply+'\n#会わない歌会余白文庫';
+ if(navigator.clipboard?.writeText)navigator.clipboard.writeText(pair).then(()=>toast('原歌と返歌をコピーしました')).catch(()=>toast('コピーできませんでした'));
+ else{const t=document.createElement('textarea');t.value=pair;document.body.append(t);t.select();document.execCommand('copy');t.remove();toast('原歌と返歌をコピーしました')}
+};
+renderReplyAnalysis();
+function polishSuggestions(){
+ const lines=$('#editPoem').value.split(/\r?\n/),i=Number($('#polishLine').value);
+ const source=lines[i]||'';const n=mora(source),isKana=/^[\p{Script=Hiragana}\p{Script=Katakana}ー\s]+$/u.test(source);const choices=(isKana?atelierPool[n]:[]||[]).filter(x=>x!==source&&mora(x)===n);
+ $('#polishChoice').replaceChildren(...choices.map(x=>new Option(x,x)));
+ $('#polishStatus').textContent='第'+(i+1)+'行：'+n+'音。'+(choices.length?'同音数の候補を表示中。意味が合うかは自分で選んでください。':'候補なし。かな表記の5音・7音に対応します。');
+}
+$('#polishSuggest').onclick=polishSuggestions;
+$('#polishApply').onclick=()=>{
+ const lines=$('#editPoem').value.split(/\r?\n/),i=Number($('#polishLine').value),candidate=$('#polishChoice').value;
+ if(!candidate||! /^[\p{Script=Hiragana}\p{Script=Katakana}ー\s]+$/u.test(lines[i]||'')||mora(candidate)!==mora(lines[i]||'')){toast('音数の一致する候補がありません');return}
+ lines[i]=candidate;$('#editPoem').value=lines.join('\n');$('#editPoem').dispatchEvent(new Event('input'));polishSuggestions();toast('同じ音数で差し替えました');
+};
+function updatePolishLines(){
+ const lines=$('#editPoem').value.split(/\r?\n/);const old=$('#polishLine').value;
+ $('#polishLine').replaceChildren(...lines.map((x,i)=>new Option((i+1)+'行目（'+mora(x)+'音）',String(i))));
+ $('#polishLine').value=old&&Number(old)<lines.length?old:'0';polishSuggestions();
+}
+$('#editPoem').addEventListener('input',updatePolishLines);$('#polishLine').onchange=polishSuggestions;
+$('#generateBtn').addEventListener('click',()=>setTimeout(updatePolishLines,0));$('#seedGo').addEventListener('click',()=>setTimeout(updatePolishLines,0));$('#replyGo').addEventListener('click',()=>setTimeout(updatePolishLines,0));
+const glossary={
+'あはれ':'心を深く動かす趣やしみじみとした感情。','をかし':'興味深い、美しい、風情がある。','ながめ':'物思いにふけって眺めること。「長雨」と響き合う場合がある。','かりほ':'仮に設けた粗末な小屋。','白妙':'白い布、またはそのように白いもの。','ちはやぶる':'神にかかる枕詞。','逢坂':'近江と山城の境の地名。「逢ふ」にも響く。','みをつくし':'水路標識の澪標。「身を尽くし」と掛ける。','有明':'夜明けにも空に残る月。','あしびきの':'山にかかる枕詞。','ほととぎす':'初夏を告げる鳥。古典和歌の季節語。','もみぢ':'秋に色づく木の葉。','うき世':'つらい世の中。「浮世」とも響き合う。','袖':'涙で濡れるものとして恋歌によく登場。','しのぶ':'耐え忍ぶ、恋心を隠す、植物の忍ぶ草など多義的。'
+};
+const waka=works.filter(w=>w.id.startsWith('hyakunin-')).sort((a,b)=>a.number-b.number);
+$('#wakaSelect').replaceChildren(...waka.map((w,i)=>new Option((i+1)+' · '+w.author,String(i))));
+$('#glossSelect').replaceChildren(...Object.keys(glossary).map(x=>new Option(x,x)));
+function showWaka(){
+ const i=Number($('#wakaSelect').value),w=waka[i];if(!w)return;
+ $('#wakaStudy').innerHTML='<b>原歌</b><p>'+esc(w.text)+'</p><b>現代語での鑑賞</b><p>'+esc(hyakuninNotes[i]||'鑑賞文準備中')+'</p><small>逐語訳ではありません。出典表記と本文校訂は継続確認中。</small>';
+}
+$('#wakaSelect').onchange=showWaka;
+function showGloss(){$('#glossResult').textContent=glossary[$('#glossSelect').value]||''}
+$('#glossSelect').onchange=showGloss;showWaka();showGloss();
+const seasonWords={春:['春','花','桜','霞','若菜','梅'],夏:['夏','ほととぎす','蝉','五月','卯'],秋:['秋','紅葉','もみぢ','鹿','霜','月'],冬:['冬','雪','氷','寒','霜']};
+$('#seasonFind').onclick=()=>{
+ const season=$('#seasonStudy').value,found=waka.filter(w=>seasonWords[season].some(t=>w.text.includes(t)));
+ $('#seasonResults').innerHTML='<b>'+esc(season)+'の歌 '+found.length+'首</b><p>'+found.slice(0,12).map(w=>esc(w.number+' · '+w.author+'：'+w.text)).join('</p><p>')+'</p><small>季節語による簡易検索。季節分類の厳密な校訂ではありません。</small>';
+};$('#seasonFind').onclick();
+let quizCorrect=0,quizTotal=0;
+function nextQuiz(){
+ const correct=pick(waka),others=waka.filter(w=>w.number!==correct.number).sort(()=>Math.random()-.5).slice(0,3);
+ const choices=[correct,...others].sort(()=>Math.random()-.5);
+ $('#quizPrompt').textContent='この歌の作者は？\n'+correct.text;
+ $('#quizAnswers').replaceChildren(...choices.map(w=>{const b=document.createElement('button');b.className='smallbtn';b.textContent=w.author;b.onclick=()=>{quizTotal++;if(w.number===correct.number)quizCorrect++;$('#quizFeedback').textContent=(w.number===correct.number?'正解！':'残念。正解：'+correct.author)+'　'+quizCorrect+'/'+quizTotal+'問正解';$('#quizAnswers').querySelectorAll('button').forEach(x=>x.disabled=true)};return b}));
+ $('#quizFeedback').textContent='累計 '+quizCorrect+'/'+quizTotal+'問正解';
+}$('#quizNext').onclick=nextQuiz;nextQuiz();
+const crossData={
+'慈悲と赦し':['仏教：慈悲は苦しむ存在に向けた配慮。','キリスト教：赦しは罪や傷つきに対する関係の回復に結びつく。','接点：相手を見捨てない姿勢。違い：苦の理解と神との関係という背景。'],
+'無常と永遠':['仏教：形成されたものは移り変わる。','キリスト教：神の永遠性や復活への希望が語られる。','接点：有限な生への問い。違い：変化の洞察と超越への信頼。'],
+'空と創造':['仏教：空は物事に固定的実体がないという洞察。','キリスト教：創造は世界を神との関係で理解する枠組み。','接点：世界が自足的でないという問い。違い：縁起と創造主の概念。'],
+'苦と希望':['仏教：苦を見つめ、その原因と道を考える。','キリスト教：苦難のただ中に希望と救いを見いだす。','接点：苦しみを否認しないこと。違い：解脱と救済の理解。']
+};
+function showCross(){$('#crossResult').innerHTML=crossData[$('#crossTheme').value].map(x=>'<p>'+esc(x)+'</p>').join('')+'<small>入門用の概説。宗派・学派ごとの異同は省略。</small>'}
+$('#crossTheme').onchange=showCross;showCross();
+$('#crossWrite').onclick=()=>{const t=$('#crossTheme').value;setCreative(makeSeedVerse('月',t.includes('赦')?'赦し':'希望','短歌'),'短歌',t,'思想の交差点「'+t+'」から着想。経典の引用ではありません。')};
+const journalKey='yohaku-journal-v2';
+let journal=[];try{journal=JSON.parse(localStorage.getItem(journalKey)||'[]');if(!Array.isArray(journal))journal=[]}catch{journal=[]}
+$('#diaryDate').value=new Date().toLocaleDateString('sv-SE');
+if(!$('#diaryDate').value)$('#diaryDate').value=new Date().toISOString().slice(0,10);
+function saveJournal(){try{localStorage.setItem(journalKey,JSON.stringify(journal));return true}catch{toast('保存容量を確認してください');return false}}
+function renderJournal(){
+ $('#diaryEntries').replaceChildren(...journal.slice().reverse().map(entry=>{
+  const d=document.createElement('article');d.className='poem';
+  d.innerHTML='<div class="eyebrow">'+esc(entry.date)+' · '+esc(entry.mood)+' · '+esc(entry.weather)+'</div><div class="poemtext">'+esc(entry.text)+'</div><p>'+esc(entry.memo)+'</p>';
+  const b=document.createElement('button');b.className='smallbtn';b.textContent='削除';b.onclick=()=>{if(!confirm('この日記を削除しますか？'))return;journal=journal.filter(x=>x.id!==entry.id);saveJournal();renderJournal();renderBookSelection()};d.append(b);return d;
+ }));
+}
+$('#diarySave').onclick=()=>{
+ const text=$('#editPoem').value.trim();if(!text){toast('まず詩の生成室で作品を書いてください');return}
+ journal.push({id:'day-'+Date.now()+'-'+Math.random().toString(36).slice(2),date:$('#diaryDate').value,mood:$('#diaryMood').value,weather:$('#diaryWeather').value,memo:$('#diaryMemo').value,text,kind:current?.kind||'自由詩'});
+ if(saveJournal()){renderJournal();renderBookSelection();toast('歌日記に保存しました')}
+};
+function bookItems(){return [...favorites.map(x=>({...x,bookKey:'fav-'+x.id})),...journal.map(x=>({...x,bookKey:x.id,author:x.date,theme:x.mood}))]}
+function renderBookSelection(){
+ const existing=[...document.querySelectorAll('#bookSelection input')];const selected=new Set(existing.filter(x=>x.checked).map(x=>x.value));const initial=existing.length===0;
+ const items=bookItems();$('#bookSelection').replaceChildren(...items.map(w=>{const l=document.createElement('label');l.style.display='block';const c=document.createElement('input');c.type='checkbox';c.value=w.bookKey;c.checked=initial?true:selected.has(w.bookKey);l.append(c,document.createTextNode(' '+(w.text||'').replace(/\n/g,' / ').slice(0,70)));return l}));
+ if(!items.length)$('#bookSelection').textContent='歌日記か蒐集帳に作品を保存すると、ここで選べます。';
+}
+function anthologyHtml(){
+ const keys=new Set([...document.querySelectorAll('#bookSelection input:checked')].map(x=>x.value));
+ const items=bookItems().filter(x=>keys.has(x.bookKey));
+ if(!items.length){toast('歌集に入れる作品を選んでください');return null}
+ const title=esc($('#bookTitle').value||'私家歌集'),preface=esc($('#bookPreface').value);
+ return '<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>'+title+'</title><style>body{font-family:serif;max-width:700px;margin:5em auto;padding:1em;color:#293b35;line-height:2}h1{text-align:center;margin:3em 0}.poem{break-inside:avoid;page-break-inside:avoid;margin:5em 0;border-bottom:1px solid #ddd;padding-bottom:2em}pre{font:1.3em/2.1 serif;white-space:pre-wrap}small{color:#777}@media print{body{margin:1cm auto}}</style><h1>'+title+'</h1><p>'+preface.replace(/\n/g,'<br>')+'</p>'+items.map((w,i)=>'<section class="poem"><small>第'+(i+1)+'首　'+esc(w.kind||'詩')+'</small><pre>'+esc(w.text)+'</pre><small>'+esc(w.author||'自作')+'</small></section>').join('')+'<footer>余白文庫 · 私家歌集</footer></html>';
+}
+function saveHtml(text,name){const a=document.createElement('a'),url=URL.createObjectURL(new Blob([text],{type:'text/html;charset=utf-8'}));a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),3000)}
+$('#bookHtml').onclick=()=>{const html=anthologyHtml();if(html)saveHtml(html,'yohaku-anthology.html')};
+$('#bookPrint').onclick=()=>{const html=anthologyHtml();if(!html)return;const w=window.open('','_blank');if(!w){toast('ポップアップを許可してください');return}w.document.write(html);w.document.close();w.focus();setTimeout(()=>w.print(),400)};
+const oldRenderSaved=renderSaved;renderSaved=function(){oldRenderSaved();renderBookSelection()};
+renderJournal();renderBookSelection();updatePolishLines();
+
+
+// Offline reading: browser voice availability depends on OS.
+$('#readPoem').onclick=()=>{if(!('speechSynthesis' in window)){toast('このブラウザは朗読非対応です');return}const text=$('#editPoem').value.trim();if(!text){toast('朗読する作品がありません');return}speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='ja-JP';u.rate=Number($('#readRate').value);const ja=speechSynthesis.getVoices().find(v=>v.lang.toLowerCase().startsWith('ja'));if(ja)u.voice=ja;speechSynthesis.speak(u)};
+$('#stopRead').onclick=()=>{if('speechSynthesis' in window)speechSynthesis.cancel()};
+persist();renderLibrary();renderSaved();
+
+// Mobile home, thumb navigation, drafts and low-friction workflows.
+const extraDestinations=[['atelier','創作工房'],['studyPlus','学びと遊び'],['journal','歌日記・歌集'],['bibleStudy','聖書の思想'],['authors','作者図鑑'],['community','会わない歌会'],['about','文庫について']];
+const moreGrid=document.querySelector('#moreGrid');
+extraDestinations.forEach(([id,label])=>{const b=document.createElement('button');b.textContent=label;b.onclick=()=>activate(id);moreGrid.append(b)});
+const mobileButtons=[...document.querySelectorAll('.mobile-nav button')];
+const originalActivate=activate;
+activate=function(id){originalActivate(id);mobileButtons.forEach(b=>b.classList.toggle('selected',b.dataset.go===(extraDestinations.some(([key])=>key===id)?'more':id)));if(window.matchMedia('(max-width:720px)').matches)window.scrollTo({top:0,behavior:'instant'})};
+mobileButtons.forEach(b=>b.addEventListener('click',()=>activate(b.dataset.go)));
+const dailyIndex=Math.floor(new Date().setHours(0,0,0,0)/86400000);
+const dailyWaka=waka[((dailyIndex%waka.length)+waka.length)%waka.length];
+if(dailyWaka){$('#todayVerse').textContent=dailyWaka.text;$('#todayAuthor').textContent=dailyWaka.author}
+$('#todayRead').onclick=()=>{const i=waka.findIndex(w=>w.id===dailyWaka.id);$('#wakaSelect').value=String(i);showWaka();activate('studyPlus');document.querySelector('#wakaStudy')?.scrollIntoView({block:'center',behavior:'smooth'})};
+$('#todayReply').onclick=()=>{$('#replySource').value=dailyWaka.text;activate('atelier')};
+$('#quickReply').onclick=()=>activate('atelier');
+$('#quickBlank').onclick=()=>{$('#genkind').value='短歌';$('#blankPoem').click();activate('generate')};
+let quickMood='random';
+document.querySelectorAll('.quick-moods button').forEach(b=>b.onclick=()=>{quickMood=b.dataset.mood;document.querySelectorAll('.quick-moods button').forEach(x=>x.classList.toggle('chosen',x===b))});
+$('#quickCompose').onclick=()=>{const mood=quickMood==='random'?pick(['愛','孤独','希望','無常']):quickMood;$('#genkind').value='短歌';$('#seedKind').value='短歌';$('#seedA').value=pick(['月','雨','花','海','雪','風']);$('#seedB').value=mood==='無常'?'無常':mood;$('#seedGo').click();activate('generate');document.querySelector('#result')?.scrollIntoView({block:'start',behavior:'smooth'})};
+const dailyThemes=['月と孤独','花と希望','雨と赦し','海と愛','雪と無常','風と希望'];
+$('#todayPrompt').onclick=()=>{$('#dailyPrompt').textContent='今日のお題：'+dailyThemes[((dailyIndex%dailyThemes.length)+dailyThemes.length)%dailyThemes.length]};
+// Save actual input value on each change, independent of current object update listener ordering.
+const v26DraftKey='yohaku-v26-autodraft';
+let historyStack=[],futureStack=[],lastEdit=$('#editPoem').value;
+try{const raw=JSON.parse(localStorage.getItem(v26DraftKey)||'null');if(raw&&typeof raw.text==='string'&&raw.text.length<=1000&&!$('#editPoem').value){$('#editPoem').value=raw.text;$('#editPoem').dispatchEvent(new Event('input'));lastEdit=raw.text}}catch{}
+function commitDraft(){try{localStorage.setItem(v26DraftKey,JSON.stringify({text:$('#editPoem').value,kind:$('#genkind').value,at:Date.now()}))}catch{}}
+$('#editPoem').addEventListener('input',()=>{const val=$('#editPoem').value;if(val!==lastEdit){historyStack.push(lastEdit);if(historyStack.length>80)historyStack.shift();lastEdit=val;futureStack=[]}commitDraft()});
+function restoreEdit(val){lastEdit=val;$('#editPoem').value=val;$('#editPoem').dispatchEvent(new Event('input'));commitDraft()}
+$('#undoEdit').onclick=()=>{if(!historyStack.length)return toast('戻せる編集がありません');futureStack.push($('#editPoem').value);restoreEdit(historyStack.pop())};
+$('#redoEdit').onclick=()=>{if(!futureStack.length)return toast('やり直せる編集がありません');historyStack.push($('#editPoem').value);restoreEdit(futureStack.pop())};
+$('#quickImage').onclick=()=>{if(!current?.text?.trim())return toast('まず一首を詠んでください');previewCurrentImage();$('#imagePreviewWrap').style.display='block';$('#imagePreviewWrap').scrollIntoView({block:'center',behavior:'smooth'})};
+$('#savedSearch').addEventListener('input',()=>{const q=$('#savedSearch').value.trim().toLowerCase();document.querySelectorAll('#savedgrid .poem').forEach(el=>{el.hidden=!el.textContent.toLowerCase().includes(q)})});
+// The full feature set remains accessible from desktop tabs or the More screen.
+
+// Bible corner: 27 source-grounded topic cards, clearly distinguished from quotations.
+for(const t of bibleThemes){const o=new Option(t,t);$('#cornerTheme').append(o)}
+let cornerPassage=null;
+function cornerCandidates(){return biblePassages.filter(p=>($('#cornerTestament').value==='all'||p.testament===$('#cornerTestament').value)&&($('#cornerTheme').value==='random'||p.theme===$('#cornerTheme').value))}
+function cornerDisplay(){const candidates=cornerCandidates();if(!candidates.length){cornerPassage=null;$('#cornerRef').textContent='該当なし';$('#cornerSummary').textContent='この条件に一致する章節はありません。';$('#cornerExplain').textContent='';return}cornerPassage=pick(candidates);$('#cornerRef').textContent=cornerPassage.testament+' · '+cornerPassage.book+' '+cornerPassage.verses+' · '+cornerPassage.theme;$('#cornerSummary').textContent=cornerPassage.summary;$('#cornerExplain').textContent=cornerPassage.explain+' / モチーフ：'+cornerPassage.motif}
+$('#cornerNext').onclick=cornerDisplay;$('#cornerTestament').onchange=cornerDisplay;$('#cornerTheme').onchange=cornerDisplay;
+$('#cornerCompose').onclick=()=>{if(!cornerPassage){cornerDisplay();if(!cornerPassage)return}$('#genmode').value=$('#cornerMode').value;$('#gentype').value='new';$('#genkind').value=$('#cornerKind').value;$('#genBibleTheme').value=cornerPassage.theme;$('#generateBtn').click();activate('generate');$('#result').scrollIntoView({block:'start',behavior:'smooth'})};
+$('#cornerStudy').onclick=()=>activate('bibleStudy');$('#quickBible').onclick=()=>{cornerDisplay();activate('bibleCorner')};$('#quickCross').onclick=()=>activate('studyPlus');
+cornerDisplay();
+
+// Verified quotations from eBible.org World English Bible, public-domain edition.
+// Japanese renderings below are newly authored glosses, not Bible Society translations.
+const webVerses=[
+ {ref:'Genesis 1:1',book:'創世記',theme:'創造',en:'In the beginning, God created the heavens and the earth.',ja:'はじめに、神は天と地を創造した。',note:'世界の始まりを告げる。'},
+ {ref:'Psalm 23:1',book:'詩編',theme:'信頼',en:'The LORD is my shepherd; I shall lack nothing.',ja:'主は私の羊飼い。私に不足するものはない。',note:'導きと信頼の詩。'},
+ {ref:'Matthew 6:33',book:'マタイによる福音書',theme:'信頼',en:'But seek first God’s Kingdom and his righteousness; and all these things will be given to you as well.',ja:'まず神の国とその義を求めなさい。そうすれば、これらのものも与えられる。',note:'優先するものを問い直す。'},
+ {ref:'John 3:16',book:'ヨハネによる福音書',theme:'愛',en:'For God so loved the world, that he gave his only born Son, that whoever believes in him should not perish, but have eternal life.',ja:'神は世界を深く愛し、ひとり子を与えた。彼を信じる者が滅びず、永遠の命を得るためである。',note:'愛と救いの主題。'},
+ {ref:'Romans 8:28',book:'ローマの信徒への手紙',theme:'希望',en:'We know that all things work together for good for those who love God, for those who are called according to his purpose.',ja:'神を愛し、その目的に従って招かれた人々には、すべてが善へ向けて共に働くと私たちは知っている。',note:'希望と召命について。'}
+];
+const webSel=$('#webVerseSelect');
+webVerses.forEach((v,i)=>webSel.add(new Option(v.ref+' · '+v.theme,String(i))));
+function showWebVerse(){
+ const v=webVerses[Number(webSel.value)||0];
+ $('#webVerseRef').textContent=v.ref+' · World English Bible';
+ $('#webVerseEnglish').textContent=v.en;
+ $('#webVerseJapanese').textContent='参考訳：'+v.ja;
+ $('#webVerseNote').textContent=v.note;
+}
+webSel.onchange=showWebVerse;showWebVerse();
+$('#webVerseNext').onclick=()=>{webSel.selectedIndex=(webSel.selectedIndex+1)%webVerses.length;showWebVerse()};
+$('#webVerseCopy').onclick=()=>{const v=webVerses[Number(webSel.value)||0];navigator.clipboard?.writeText(v.en+'\n'+v.ref+' (World English Bible)')};
+$('#webVerseRead').onclick=()=>{if(!('speechSynthesis' in window)){toast('音声合成に非対応です');return}speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(webVerses[Number(webSel.value)||0].en);u.lang='en-US';u.rate=.86;speechSynthesis.speak(u)};
+$('#webVerseCompose').onclick=()=>{const v=webVerses[Number(webSel.value)||0];$('#genmode').value='bible';$('#gentype').value='new';$('#genkind').value='短歌';$('#genBibleTheme').value=v.theme;$('#generateBtn').click();activate('generate')};
+$('#cornerOriginal').onclick=()=>activate('bibleText');
+
+activate('home');
+
+// Thematic scripture indexes. Buddhist summaries are independently authored, not quotations.
+const buddhistIndex=[
+['法句経','1–2偈','心','思いや意図は言葉や行為に先立つ。自分の心の向きを見つめる。','https://suttacentral.net/dhp1-20'],
+['法句経','5偈','慈悲','敵意を敵意で返しても争いは止まらない。憎しみの連鎖を断つ。','https://suttacentral.net/dhp1-20'],
+['法句経','21偈','精進','注意深く生きることの大切さを説く。','https://suttacentral.net/dhp21-32'],
+['法句経','35偈','心','揺れやすい心を訓練し、落ち着きを育てる。','https://suttacentral.net/dhp33-43'],
+['法句経','50偈','自省','他人の欠点よりも、自分の行いを振り返る。','https://suttacentral.net/dhp44-59'],
+['法句経','61偈','友','道をともに歩める人を選び、賢明な交わりを大切にする。','https://suttacentral.net/dhp60-75'],
+['法句経','81偈','平静','賞賛にも非難にも振り回されない心を養う。','https://suttacentral.net/dhp76-89'],
+['法句経','103偈','克己','外の勝利より、自分自身に打ち勝つことを重んじる。','https://suttacentral.net/dhp100-115'],
+['法句経','129–130偈','不害','自分と同じように他者も痛みを恐れると知り、傷つけない。','https://suttacentral.net/dhp129-145'],
+['法句経','183偈','善行','悪を避け、善を行い、心を清めるという実践を示す。','https://suttacentral.net/dhp179-196'],
+['法句経','223偈','慈悲','怒りには怒りでなく、善意で応じる道を説く。','https://suttacentral.net/dhp221-234'],
+['法句経','277偈','無常','条件によって生じたものは変化する。執着を見つめ直す。','https://suttacentral.net/dhp277'],
+['法句経','278偈','苦','条件づけられたものに永続的な満足を求める苦しみを見つめる。','https://suttacentral.net/dhp278'],
+['法句経','279偈','無我','あらゆる現象を固定した自己とみなさない洞察。','https://suttacentral.net/dhp279'],
+['般若心経','色即是空・空即是色','空','形あるものは独立不変の実体ではなく、空は単なる無ではない。','https://ja.wikisource.org/wiki/般若波羅蜜多心経'],
+['金剛般若経','応無所住而生其心','執着','特定の対象に心を固定せず、働きかけるという教え。','https://ja.wikisource.org/wiki/金剛般若波羅蜜経'],
+['相応部','SN 12.1','縁起','無明から苦が生じる条件のつながりを説く。','https://suttacentral.net/sn12.1'],
+['相応部','SN 22.59','無我','身体や感受などの五蘊を固定した自己と捉えない。','https://suttacentral.net/sn22.59'],
+['転法輪経','SN 56.11','四諦','苦・苦の原因・苦の止滅・そこへ至る道を示す。','https://suttacentral.net/sn56.11'],
+['慈経','Sn 1.8','慈悲','生きとし生けるものへの慈しみを広げる。','https://suttacentral.net/snp1.8']
+].map(([book,ref,theme,summary,url])=>({book,ref,theme,summary,url}));
+function makeHub(id,items){
+ const q=document.getElementById(id+'Search'),kind=document.getElementById(id+(id==='bibleHub'?'Era':'Text')),theme=document.getElementById(id+'Theme'),out=document.getElementById(id+'Results'),count=document.getElementById(id+'Count');
+ const unique=(values)=>[...new Set(values)].sort((a,b)=>a.localeCompare(b,'ja'));
+ unique(items.map(x=>x.theme)).forEach(v=>theme.add(new Option(v,v)));
+ if(id==='buddhaHub')unique(items.map(x=>x.book)).forEach(v=>kind.add(new Option(v,v)));
+ function draw(){
+  const needle=q.value.trim().toLowerCase();const filtered=items.filter(x=>(kind.value==='all'||(id==='bibleHub'?x.testament:x.book)===kind.value)&&(theme.value==='all'||x.theme===theme.value)&&(!needle||[x.book,x.ref||x.verses,x.theme,x.summary,x.explain||''].join(' ').toLowerCase().includes(needle)));
+  count.textContent=filtered.length+'件 / 全'+items.length+'件';out.replaceChildren();
+  filtered.forEach(x=>{const article=document.createElement('article');article.className='scripture-entry';const h=document.createElement('h3');h.textContent=x.theme;const ref=document.createElement('div');ref.className='reference';ref.textContent=x.book+' '+(x.ref||x.verses)+' · '+(x.testament||'仏典');const summary=document.createElement('p');summary.textContent=x.summary;article.append(h,ref,summary);if(x.explain){const exp=document.createElement('p');exp.className='scripture-note';exp.textContent=x.explain;article.append(exp)}
+   const compose=document.createElement('button');compose.textContent='この主題から詠む';compose.onclick=()=>{document.getElementById('genmode').value=id==='bibleHub'?'bible':'buddha';document.getElementById('gentype').value='new';document.getElementById('genkind').value='短歌';if(id==='bibleHub')document.getElementById('genBibleTheme').value=x.theme;document.getElementById('generateBtn').click();activate('generate')};article.append(compose);
+   if(id==='bibleHub'){const b=document.createElement('button');b.textContent='聖書原文へ';b.onclick=()=>activate('bibleText');article.append(b)}else{const a=document.createElement('a');a.href=x.url;a.target='_blank';a.rel='noopener noreferrer';a.textContent='原典参照 ↗';a.className='smallbtn';article.append(a)}out.append(article)});
+  if(!filtered.length)out.textContent='該当する言葉がありません。検索条件を変えてください。';
+ }
+ q.addEventListener('input',draw);kind.addEventListener('change',draw);theme.addEventListener('change',draw);draw();
+}
+makeHub('bibleHub',biblePassages);makeHub('buddhaHub',buddhistIndex);
+document.getElementById('quickBibleHub').onclick=()=>activate('bibleHub');
+document.getElementById('quickBuddhaHub').onclick=()=>activate('buddhaHub');
+[['bibleHub','📖 聖書まとめ'],['buddhaHub','☸ 仏典まとめ']].forEach(([id,label])=>{const b=document.createElement('button');b.textContent=label;b.onclick=()=>activate(id);document.getElementById('moreGrid').prepend(b)});
+
+// v3.1: local-only reading ledger for both scripture hubs.
+const scriptureEntries=[...biblePassages.map((x,i)=>({key:'b-'+i,type:'聖書',book:x.book,ref:x.verses,theme:x.theme,summary:x.summary,detail:x.explain||'',source:x})),...buddhistIndex.map((x,i)=>({key:'d-'+i,type:'仏典',book:x.book,ref:x.ref,theme:x.theme,summary:x.summary,detail:'',source:x}))];
+const ledgerKey='yohaku-scripture-ledger-v31';
+let scriptureLedger={marked:[],read:[]};
+try{const x=JSON.parse(localStorage.getItem(ledgerKey)||'{}');if(Array.isArray(x.marked)&&Array.isArray(x.read))scriptureLedger={marked:x.marked.filter(y=>typeof y==='string'),read:x.read.filter(y=>typeof y==='string')}}catch(e){}
+function saveScriptureLedger(){try{localStorage.setItem(ledgerKey,JSON.stringify(scriptureLedger))}catch(e){toast('端末の保存容量を確認してください')}}
+function scriptureEntry(key){return scriptureEntries.find(x=>x.key===key)}
+function scriptureCompose(item){
+ if(!item)return;
+ $('#genmode').value=item.type==='聖書'?'bible':'buddha';$('#gentype').value='new';$('#genkind').value='短歌';
+ if(item.type==='聖書'){$('#genBibleTheme').value=item.theme;if($('#genBibleTheme').value!==item.theme)$('#genBibleTheme').value='random'}
+ $('#generateBtn').click();activate('generate');
+}
+function scriptureOpen(item){if(!item)return;activate(item.type==='聖書'?'bibleHub':'buddhaHub');const input=$(item.type==='聖書'?'#bibleHubSearch':'#buddhaHubSearch');input.value=item.book;input.dispatchEvent(new Event('input'));}
+function scriptureAction(label,fn){const b=document.createElement('button');b.type='button';b.textContent=label;b.onclick=fn;return b}
+function scriptureCard(item){
+ const article=document.createElement('article'),h=document.createElement('h3'),small=document.createElement('small'),p=document.createElement('p'),tools=document.createElement('div');
+ h.textContent=item.theme;small.textContent=item.type+' · '+item.book+' '+item.ref;p.textContent=item.summary;tools.className='scripture-tools';
+ const mark=scriptureAction(scriptureLedger.marked.includes(item.key)?'★ 栞を外す':'☆ 栞を挟む',()=>{scriptureLedger.marked=scriptureLedger.marked.includes(item.key)?scriptureLedger.marked.filter(x=>x!==item.key):[...scriptureLedger.marked,item.key];saveScriptureLedger();renderScriptureShelf();refreshHubScriptureButtons()});
+ const read=scriptureAction(scriptureLedger.read.includes(item.key)?'✓ 読了':'○ 読んだ',()=>{if(!scriptureLedger.read.includes(item.key))scriptureLedger.read.push(item.key);saveScriptureLedger();renderScriptureShelf();refreshHubScriptureButtons()});
+ tools.append(mark,read,scriptureAction('この主題から詠む',()=>scriptureCompose(item)),scriptureAction('まとめで見る',()=>scriptureOpen(item)));
+ article.append(h,small,p,tools);return article;
+}
+function renderScriptureShelf(){
+ $('#scriptureProgress').textContent='読んだ要旨 '+scriptureLedger.read.length+' / '+scriptureEntries.length+'件 · 栞 '+scriptureLedger.marked.length+'件。毎日一つでも、十分。';
+ const bookmarks=$('#scriptureBookmarks');bookmarks.replaceChildren();scriptureLedger.marked.map(scriptureEntry).filter(Boolean).forEach(x=>bookmarks.append(scriptureCard(x)));
+ if(!bookmarks.children.length)bookmarks.textContent='まだ栞はありません。聖書まとめ・仏典まとめから追加できます。';
+}
+function refreshHubScriptureButtons(){
+ for(const [id,type] of [['bibleHub','聖書'],['buddhaHub','仏典']]){
+  const result=$('#'+id+'Results');
+  for(const card of result.querySelectorAll('.scripture-entry')){
+   const ref=card.querySelector('.reference')?.textContent||'';
+   const item=scriptureEntries.find(x=>x.type===type&&ref.startsWith(x.book+' '+x.ref));
+   card.querySelector('.scripture-tools')?.remove();
+   if(!item)continue;
+   const tools=document.createElement('div');tools.className='scripture-tools';
+   tools.append(scriptureAction(scriptureLedger.marked.includes(item.key)?'★ 栞を外す':'☆ 栞を挟む',()=>{scriptureLedger.marked=scriptureLedger.marked.includes(item.key)?scriptureLedger.marked.filter(k=>k!==item.key):[...scriptureLedger.marked,item.key];saveScriptureLedger();renderScriptureShelf();refreshHubScriptureButtons()}),scriptureAction(scriptureLedger.read.includes(item.key)?'✓ 読了':'○ 読んだ',()=>{if(!scriptureLedger.read.includes(item.key))scriptureLedger.read.push(item.key);saveScriptureLedger();renderScriptureShelf();refreshHubScriptureButtons()}));
+   card.append(tools);
+  }
+ }
+}
+for(const id of ['bibleHub','buddhaHub']){
+ const input=$('#'+id+'Search');input.addEventListener('input',()=>setTimeout(refreshHubScriptureButtons,0));
+ for(const suffix of [id==='bibleHub'?'Era':'Text','Theme'])$('#'+id+suffix).addEventListener('change',()=>setTimeout(refreshHubScriptureButtons,0));
+}
+function globalSearch(){
+ const query=$('#scriptureGlobalSearch').value.trim().toLocaleLowerCase('ja'); const matches=query?scriptureEntries.filter(x=>[x.book,x.ref,x.theme,x.summary,x.detail,x.type].join(' ').toLocaleLowerCase('ja').includes(query)):[];
+ const dest=$('#scriptureGlobalResults');dest.replaceChildren(...matches.slice(0,60).map(scriptureCard));
+ if(query&&!matches.length)dest.textContent='見つかりませんでした。別の言葉で探してみてください。';
+ if(matches.length>60){const note=document.createElement('p');note.textContent='先頭60件を表示中。条件を絞ってください。';dest.append(note)}
+}
+$('#scriptureGlobalGo').onclick=globalSearch;$('#scriptureGlobalSearch').addEventListener('input',globalSearch);
+$('#quickScriptureShelf').onclick=()=>activate('scriptureShelf');
+$('#scriptureRandom').onclick=()=>{const x=scriptureEntries[Math.floor(Math.random()*scriptureEntries.length)];$('#scriptureGlobalSearch').value=x.book+' '+x.ref;globalSearch();$('#scriptureGlobalResults').scrollIntoView({behavior:'smooth',block:'start'})};
+$('#scriptureBackup').onclick=()=>{const blob=new Blob([JSON.stringify({version:1,created:new Date().toISOString(),ledger:scriptureLedger},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='yohaku-scripture-bookmarks.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
+const shelfLink=document.createElement('button');shelfLink.textContent='🔖 ことばの栞';shelfLink.onclick=()=>activate('scriptureShelf');$('#moreGrid').prepend(shelfLink);
+renderScriptureShelf();refreshHubScriptureButtons();
+</script><nav class="mobile-nav" aria-label="スマホ用メニュー"><button data-go="home" class="selected">⌂<small>ホーム</small></button><button data-go="generate">✎<small>詠む</small></button><button data-go="library">▤<small>読む</small></button><button data-go="saved">♡<small>作品帳</small></button><button data-go="more">☷<small>その他</small></button></nav></body></html>
