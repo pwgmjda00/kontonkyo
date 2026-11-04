@@ -567,8 +567,8 @@ for(const c of cards.filter(c=>c.id>=1000&&c.id<1120)){const act=c.act;c.act=(a,
 const PVP_CLASS_BALANCE={
  ruin:{damage:0.91,block:1.06,heal:1},
  guard:{damage:1.05,block:1.29,heal:1.12},
- fate:{damage:1.08,block:1.08,heal:1},
- blood:{damage:0.89,block:0.98,heal:0.96}
+ fate:{damage:1.12,block:1.12,heal:1},
+ blood:{damage:0.87,block:0.98,heal:0.96}
 };
 for(const theme of duelThemes){
  const tune=PVP_CLASS_BALANCE[theme.id];
