@@ -1,8 +1,8 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const ctx={};vm.createContext(ctx);
 for(const file of ['battle-core.js','battle-rules.js','duel-engine.js','match-journal.js','room-core.js','lobby-core.js','cards.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),ctx);
-let seq=0;const lobby=ctx.IngaLobby.createLobby({catalog:ctx.starter,randomBytes:n=>Uint8Array.from({length:n},()=>seq++%256)});
-const deck=ctx.starter.map(c=>c.id),host=lobby.create(deck,'せかいのおわりに');
+let seq=0;const lobby=ctx.IngaLobby.createLobby({catalog:vm.runInContext('starter',ctx),randomBytes:n=>Uint8Array.from({length:n},()=>seq++%256)});
+const deck=vm.runInContext('starter.map(c=>c.id)',ctx),host=lobby.create(deck,'せかいのおわりに');
 assert.equal(host.ok,true);
 let events=0;
 const subscription=lobby.subscribe(host.token,()=>events++);
