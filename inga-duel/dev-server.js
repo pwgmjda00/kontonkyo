@@ -28,6 +28,7 @@ const server=http.createServer(async(req,res)=>{
     else return reply(res,404,{ok:false,reason:'not_found'});
     return reply(res,result.ok?200:400,result);
    }
+   if(req.method==='GET'&&url.pathname==='/api/catalog')return reply(res,200,{ok:true,relics:context.IngaDuel.relicCatalog()});
    if(req.method==='GET'&&url.pathname==='/api/status'){const result=lobby.status(auth(req));return reply(res,result.ok?200:401,result)}
    return reply(res,405,{ok:false,reason:'method_not_allowed'});
   }
