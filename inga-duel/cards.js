@@ -247,3 +247,26 @@ cards.push({id:1118,name:'赤鎖',cost:0,desc:'HP2を失い、エネルギー+2�
 cards.push({id:1119,name:'血王',cost:2,desc:'HP3を失い、2枚引く。',act:(a,b,ctx)=>{a.hp-=3;ctx.draw(a,2)}});
 
 for(const theme of duelThemes)for(const id of theme.cards){const c=cards.find(c=>c.id===id);c.job=theme.id}
+
+/* PvP balancing layer: 30-card job decks have reliable damage, sustain and tempo.
+   Legacy single-player cards are unchanged. */
+for(const theme of duelThemes)for(let i=0;i<theme.cards.length;i++){
+ const c=cards.find(x=>x.id===theme.cards[i]),tier=i%5;
+ if(theme.id==='ruin'){
+  c.cost=1+(i%3);const damage=4+tier*2;
+  c.desc='敵に'+damage+'ダメージ'+(i%5===0?'を2回':'')+'。';
+  c.act=i%5===0?(a,b,ctx)=>{ctx.hit(b,damage);ctx.hit(b,damage)}:(a,b,ctx)=>ctx.hit(b,damage);
+ }else if(theme.id==='guard'){
+  c.cost=1+(i%3);const block=4+tier*2,damage=3+(i%4);
+  c.desc='防御'+block+'。敵に'+damage+'ダメージ。'+(i%4===0?'HP2回復。':'');
+  c.act=(a,b,ctx)=>{a.block+=block;ctx.hit(b,damage);if(i%4===0)a.hp=Math.min(a.maxHp,a.hp+2)};
+ }else if(theme.id==='fate'){
+  c.cost=1+(i%3);const damage=4+(i%5);
+  c.desc='敵に'+damage+'ダメージ。因果+1。'+(i%3===0?'1枚引く。':'');
+  c.act=(a,b,ctx)=>{ctx.hit(b,damage);a.fate+=1;if(i%3===0)ctx.draw(a,1)};
+ }else if(theme.id==='blood'){
+  c.cost=1+(i%2);const damage=7+(i%5)*2,loss=1+(i%3);
+  c.desc='HP'+loss+'を失い、敵に'+damage+'ダメージ。'+(i%5===0?'因果+1。':'');
+  c.act=(a,b,ctx)=>{a.hp-=loss;ctx.hit(b,damage);if(i%5===0)a.fate++};
+ }
+}
