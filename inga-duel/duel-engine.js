@@ -15,7 +15,7 @@ function createMatch(decks,options={}){
  return {state,random,getRngState:()=>rngState,setRngState:v=>{rngState=v>>>0}};
 }
 const ENERGY_CAP=8;
-function draw(p,n,random){for(let i=0;i<n;i++){if(p.hand.length>=12)break;if(!p.deck.length)p.deck=shuffle(p.discard.splice(0),random);if(!p.deck.length)break;p.hand.push(p.deck.pop())}}
+function draw(p,n,random){for(let i=0;i<n;i++){if(p.hand.length>=8)break;if(!p.deck.length)p.deck=shuffle(p.discard.splice(0),random);if(!p.deck.length)break;p.hand.push(p.deck.pop())}}
 const RELICS=[
  {id:'blade',name:'刃の誓い',desc:'最初の攻撃カードに+3ダメージ',effect:'firstHit',value:3},
  {id:'shield',name:'石工の印',desc:'ターン開始時防御+3',effect:'startBlock',value:3},
@@ -88,13 +88,13 @@ function apply(match,seat,action){
  const cost={energy:2,draw:3,guard:4}[action.mode];
  if(!cost||a.fate<cost)return {ok:false,reason:'fate'};
  if(action.mode==='energy'&&a.energy>=ENERGY_CAP)return {ok:false,reason:'energy_full'};
- a.fate-=cost;for(const id of s.relics[seat]){const r=RELICS.find(x=>x.id===id);if(r?.effect==='fateHeal'&&!a.relicFlags.fateHeal){a.hp=Math.min(a.maxHp,a.hp+r.value);a.relicFlags.fateHeal=true}}if(action.mode==='energy')a.energy=Math.min(ENERGY_CAP,a.energy+1);if(action.mode==='draw')draw(a,1,match.random);if(action.mode==='guard')a.block+=7;
+ a.fate-=cost;for(const id of s.relics[seat]){const r=RELICS.find(x=>x.id===id);if(r?.effect==='fateHeal'&&!a.relicFlags.fateHeal){a.hp=Math.min(a.maxHp,a.hp+r.value);a.relicFlags.fateHeal=true}}if(action.mode==='energy')a.energy=Math.min(ENERGY_CAP,a.energy+1);if(action.mode==='draw')draw(a,2,match.random);if(action.mode==='guard')a.block+=7;
  if(a.job==='ruin'&&action.mode==='energy')core.damage(b,2);
  if(a.job==='guard'&&action.mode==='guard')a.block+=3;
  if(a.job==='fate'&&action.mode==='draw')a.fate+=1;
  if(a.job==='blood'&&action.mode==='energy')a.hp=Math.min(a.maxHp,a.hp+2);
  if(b.hp<=0){s.over=true;s.winner=seat}
- s.log.push({turn:s.turn,seat,type:'fate',name:action.mode==='energy'?'因果転換：エナジー+1':action.mode==='draw'?'因果観測：1枚引く':'因果結界：防御+7'});
+ s.log.push({turn:s.turn,seat,type:'fate',name:action.mode==='energy'?'因果転換：エナジー+1':action.mode==='draw'?'因果観測：2枚引く':'因果結界：防御+7'});
  return {ok:true,state:s};
  }
  if(action?.type==='skill'){
@@ -146,7 +146,7 @@ function apply(match,seat,action){
   if(a.hand.length<=2&&s.relics[seat].includes('prism'))a.extraDrawNext=1;
   if(a.block>0){for(const id of s.relics[seat]){const r=RELICS.find(x=>x.id===id);if(r?.effect==='endBlockHeal')a.hp=Math.min(a.maxHp,a.hp+r.value)}}
   a.discard.push(...a.hand.splice(0));s.active=1-seat;
-  b.turnsTaken++;b.fate=Math.min(12,b.fate+1);s.log.push({turn:s.turn+1,seat:1-seat,type:'income',name:'ターン開始：因果+1'});b.block=0;b.energy=Math.max(1,4-b.skillDebt);b.skillDebt=0;b.skillUsed=false;b.cardsPlayed=0;b.attacksPlayed=0;b.relicFlags={};draw(b,5+b.extraDrawNext,match.random);b.extraDrawNext=0;
+  b.turnsTaken++;b.fate=Math.min(12,b.fate+1);s.log.push({turn:s.turn+1,seat:1-seat,type:'income',name:'ターン開始：因果+1'});b.block=0;b.energy=Math.max(1,4-b.skillDebt);b.skillDebt=0;b.skillUsed=false;b.cardsPlayed=0;b.attacksPlayed=0;b.relicFlags={};draw(b,Math.max(3,5-b.hand.length)+b.extraDrawNext,match.random);b.extraDrawNext=0;
   s.log.push({turn:s.turn,seat,type:'end_turn'});s.turn++;
   for(const id of s.relics[s.active]){const r=RELICS.find(x=>x.id===id);if(!r)continue;const e=r.effect,n=r.value;
    if(e==='startBlock'||e==='emptyBlock'&&b.block===0||e==='lowBlock'&&b.hp<=30||e==='fateBlock'&&b.fate>=4||e==='fewHandBlock'&&b.hand.length<=3||e==='behindBlock'&&b.hp<a.hp)b.block+=n;
