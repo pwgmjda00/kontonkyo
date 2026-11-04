@@ -152,10 +152,10 @@ function apply(match,seat,action){
   a.discard.push(...a.hand.filter(c=>!keepSet.has(c.uid)));
   a.hand=kept;
   s.log.push({turn:s.turn,seat,type:'retain',name:'手札を'+kept.length+'枚温存'});
+  s.log.push({turn:s.turn,seat,type:'end_turn'});
   s.active=1-seat;
   if(s.active===0)s.turn++;
   b.turnsTaken++;b.fate=Math.min(12,b.fate+1);s.log.push({turn:s.turn,seat:1-seat,type:'income',name:'ターン開始：因果+1、防御リセット'});b.block=0;b.energy=Math.max(1,4-b.skillDebt);b.skillDebt=0;b.skillUsed=false;b.cardsPlayed=0;b.attacksPlayed=0;b.relicFlags={};draw(b,Math.max(3,5-b.hand.length)+b.extraDrawNext,match.random);b.extraDrawNext=0;
-  s.log.push({turn:s.turn,seat,type:'end_turn'});
   for(const id of s.relics[s.active]){const r=RELICS.find(x=>x.id===id);if(!r)continue;const e=r.effect,n=r.value;
    if(e==='startBlock'||e==='emptyBlock'&&b.block===0||e==='lowBlock'&&b.hp<=30||e==='fateBlock'&&b.fate>=4||e==='fewHandBlock'&&b.hand.length<=3||e==='behindBlock'&&b.hp<a.hp)b.block+=n;
    if(e==='startHeal'||e==='lowHeal'&&b.hp<=30||e==='criticalHeal'&&b.hp<=20||e==='blockHeal'&&b.block>=10||e==='thirdHeal'&&b.turnsTaken%3===0)b.hp=Math.min(b.maxHp,b.hp+n);
@@ -178,5 +178,5 @@ function publicView(match,seat){
  const redact=p=>({job:p.job,skillUsed:p.skillUsed,hp:p.hp,maxHp:p.maxHp,block:p.block,energy:p.energy,fate:p.fate,handCount:p.hand.length,deckCount:p.deck.length,discardCount:p.discard.length});
  return {version:s.version,turn:s.turn,active:s.active,over:s.over,winner:s.winner,player:{...redact(own),hand:own.hand.map(c=>({id:c.id,uid:c.uid,name:c.name,cost:c.cost,desc:c.desc}))},opponent:redact(other),log:s.log.slice(-30),relics:s.relics.map(ids=>ids.map(id=>RELICS.find(r=>r.id===id))),relicOffer:s.relicOffer&&s.relicOffer.seat===seat?s.relicOffer.choices.map(id=>RELICS.find(r=>r.id===id)):null,relicPending:!!s.relicOffer};
 }
-root.IngaDuel=Object.freeze({createMatch,apply,publicView});
+root.IngaDuel=Object.freeze({createMatch,apply,publicView,relicCatalog:()=>RELICS.map(r=>({...r}))});
 })(typeof globalThis!=='undefined'?globalThis:this);
