@@ -8,7 +8,7 @@
 </main><script src="cards.js"></script><script>
 'use strict';
 const $=id=>document.getElementById(id),KEY='inga-online-session-v1';
-let session=null,revision=0,busy=false,ws=null,retryAt=0,pending=false,lastView=null;
+let session=null,revision=0,busy=false,ws=null,retryAt=0,pending=false,lastView=null,pendingSince=0;
 const deck=()=>starter.map(c=>c.id);
 function show(id){for(const name of ['setup','waiting','battle'])$(name).classList.toggle('hidden',name!==id)}
 function note(msg){$('notice').textContent=msg}
@@ -31,31 +31,32 @@ function connectSocket(){
  const socket=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws');ws=socket;
  socket.onopen=()=>{if(ws===socket)socket.send(JSON.stringify({type:'hello',token:session.token}))};
  socket.onmessage=event=>{if(ws!==socket)return;let msg;try{msg=JSON.parse(event.data)}catch(_){return}
-  if(msg.type==='state'){pending=false;if(msg.status==='waiting'){show('waiting');$('roomCode').textContent=session.code}else if(msg.view)render(msg);note('リアルタイム接続中')}
-  else if(msg.type==='rejected'){pending=false;note('操作できません：'+msg.reason);socket.send(JSON.stringify({type:'sync'}))}
+  if(msg.type==='state'){pending=false;pendingSince=0;if(msg.status==='waiting'){show('waiting');$('roomCode').textContent=session.code}else if(msg.view)render(msg);note('リアルタイム接続中')}
+  else if(msg.type==='rejected'){pending=false;pendingSince=0;note('操作できません：'+msg.reason);socket.send(JSON.stringify({type:'sync'}))}
   else if(msg.type==='error')note('通信エラー：'+msg.reason)
  };
- socket.onclose=()=>{if(ws===socket){ws=null;pending=false;retryAt=Date.now()+3000;note('再接続待ち（HTTP同期に切り替え）')}};
+ socket.onclose=()=>{if(ws===socket){ws=null;pending=false;pendingSince=0;retryAt=Date.now()+3000;note('再接続待ち（HTTP同期に切り替え）')}};
  socket.onerror=()=>socket.close();
 }
 async function sync(){
  if(!session||busy)return;
+ if(pending&&Date.now()-pendingSince>7000){pending=false;pendingSince=0;if(ws){ws.close();ws=null}note('応答が遅いため再同期します')}
  if(ws&&ws.readyState===WebSocket.OPEN)return;
  connectSocket();
- try{const state=await api('status');if(state.status==='waiting'){show('waiting');$('roomCode').textContent=session.code;note('対戦相手を待っています');return}render(state);note('接続中')}catch(e){note('通信状態：'+e.message)}
+ try{const state=await api('status');if(state.status==='waiting'){show('waiting');$('roomCode').textContent=session.code;note('対戦相手を待っています');return}render(state);note('接続中')}catch(e){if(e.message==='unauthorized'){session=null;sessionStorage.removeItem(KEY);if(ws){ws.close();ws=null}show('setup');note('接続期限が切れました。新しい部屋を作成してください')}else note('通信状態：'+e.message)}
 }
 async function begin(route){
  if(busy)return;busy=true;
- try{const result=await api(route,{code:$('code').value,deck:deck()});if(ws){ws.close();ws=null}pending=false;lastView=null;session={token:result.token,seat:result.seat,code:result.code};sessionStorage.setItem(KEY,JSON.stringify(session));note('ルームに接続しました');await syncForced()}catch(e){note('接続できません：'+e.message)}finally{busy=false}
+ try{const result=await api(route,{code:$('code').value,deck:deck()});if(ws){ws.close();ws=null}pending=false;pendingSince=0;lastView=null;session={token:result.token,seat:result.seat,code:result.code};sessionStorage.setItem(KEY,JSON.stringify(session));note('ルームに接続しました');await syncForced()}catch(e){note('接続できません：'+e.message)}finally{busy=false}
 }
-async function syncForced(){const state=await api('status');pending=false;if(state.status==='waiting'){show('waiting');$('roomCode').textContent=session.code}else render(state)}
+async function syncForced(){const state=await api('status');pending=false;pendingSince=0;if(state.status==='waiting'){show('waiting');$('roomCode').textContent=session.code}else render(state)}
 async function act(action){
  if(busy||pending||!session)return;busy=true;
- try{if(ws&&ws.readyState===WebSocket.OPEN){pending=true;ws.send(JSON.stringify({type:'action',revision,action}));if(lastView)render(lastView);note('行動を送信しました')}else{await api('action',{revision,action});await syncForced();note('行動を送信しました')}}catch(e){note('操作できません：'+e.message);try{await syncForced()}catch(_){}}finally{busy=false}
+ try{if(ws&&ws.readyState===WebSocket.OPEN){pending=true;pendingSince=Date.now();ws.send(JSON.stringify({type:'action',revision,action}));if(lastView)render(lastView);note('行動を送信しました')}else{await api('action',{revision,action});await syncForced();note('行動を送信しました')}}catch(e){note('操作できません：'+e.message);try{await syncForced()}catch(_){}}finally{busy=false}
 }
 $('create').onclick=()=>begin('create');$('join').onclick=()=>begin('join');
 $('end').onclick=()=>act({type:'end_turn'});$('fate').onclick=()=>act({type:'fate'});
-$('leave').onclick=()=>{if(ws){ws.close();ws=null}pending=false;lastView=null;session=null;sessionStorage.removeItem(KEY);show('setup');note('この端末の接続情報を消去しました。部屋は期限まで残ります。')};
+$('leave').onclick=()=>{if(ws){ws.close();ws=null}pending=false;pendingSince=0;lastView=null;session=null;sessionStorage.removeItem(KEY);show('setup');note('この端末の接続情報を消去しました。部屋は期限まで残ります。')};
 try{const saved=JSON.parse(sessionStorage.getItem(KEY));if(saved&&typeof saved.token==='string'&&[0,1].includes(saved.seat))session=saved}catch(_){}
 if(session)sync();setInterval(sync,2000);
 </script></html>
