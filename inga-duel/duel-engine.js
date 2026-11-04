@@ -145,7 +145,14 @@ function apply(match,seat,action){
  }else if(action.type==='end_turn'){
   if(a.hand.length<=2&&s.relics[seat].includes('prism'))a.extraDrawNext=1;
   if(a.block>0){for(const id of s.relics[seat]){const r=RELICS.find(x=>x.id===id);if(r?.effect==='endBlockHeal')a.hp=Math.min(a.maxHp,a.hp+r.value)}}
-  a.discard.push(...a.hand.splice(0));s.active=1-seat;
+  const requested=action.keepUids;
+  if(requested!==undefined&&(!Array.isArray(requested)||requested.length>2||new Set(requested).size!==requested.length||requested.some(uid=>!a.hand.some(c=>c.uid===uid))))return {ok:false,reason:'invalid_keep'};
+  const kept=requested===undefined?a.hand.slice().sort((x,y)=>y.cost-x.cost||y.id-x.id).slice(0,2):a.hand.filter(c=>requested.includes(c.uid));
+  const keepSet=new Set(kept.map(c=>c.uid));
+  a.discard.push(...a.hand.filter(c=>!keepSet.has(c.uid)));
+  a.hand=kept;
+  s.log.push({turn:s.turn,seat,type:'retain',name:'手札を'+kept.length+'枚温存'});
+  s.active=1-seat;
   b.turnsTaken++;b.fate=Math.min(12,b.fate+1);s.log.push({turn:s.turn+1,seat:1-seat,type:'income',name:'ターン開始：因果+1'});b.block=0;b.energy=Math.max(1,4-b.skillDebt);b.skillDebt=0;b.skillUsed=false;b.cardsPlayed=0;b.attacksPlayed=0;b.relicFlags={};draw(b,Math.max(3,5-b.hand.length)+b.extraDrawNext,match.random);b.extraDrawNext=0;
   s.log.push({turn:s.turn,seat,type:'end_turn'});s.turn++;
   for(const id of s.relics[s.active]){const r=RELICS.find(x=>x.id===id);if(!r)continue;const e=r.effect,n=r.value;
