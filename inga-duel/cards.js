@@ -587,3 +587,17 @@ for(const theme of duelThemes){
   card.desc+=' ［職業補正：攻撃×'+tune.damage+'、防御×'+tune.block+'、回復×'+tune.heal+'（端数四捨五入）］';
  }
 }
+
+/* Per-card cost audit after free-build mirror tests.
+   Costs are card-specific and do not restrict duplicate ownership. */
+const PVP_COST_AUDIT={
+ 1001:1,1004:2,1006:2,1007:2,1009:2,
+ 1034:2,1046:3,1057:5,1059:4,
+ 1066:2,1068:2,1074:3,1089:4,
+ 1094:2,1096:2,1097:2,1098:2,1099:2,1106:3,1107:3
+};
+for(const [id,cost] of Object.entries(PVP_COST_AUDIT)){
+ const card=cards.find(c=>c.id===Number(id));
+ if(!card)throw Error('Missing PvP card '+id);
+ card.cost=cost;
+}
