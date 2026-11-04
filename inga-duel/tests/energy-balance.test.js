@@ -12,8 +12,8 @@ test('second seat receives six cards and one fate; first receives five and zero'
 test('fate conversion cannot push energy above eight',()=>{
  const m=IngaDuel.createMatch(decks,{seed:2}),p=m.state.players[0];
  p.fate=12;p.energy=8;
- assert.equal(IngaDuel.apply(m,0,{type:'fate',mode:'energy'}).ok,true);
- assert.equal(p.energy,8);
+ assert.equal(IngaDuel.apply(m,0,{type:'fate',mode:'energy'}).reason,'energy_full');
+ assert.equal(p.energy,8);assert.equal(p.fate,12);
 });
 test('blood job skill requires two energy and caps total energy',()=>{
  const blood=duelThemes.find(t=>t.id==='blood').cards.map(id=>cards.find(c=>c.id===id));
