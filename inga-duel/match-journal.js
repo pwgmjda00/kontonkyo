@@ -27,7 +27,7 @@ function replay(snapshot,catalog){
  const journal=createJournal(snapshot.decks,snapshot.seed,catalog);
  for(const event of snapshot.actions){
   if(!event||!Number.isInteger(event.seat)||!event.action||typeof event.action!=='object')throw Error('Invalid event');
-  const action=event.action.type==='play'?{type:'play',uid:event.action.uid}:event.action.type==='fate'?{type:'fate'}:event.action.type==='end_turn'?{type:'end_turn'}:null;
+  const action=event.action.type==='play'?{type:'play',uid:event.action.uid}:event.action.type==='fate'?{type:'fate'}:event.action.type==='end_turn'?{type:'end_turn'}:event.action.type==='relic'?{type:'relic',id:event.action.id}:null;
   if(!action)throw Error('Invalid action');
   const result=duel.apply(journal.match,event.seat,action);
   if(!result.ok)throw Error('Replay failed: '+result.reason);
@@ -38,8 +38,8 @@ function replay(snapshot,catalog){
 function dispatch(journal,seat,action){
  if(!journal||!journal.match||!Array.isArray(journal.actions))throw Error('Invalid journal');
  if(journal.actions.length>=10000)return {ok:false,reason:'action_limit'};
- if(!action||!['play','fate','end_turn'].includes(action.type))return {ok:false,reason:'invalid_action'};
- const safe=action.type==='play'?{type:'play',uid:action.uid}:{type:action.type};
+ if(!action||!['play','fate','end_turn','relic'].includes(action.type))return {ok:false,reason:'invalid_action'};
+ const safe=action.type==='play'?{type:'play',uid:action.uid}:action.type==='relic'?{type:'relic',id:action.id}:{type:action.type};
  const result=duel.apply(journal.match,seat,safe);
  if(result.ok)journal.actions.push({seat,action:safe});
  return {ok:result.ok,reason:result.reason||null,view:result.ok?duel.publicView(journal.match,seat):null};
