@@ -20,3 +20,16 @@ test('relic draft triggers on turn five and is journal-replayable',()=>{
  const replay=ctx.IngaJournal.replay(ctx.IngaJournal.exportJournal(j),catalog);
  assert.equal(ctx.IngaDuel.publicView(replay.match,0).relics[0][0].id,chosen);
 });
+test('full thirty-card job match exposes class skill and fate utility',()=>{
+ const deck=duelThemes[2].cards;
+ const j=ctx.IngaJournal.createJournal([deck,duelThemes[1].cards],77,catalog);
+ let v=ctx.IngaDuel.publicView(j.match,0);
+ assert.equal(v.player.job,'fate');assert.equal(v.player.hp,60);
+ assert.equal(ctx.IngaJournal.dispatch(j,0,{type:'skill'}).ok,true);
+ v=ctx.IngaDuel.publicView(j.match,0);
+ assert.equal(v.player.fate,2);
+ assert.equal(ctx.IngaJournal.dispatch(j,0,{type:'skill'}).reason,'skill_unavailable');
+ assert.equal(ctx.IngaJournal.dispatch(j,0,{type:'fate',mode:'energy'}).ok,true);
+ assert.equal(ctx.IngaDuel.publicView(j.match,0).player.fate,0);
+ assert.equal(ctx.IngaJournal.replay(ctx.IngaJournal.exportJournal(j),catalog).actions.length,2);
+});
