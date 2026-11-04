@@ -120,12 +120,12 @@ function apply(match,seat,action){
   
   const owned=s.relics[seat].map(id=>RELICS.find(r=>r.id===id)).filter(Boolean);
   const bonus=(effect,condition=true)=>owned.filter(r=>r.effect===effect&&condition).reduce((n,r)=>n+r.value,0);
-  let hitIndex=0;const ctx={hit:(target,n)=>{const first=hitIndex++===0;const added=target===b&&first?bonus('firstHit',a.attacksPlayed===0)+bonus('secondHit',a.attacksPlayed===1)+bonus('thirdHit',a.attacksPlayed===2)+bonus('lowHit',a.hp<=30&&a.attacksPlayed===0)+bonus('blockHit',b.block>0&&a.attacksPlayed===0):0;const outcome=core.damage(target,n+added);if(target===b&&outcome.dealt>0){for(const id of s.relics[1-seat]){const r=RELICS.find(x=>x.id===id);if(r?.effect==='retaliate'&&!b.relicFlags.retaliate){core.damage(a,r.value);b.relicFlags.retaliate=true}}}return outcome},draw:(p,n)=>draw(p,n,match.random),random:match.random,
+  let hitIndex=0,actualHits=0,actualDraws=0;const ctx={hit:(target,n)=>{if(target===b)actualHits++;const first=hitIndex++===0;const added=target===b&&first?bonus('firstHit',a.attacksPlayed===0)+bonus('secondHit',a.attacksPlayed===1)+bonus('thirdHit',a.attacksPlayed===2)+bonus('lowHit',a.hp<=30&&a.attacksPlayed===0)+bonus('blockHit',b.block>0&&a.attacksPlayed===0):0;const outcome=core.damage(target,n+added);if(target===b&&outcome.dealt>0){for(const id of s.relics[1-seat]){const r=RELICS.find(x=>x.id===id);if(r?.effect==='retaliate'&&!b.relicFlags.retaliate){core.damage(a,r.value);b.relicFlags.retaliate=true}}}return outcome},draw:(p,n)=>{const before=p.hand.length;draw(p,n,match.random);actualDraws+=p.hand.length-before},random:match.random,
    get intent(){return {kind:'none',value:0,name:'対人戦',desc:'相手の手番'}},
    set intent(_v){}};
   const before={hp:a.hp,block:a.block,energy:a.energy,fate:a.fate,hand:a.hand.length,deck:a.deck.length,discard:a.discard.length,enemyHp:b.hp,enemyBlock:b.block,enemyFate:b.fate,enemyHand:b.hand.length};
   try{const outcome=rules.playCard(a,b,action.uid,ctx);if(!outcome.ok)return outcome}catch(_err){s.players=savedPlayers;match.setRngState(savedRng);return {ok:false,reason:'effect_failed'}}
-  if(card.desc.includes('ダメージ')||card.desc.includes('敵に'))a.attacksPlayed++;
+  if(actualHits>0)a.attacksPlayed++;
   a.cardsPlayed++;
   if(a.block>before.block)a.block+=bonus('firstBlock',a.cardsPlayed===1);
   if(a.cardsPlayed===1)a.fate+=bonus('firstCardFate')+bonus('expensiveFate',card.cost>=2);
@@ -134,7 +134,7 @@ function apply(match,seat,action){
   if(card.cost===0&&a.cardsPlayed===1)a.block+=bonus('zeroBlock');
   if(a.hp<before.hp){a.fate+=bonus('selfFate');if(a.cardsPlayed===1)a.hp=Math.min(a.maxHp,a.hp+bonus('selfGuard'))}
   if(a.hp>before.hp)a.block+=bonus('healBlock');
-  if(card.desc.includes('引く')&&a.cardsPlayed===1)a.fate+=bonus('drawFate');
+  if(actualDraws>0&&a.cardsPlayed===1)a.fate+=bonus('drawFate');
   if(a.block>before.block)a.fate+=bonus('blockFate',a.cardsPlayed===1);
   if(before.enemyBlock>0&&a.attacksPlayed===1)b.block=Math.max(0,b.block-bonus('breakBlock'));
   a.energy=Math.min(ENERGY_CAP,Math.max(0,a.energy));
