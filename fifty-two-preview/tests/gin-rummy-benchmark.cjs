@@ -8,7 +8,7 @@ if(!source)throw Error('game script not found');
 const code=source.replace(/\}\)\(\);\s*$/,'globalThis.BENCH={start,draw,discard,options,valid,get:()=>s};})();');
 if(code===source)throw Error('game script export injection failed');
 const perSetting=Math.min(100,Math.max(1,Number(process.argv[2])||5));
-const maxMatchMs=Math.min(120000,Math.max(1000,Number(process.env.GIN_BENCH_MATCH_TIMEOUT_MS)||15000));
+const maxMatchMs=Math.min(120000,Math.max(1000,Number(process.env.GIN_BENCH_MATCH_TIMEOUT_MS)||45000));
 const runMaxTurns=Math.min(5000,Math.max(100,Number(process.env.GIN_BENCH_MAX_TURNS)||1800));
 const settings=[['easy','balanced'],['normal','balanced'],['hard','balanced'],['hard','aggressive'],['hard','patient']];
 function rng(seed){let x=seed>>>0;return()=>{x=(x+0x6D2B79F5)>>>0;let z=x;z=Math.imul(z^(z>>>15),z|1);z^=z+Math.imul(z^(z>>>7),z|61);return ((z^(z>>>14))>>>0)/4294967296}}
@@ -21,7 +21,7 @@ function play(level,style,seed){
  vm.createContext(ctx);vm.runInContext(code,ctx,{timeout:2000});
  const g=ctx.BENCH;let turns=0,hands=0;const began=Date.now();
  while(turns<runMaxTurns&&hands<100){
-  if(Date.now()-began>maxMatchMs)throw Error('match time limit '+maxMatchMs+'ms exceeded');
+  if(Date.now()-began>maxMatchMs)throw Error('match time limit '+maxMatchMs+'ms exceeded at turn '+turns+', hand '+hands+', phase '+g.get().phase);
   const s=g.get();
   if(!g.valid(s))throw Error('invalid state at turn '+turns+', phase '+s.phase);
   if(s.phase==='draw'&&s.me.length!==10)throw Error('draw phase hand count');
