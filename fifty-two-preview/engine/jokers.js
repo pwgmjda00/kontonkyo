@@ -184,5 +184,18 @@ case 'J77':a=round===10?777:p+round;break;
 }return {player:Math.max(0,Math.floor(a)),enemy:Math.max(0,Math.floor(b)),note:battleDescription(joker)}}
 function battleDescription(joker){if(!joker)return '通常ルール';const index=Number(joker.id.slice(1))-1;return Number.isInteger(index)&&index>=0&&index<77?'WAR：'+battleRules[index]:'WAR：未対応'}
 function abilityDescription(joker,game){if(!joker)return '';const type=joker.effect.type;if(game==='war')return battleDescription(joker);if(game==='high-low'){switch(type){case 'peekNext':return '次に引くカードを常時公開';case 'reverseRank':return 'HIGHとLOWの正解判定を反転';case 'eraseMistake':case 'reviveOnce':case 'shieldMistake':return '1対局に1回、予想失敗時の失点を無効化';default:return '個別得点効果が適用される';}}return '個別得点効果が適用される'}
-const api=Object.freeze({catalog,families,localDate,daily,get,validateEquip,resolve,equipped,applyScore,battlePower,battleDescription,abilityDescription});if(typeof module!=='undefined'&&module.exports)module.exports=api;root.FiftyTwoJokers=api;
+function targetPower(joker,player,dealer,limit,ctx={}){if(!joker)return {player,dealer,note:''};const round=ctx.round||1,t=joker.effect.tier;let a=player,b=dealer,note='';switch(joker.family){
+case 'berserk':a+=t*2;note='自分の合計を強化';break;
+case 'mirror':a=limit-a;note='自分の合計を反転';break;
+case 'time':if(round<=3)a+=t*3;note='序盤の合計を強化';break;
+case 'vision':if(Math.abs(a-b)<=t*2)a+=t*2;note='接戦を先読み';break;
+case 'void':b=Math.max(0,b-t*2);note='敵の合計を削る';break;
+case 'royal':if(a>=limit-5)a=limit;note='目標値へ戴冠';break;
+case 'chaos':a+=(hash(joker.id+'|'+round+'|'+a)%(t*4+1));note='乱数で合計を変える';break;
+case 'mutation':a+=t;note='合計を進化';break;
+case 'balance':if(ctx.behind)a+=t*3;note='劣勢で強化';break;
+case 'miracle':if(a>limit&&a-limit<=t*2)a=limit;note='バーストを救済';break;
+case 'causality':if(round===5)a=limit;note='最終戦で目標値に収束';break;
+}return {player:a,dealer:b,note}}
+const api=Object.freeze({catalog,families,localDate,daily,get,validateEquip,resolve,equipped,applyScore,battlePower,battleDescription,abilityDescription,targetPower});if(typeof module!=='undefined'&&module.exports)module.exports=api;root.FiftyTwoJokers=api;
 })(typeof window!=='undefined'?window:globalThis);
