@@ -102,7 +102,7 @@ case 'J76': score=ctx.previousScore===base?base+50:base;break;
 case 'J77': score=round===10?77:base;break;
 }score=Math.max(0,Math.floor(score));return {score,delta:score-base,description:joker.name+'：'+(score-base>=0?'+':'')+(score-base)+'点'} }
 
-const battleRules=["自分の強さ2倍","自分3倍、敵+3","自分+ラウンド×4","自分+30、敵+15","負けるカードを敵+20に","自分4倍からラウンド×2を減算","最終戦777、それ以外-3","双方の数字を15から反転","自分と敵の数字を交換","敵の数字を複写して+1","同値なら自分+22","数字を交換して反転","同じスートなら+33","双方の数字を合算","序盤3戦+25","7戦目以降+40","偶数戦は敵の数字0","初戦のみ99","3戦ごとに+50","最終戦のみ999","第10戦で777","負けるとき敵+2","敵が弱いほど強化","敵の元の数字が小さいほど+3倍","数字差の2倍を追加","敵が偶数なら+50","スート一致で+60","敵が絵札なら+77","敵の強さを0にする","敵の強さ-7","敵が奇数なら0","敵のAを無効化","偶数戦で敵を消去","敵のスペードを消去","敵の絵札とAを消去","自分のKが100","双方のKが最弱","自分の絵札+35","敗北時に王位を簒奪","同値なら+50","自分の7が777","絵札に+77","乱数で自分+0〜30","乱数で敵+0〜20","乱数で自分+70か-7","自分が999か0","ラウンドで+0〜59","自分の数字を1〜15へ変異","3分の1で777","自分の数字+1","自分-1、敵+2","赤いカード+33","同じスートなら+70","敵の数字の2倍を吸収","自分2倍、敵半分","Aだけ1、他は3倍","劣勢カード+20","総得点劣勢なら+50","負けなら引き分け","両者の数字を平均化","敵を自分と同値にする","総得点劣勢なら100","同点なら+77","負けを勝ちに変える","数字1なら100（Aは14）","3差以内の敗北を+7で逆転","初戦+77","7差以内の敗北を逆転","第7戦で777","常に敵より強くするか+1","偶数戦+50、奇数戦-5","ラウンド×7を加算","7のカードを777","3戦ごとに333","敗北は0、勝てるなら+40","過去のラウンド数×11","最終戦777"];
+const battleRules=["自分の強さ2倍","自分3倍、敵+3","自分+ラウンド×4","自分+30、敵+15","負けるカードを敵+20に","自分4倍からラウンド×2を減算","最終戦777、それ以外-3","双方の数字を15から反転","自分と敵の数字を交換","敵の数字を複写して+1","同値なら自分+22","数字を交換して反転","同じスートなら+33","双方の数字を合算","序盤3戦+25","7戦目以降+40","偶数戦は敵の数字0","初戦のみ99","3戦ごとに+50","最終戦のみ999","第10戦で777","負けるとき敵+2","敵が弱いほど強化","敵の元の数字が小さいほど+3倍","数字差の2倍を追加","敵が偶数なら+50","スート一致で+60","敵が絵札なら+77","敵の強さを0にする","敵の強さ-7","敵が奇数なら0","敵のAを無効化","偶数戦で敵を消去","敵のスペードを消去","敵の絵札とAを消去","自分のKが100","双方のKが最弱","自分の絵札+35","敗北時に王位を簒奪","同値なら+50","自分の7が777","絵札に+77","乱数で自分+0〜30","乱数で敵+0〜20","乱数で自分+70か-7","自分が999か0","ラウンドで+0〜59","自分の数字を1〜15へ変異","3分の1で777","自分の数字+1","自分-1、敵+2","赤いカード+33","同じスートなら+70","敵の数字の2倍を吸収","自分2倍、敵半分","Aだけ1、他は3倍","劣勢カード+20","総得点劣勢なら+50","負けなら引き分け","両者の数字を平均化","敵を自分と同値にする","総得点劣勢なら100","同点なら+77","負けを勝ちに変える","数字1なら100（Aは14）","3差以内の敗北を+7で逆転","初戦+77","7差以内の敗北を逆転","第7戦で777","常に敵より強くするか+1","偶数戦+50、奇数戦-5","ラウンド×7を加算","7のカードを777、それ以外+7","3戦ごとに333","敗北は0、勝てるなら+40","過去のラウンド数×11","最終戦777、それ以外ラウンド数を加算"];
 function battlePower(joker,player,enemy,ctx={}){const p=player?.r===1?14:(player?.r||0),e=enemy?.r===1?14:(enemy?.r||0);if(!joker)return {player:p,enemy:e,note:''};const round=ctx.round||1;let a=p,b=e;switch(joker.id){
 case 'J01':a=p*2;break;
 case 'J02':a=p*3;b=e+3;break;
@@ -123,7 +123,7 @@ case 'J16':a=round>=7?p+40:p;break;
 case 'J17':b=round%2===0?0:e;break;
 case 'J18':a=round===1?99:p;break;
 case 'J19':a=round%3===0?p+50:p;break;
-case 'J20':a=round===ctx.totalRounds?999:p;break;
+case 'J20':a=round===(ctx.totalRounds||10)?999:p;break;
 case 'J21':a=round===10?777:p;break;
 case 'J22':a=p<e?e+2:p;break;
 case 'J23':a=p+Math.max(0,14-e);break;
@@ -176,11 +176,11 @@ case 'J69':a=round===7?777:p;break;
 case 'J70':a=p<e?e+1:p+1;break;
 case 'J71':a=round%2===0?p+50:p-5;break;
 case 'J72':a=p+round*7;break;
-case 'J73':a=player.r===7?777:p;break;
+case 'J73':a=player.r===7?777:p+7;break;
 case 'J74':a=round%3===0?333:p;break;
 case 'J75':a=p<e?0:p+40;break;
 case 'J76':a=round>1?p+(round-1)*11:p;break;
-case 'J77':a=round===10?777:p;break;
+case 'J77':a=round===10?777:p+round;break;
 }return {player:Math.max(0,Math.floor(a)),enemy:Math.max(0,Math.floor(b)),note:battleDescription(joker)}}
 function battleDescription(joker){if(!joker)return '通常ルール';const index=Number(joker.id.slice(1))-1;return Number.isInteger(index)&&index>=0&&index<77?'WAR：'+battleRules[index]:'WAR：未対応'}
 function abilityDescription(joker,game){if(!joker)return '';const type=joker.effect.type;if(game==='war')return battleDescription(joker);if(game==='high-low'){switch(type){case 'peekNext':return '次に引くカードを常時公開';case 'reverseRank':return 'HIGHとLOWの正解判定を反転';case 'eraseMistake':case 'reviveOnce':case 'shieldMistake':return '1対局に1回、予想失敗時の失点を無効化';default:return '個別得点効果が適用される';}}return '個別得点効果が適用される'}
