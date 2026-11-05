@@ -52,3 +52,10 @@ test('repeated automated hands preserve card and save invariants',()=>{
    }
  }
 });
+
+test('empty discard pile renders safely during face-up pickup',()=>{
+ g.start();const s=g.getState();
+ assert.doesNotThrow(()=>g.draw('pile'));
+ assert.equal(s.phase,'discard');assert.equal(s.pile.length,0);
+ assert.equal(g.valid(s),true);
+});
