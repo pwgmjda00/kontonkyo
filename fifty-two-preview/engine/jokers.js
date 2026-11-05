@@ -20,5 +20,22 @@ function daily(date=localDate()){if(!/^\d{4}-\d{2}-\d{2}$/.test(date))throw Erro
 function get(id){return catalog.find(c=>c.id===id)||null}
 function validateEquip(id,date=localDate()){return !!get(id)&&daily(date).some(c=>c.id===id)}
 function resolve(id,context){const c=get(id);if(!c)return {supported:false,reason:'unknown joker'};const supported=Array.isArray(context?.supportedEffects)&&context.supportedEffects.includes(c.effect.type);return supported?{supported:true,joker:c,effect:c.effect}:{supported:false,joker:c,reason:'game has not implemented this effect'} }
-const api=Object.freeze({catalog,families,localDate,daily,get,validateEquip,resolve});if(typeof module!=='undefined'&&module.exports)module.exports=api;root.FiftyTwoJokers=api;
+function equipped(date=localDate()){let id=null;try{id=localStorage.getItem('fifty-two-joker-equip-'+date)}catch(e){}return validateEquip(id,date)?get(id):null}
+function applyScore(joker,base,ctx={}){if(!joker||!Number.isFinite(base)||base<0)return {score:base,delta:0,description:'通常ルール'};const t=joker.effect.tier,kind=joker.family,win=!!ctx.win,streak=ctx.streak||0,round=ctx.round||1;
+let delta=0;switch(kind){
+case 'berserk':delta=win?2*t:-Math.min(base,t);break;
+case 'mirror':delta=round%2===0?t*2:0;break;
+case 'time':delta=round<=3?t:0;break;
+case 'vision':delta=streak>=2?t*2:0;break;
+case 'void':delta=!win?t:0;break;
+case 'royal':delta=base>=20?t*2:0;break;
+case 'chaos':delta=((hash(joker.id+'|'+round+'|'+base)%3)-1)*t;break;
+case 'mutation':delta=base%2===0?t:0;break;
+case 'balance':delta=ctx.behind?t*2:0;break;
+case 'miracle':delta=base===0?t:0;break;
+case 'causality':delta=round===5||round===10?t*3:0;break;
+}
+const score=Math.max(0,base+delta);return {score,delta:score-base,description:joker.name+'：'+(score-base>=0?'+':'')+(score-base)+'点'}
+}
+const api=Object.freeze({catalog,families,localDate,daily,get,validateEquip,resolve,equipped,applyScore});if(typeof module!=='undefined'&&module.exports)module.exports=api;root.FiftyTwoJokers=api;
 })(typeof window!=='undefined'?window:globalThis);
