@@ -102,5 +102,18 @@ case 'J76': score=ctx.previousScore===base?base+50:base;break;
 case 'J77': score=round===10?77:base;break;
 }score=Math.max(0,Math.floor(score));return {score,delta:score-base,description:joker.name+'：'+(score-base>=0?'+':'')+(score-base)+'点'} }
 
-const api=Object.freeze({catalog,families,localDate,daily,get,validateEquip,resolve,equipped,applyScore});if(typeof module!=='undefined'&&module.exports)module.exports=api;root.FiftyTwoJokers=api;
+function battlePower(joker,player,enemy,ctx={}){const p=player?.r===1?14:player?.r||0,e=enemy?.r===1?14:enemy?.r||0;if(!joker)return {player:p,enemy:e,note:''};const t=joker.effect.tier,round=ctx.round||1;let a=p,b=e,note='';switch(joker.family){
+case 'berserk':a+=t*3;note='狂戦士：攻撃力上昇';break;
+case 'mirror':a=15-p;b=15-e;note='鏡像：数字の強弱を反転';break;
+case 'time':if(round<=t)a+=21;note='時間：序盤の加速';break;
+case 'vision':a+=Math.abs(p-e)<=t?30:0;note='透視：接戦を先読み';break;
+case 'void':b=Math.max(0,b-t*3);note='虚無：敵の数字を消去';break;
+case 'royal':if(player.r>=11)a+=t*7;if(enemy.r>=11)b=Math.max(0,b-t*2);note='王権：絵札を支配';break;
+case 'chaos':a+=(hash(joker.id+'|'+round+'|'+p)% (t*15+1));note='混沌：乱数増幅';break;
+case 'mutation':a=p+t*4;note='変異：数字を進化';break;
+case 'balance':if(ctx.behind)a+=t*10;note='天秤：劣勢逆転';break;
+case 'miracle':if(a<b&&b-a<=t*5)a=b+1;note='奇跡：敗北を書き換える';break;
+case 'causality':if(round%Math.max(1,8-t)===0)a=999;note='因果：運命の必勝ターン';break;
+}return {player:a,enemy:b,note}}
+const api=Object.freeze({catalog,families,localDate,daily,get,validateEquip,resolve,equipped,applyScore,battlePower});if(typeof module!=='undefined'&&module.exports)module.exports=api;root.FiftyTwoJokers=api;
 })(typeof window!=='undefined'?window:globalThis);
