@@ -17,3 +17,18 @@ test('layoff can extend a set to four cards',()=>{const k=g.analyze([c(0,9),c(1,
 test('opponent melds and layoff are both counted',()=>{const k=g.analyze([c(0,5),c(0,6),c(0,7)]);assert.equal(g.layoff(k,[c(0,8),c(1,2),c(2,2),c(3,2),c(1,13)]),10)});
 test('saved state has a valid full deck',()=>{assert.equal(g.valid(g.getState()),true)});
 test('draw discard preserves 52 unique cards',()=>{g.draw('stock');const s=g.getState();assert.equal(s.me.length,11);s.selected=0;g.discard(false);const n=g.getState();assert.equal(n.me.length,10);assert.equal(n.cpu.length,10);assert.equal(n.me.length+n.cpu.length+n.pile.length+n.stock.length,52);assert.equal(new Set([...n.me,...n.cpu,...n.pile,...n.stock].map(x=>x.si*13+x.r)).size,52)});
+
+test('decision coach records a legal discard and best deadwood benchmark',()=>{
+ const state=g.getState();
+ if(state.phase!=='draw')return;
+ g.draw('stock');
+ const current=g.getState();
+ const before=current.decisions.length;
+ current.selected=0;
+ g.discard(false);
+ assert.equal(current.decisions.length,before+1);
+ const last=current.decisions.at(-1);
+ assert.ok(last.dead>=last.bestDead);
+ assert.ok(Array.isArray(last.best));
+ assert.ok(last.best.length>0);
+});
