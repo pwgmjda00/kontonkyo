@@ -115,5 +115,19 @@ case 'balance':if(ctx.behind)a+=t*10;note='天秤：劣勢逆転';break;
 case 'miracle':if(a<b&&b-a<=t*5)a=b+1;note='奇跡：敗北を書き換える';break;
 case 'causality':if(round%Math.max(1,8-t)===0)a=999;note='因果：運命の必勝ターン';break;
 }return {player:a,enemy:b,note}}
-const api=Object.freeze({catalog,families,localDate,daily,get,validateEquip,resolve,equipped,applyScore,battlePower});if(typeof module!=='undefined'&&module.exports)module.exports=api;root.FiftyTwoJokers=api;
+function battleDescription(joker){if(!joker)return '通常ルール';const t=joker.effect.tier;switch(joker.family){
+case 'berserk':return 'WAR：自分の強さ+'+(t*3);
+case 'mirror':return 'WAR：自分と敵の強さを15から引いて反転';
+case 'time':return 'WAR：第'+t+'ラウンドまで自分の強さ+21';
+case 'vision':return 'WAR：元の強さの差が'+t+'以内なら自分+30';
+case 'void':return 'WAR：敵の強さ-'+(t*3)+'（最低0）';
+case 'royal':return 'WAR：自分のJ/Q/Kに+'+(t*7)+'、敵のJ/Q/Kに-'+(t*2);
+case 'chaos':return 'WAR：ラウンド固定の疑似乱数で自分+0〜'+(t*15);
+case 'mutation':return 'WAR：自分の強さ+'+(t*4);
+case 'balance':return 'WAR：総得点で負けている間、自分+'+(t*10);
+case 'miracle':return 'WAR：差が'+(t*5)+'以内の敗北を逆転';
+case 'causality':return 'WAR：'+Math.max(1,8-t)+'ラウンドごとに自分の強さ999';
+default:return 'WAR：未対応';}}
+function abilityDescription(joker,game){if(!joker)return '';const type=joker.effect.type;if(game==='war')return battleDescription(joker);if(game==='high-low'){switch(type){case 'peekNext':return '次に引くカードを常時公開';case 'reverseRank':return 'HIGHとLOWの正解判定を反転';case 'eraseMistake':case 'reviveOnce':case 'shieldMistake':return '1対局に1回、予想失敗時の失点を無効化';default:return '個別得点効果が適用される';}}return '個別得点効果が適用される'}
+const api=Object.freeze({catalog,families,localDate,daily,get,validateEquip,resolve,equipped,applyScore,battlePower,battleDescription,abilityDescription});if(typeof module!=='undefined'&&module.exports)module.exports=api;root.FiftyTwoJokers=api;
 })(typeof window!=='undefined'?window:globalThis);
