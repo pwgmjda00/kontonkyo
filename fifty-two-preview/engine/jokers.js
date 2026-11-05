@@ -102,7 +102,7 @@ case 'J76': score=ctx.previousScore===base?base+50:base;break;
 case 'J77': score=round===10?77:base;break;
 }score=Math.max(0,Math.floor(score));return {score,delta:score-base,description:joker.name+'：'+(score-base>=0?'+':'')+(score-base)+'点'} }
 
-function battlePower(joker,player,enemy,ctx={}){const p=player?.r===1?14:player?.r||0,e=enemy?.r===1?14:enemy?.r||0;if(!joker)return {player:p,enemy:e,note:''};const t=joker.effect.tier,round=ctx.round||1;let a=p,b=e,note='';switch(joker.family){
+function battlePower(joker,player,enemy,ctx={}){const p=player?.r===1?14:(player?.r||0),e=enemy?.r===1?14:(enemy?.r||0);if(!joker)return {player:p,enemy:e,note:''};const t=joker.effect.tier,round=ctx.round||1;let a=p,b=e,note='';switch(joker.family){
 case 'berserk':a+=t*3;note='狂戦士：攻撃力上昇';break;
 case 'mirror':a=15-p;b=15-e;note='鏡像：数字の強弱を反転';break;
 case 'time':if(round<=t)a+=21;note='時間：序盤の加速';break;
