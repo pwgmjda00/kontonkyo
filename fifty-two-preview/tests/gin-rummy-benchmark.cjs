@@ -50,13 +50,13 @@ for(const [level,style] of settings){
  if(row.matches){row.avgHands=+(row.avgHands/row.matches).toFixed(1);row.avgTurns=+(row.avgTurns/row.matches).toFixed(1);row.cpuWinRatePct=+(100*row.cpuWins/row.matches).toFixed(1)}row.elapsedMs=Date.now()-rowStart;
  results.push(row);
 }
-const report={seedBase:'0xA13F00',matchesPerSetting:perSetting,elapsedMs:Date.now()-started,results};
+const report={seedBase:'0xA13F00',playerPolicy:'minimum immediate deadwood; stock draw except every fifth turn takes face-up discard',seedCaveat:'identical initial seed per setting; subsequent random streams may diverge',matchesPerSetting:perSetting,elapsedMs:Date.now()-started,results};
 console.log(JSON.stringify(report,null,2));
 if(process.env.GITHUB_STEP_SUMMARY){
- const md=['## Gin Rummy seeded CPU benchmark','','Same initial seed per setting; later hands may diverge because CPU decisions consume random numbers.','','| Difficulty | Style | Finished / Attempted | CPU wins | CPU win rate | Avg turns | Duration | Errors |','|---|---|---:|---:|---:|---:|---:|---:|'];
+ const md=['## Gin Rummy seeded CPU benchmark','','Same initial seed per setting. CPU decisions consume randomness, so subsequent hands can diverge. Player policy: lowest immediate deadwood; every fifth turn takes the face-up discard when available.','','| Difficulty | Style | Finished / Attempted | CPU wins | CPU win rate | Avg turns | Duration | Errors |','|---|---|---:|---:|---:|---:|---:|---:|'];
  for(const r of results)md.push('| '+[r.difficulty,r.style,r.matches+' / '+r.attempted,r.cpuWins,r.cpuWinRatePct===null?'n/a':r.cpuWinRatePct+'%',r.avgTurns,r.elapsedMs+'ms',r.errors].join(' | ')+' |');
  md.push('','Rates are descriptive only, not a statistically reliable difficulty ranking.');
- fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,md.join('\\n')+'\\n');
+ fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,md.join('\n')+'\n');
 }
 
 if(failures)process.exitCode=1;
