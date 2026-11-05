@@ -9,6 +9,7 @@ const code=source.replace(/\}\)\(\);\s*$/,'globalThis.BENCH={start,draw,discard,
 if(code===source)throw Error('game script export injection failed');
 const perSetting=Math.min(100,Math.max(1,Number(process.argv[2])||5));
 const maxMatchMs=Math.min(120000,Math.max(1000,Number(process.env.GIN_BENCH_MATCH_TIMEOUT_MS)||15000));
+const runMaxTurns=Math.min(5000,Math.max(100,Number(process.env.GIN_BENCH_MAX_TURNS)||1800));
 const settings=[['easy','balanced'],['normal','balanced'],['hard','balanced'],['hard','aggressive'],['hard','patient']];
 function rng(seed){let x=seed>>>0;return()=>{x=(x+0x6D2B79F5)>>>0;let z=x;z=Math.imul(z^(z>>>15),z|1);z^=z+Math.imul(z^(z>>>7),z|61);return ((z^(z>>>14))>>>0)/4294967296}}
 function play(level,style,seed){
@@ -19,15 +20,18 @@ function play(level,style,seed){
  const ctx={document:doc,localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v),removeItem:k=>store.delete(k)},confirm:()=>true,Math:math,console};
  vm.createContext(ctx);vm.runInContext(code,ctx,{timeout:2000});
  const g=ctx.BENCH;let turns=0,hands=0;const began=Date.now();
- while(turns<1800&&hands<100){
+ while(turns<runMaxTurns&&hands<100){
   if(Date.now()-began>maxMatchMs)throw Error('match time limit '+maxMatchMs+'ms exceeded');
   const s=g.get();
   if(!g.valid(s))throw Error('invalid state at turn '+turns+', phase '+s.phase);
+  if(s.phase==='draw'&&s.me.length!==10)throw Error('draw phase hand count');
+  if(s.phase==='discard'&&s.me.length!==11)throw Error('discard phase hand count');
   if(s.phase==='match')return {winner:s.myTotal>s.cpuTotal?'player':'cpu',hands,turns,score:[s.myTotal,s.cpuTotal]};
   if(s.phase==='between'){hands++;el('nextRound').onclick();continue}
-  if(s.phase==='draw')g.draw('stock');
+  if(s.phase==='draw')g.draw(turns%5===0&&s.pile.length?'pile':'stock');
   if(s.phase==='discard'){
    const now=g.get(),forbid=now.drawnFrom==='pile'?now.me.findIndex(c=>c.si*13+c.r-1===now.pileTaken):-1;
+   if(now.drawnFrom==='pile'&&forbid<0)throw Error('picked discard not found in hand');
    const moves=g.options(now.me,forbid).sort((a,b)=>a.dead-b.dead);
    if(!moves.length)throw Error('no legal discard');
    now.selected=moves[0].i;g.discard(moves[0].dead<=5);
