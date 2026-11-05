@@ -44,7 +44,8 @@ let failures=0;const results=[];const started=Date.now();
 for(const [level,style] of settings){
  const row={difficulty:level,style,attempted:perSetting,matches:0,cpuWins:0,playerWins:0,cpuWinRatePct:null,avgHands:0,avgTurns:0,errors:0,elapsedMs:0,matchTimesMs:[]};const rowStart=Date.now();
  for(let i=0;i<perSetting;i++){
-  try{const matchStart=Date.now();const game=play(level,style,0xA13F00+i);row.matchTimesMs.push(Date.now()-matchStart);row.matches++;row[game.winner==='cpu'?'cpuWins':'playerWins']++;row.avgHands+=game.hands;row.avgTurns+=game.turns}
+  console.error('[benchmark] starting',level,style,'seed',i);
+  try{const matchStart=Date.now();const game=play(level,style,0xA13F00+i);row.matchTimesMs.push(Date.now()-matchStart);row.matches++;row[game.winner==='cpu'?'cpuWins':'playerWins']++;row.avgHands+=game.hands;row.avgTurns+=game.turns;console.error('[benchmark] finished',level,style,'seed',i,'winner',game.winner,'turns',game.turns)}
   catch(e){row.errors++;failures++;console.error(level,style,'seed',i,String(e))}
  }
  if(row.matches){row.avgHands=+(row.avgHands/row.matches).toFixed(1);row.avgTurns=+(row.avgTurns/row.matches).toFixed(1);row.cpuWinRatePct=+(100*row.cpuWins/row.matches).toFixed(1)}row.elapsedMs=Date.now()-rowStart;
