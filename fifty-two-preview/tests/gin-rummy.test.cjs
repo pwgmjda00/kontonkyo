@@ -6,7 +6,7 @@ assert.ok(source,'embedded game script exists');new Function(source);
 const nodes=new Map();
 function el(id){if(!nodes.has(id))nodes.set(id,{id,value:id==='personality'?'balanced':'normal',disabled:false,hidden:false,textContent:'',className:'',open:true,replaceChildren(){},setAttribute(){},onclick:null});return nodes.get(id)}
 const store=new Map(),sandbox={document:{getElementById:el,createElement:()=>({textContent:'',className:'',disabled:false,setAttribute(){}})},localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v),removeItem:k=>store.delete(k)},confirm:()=>true,Math,Set,Map,JSON,Number,Array,console};
-const injected=source.replace(/\}\)\(\);\s*$/, 'globalThis.GIN_TEST={analyze,layoff,deck,points:pts,options,valid,draw,discard,getState:()=>s,start,resetHand:startHand};})();');
+const injected=source.replace(/\}\)\(\);\s*$/, 'globalThis.GIN_TEST={analyze,layoff,deck,points:pts,options,valid,draw,discard,getState:()=>s,start,resetHand:startHand,meldSort};})();');
 vm.runInNewContext(injected,sandbox,{timeout:1500});
 const g=sandbox.GIN_TEST,c=(si,r)=>({si,r});
 test('deck is 52 unique cards',()=>{const d=g.deck();assert.equal(d.length,52);assert.equal(new Set(d.map(x=>x.si*13+x.r)).size,52)});
@@ -68,4 +68,22 @@ test('CPU can play after the initial face-up discard was taken',()=>{
  assert.doesNotThrow(()=>g.discard(false));
  assert.equal(g.valid(s),true);
  assert.equal(s.pile.length>0,true);
+});
+
+test('meld grouping keeps each detected meld contiguous',()=>{
+ g.start();const s=g.getState();
+ const cards=[c(0,3),c(1,3),c(2,3),c(0,8),c(0,9),c(0,10),c(1,12),c(2,13),c(3,5),c(3,7)];
+ const previous=s.me.slice();s.me=cards;
+ try{
+  const groups=g.analyze(cards).groups;
+  assert.equal(groups.length,2);
+  g.meldSort();
+  let offset=0;
+  for(const group of groups){
+   const expected=new Set(group.map(x=>x.si*13+x.r));
+   const actual=new Set(s.me.slice(offset,offset+group.length).map(x=>x.si*13+x.r));
+   assert.deepEqual([...actual].sort((a,b)=>a-b),[...expected].sort((a,b)=>a-b));
+   offset+=group.length;
+  }
+ }finally{s.me=previous;g.start()}
 });
