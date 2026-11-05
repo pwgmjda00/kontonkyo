@@ -1,0 +1,23 @@
+name: FIFTY-TWO Gin Rummy checks
+on:
+  push:
+    paths:
+      - 'fifty-two-preview/gin-rummy.html'
+      - 'fifty-two-preview/tests/**'
+      - '.github/workflows/fifty-two-gin-rummy.yml'
+  pull_request:
+    paths:
+      - 'fifty-two-preview/gin-rummy.html'
+      - 'fifty-two-preview/tests/**'
+      - '.github/workflows/fifty-two-gin-rummy.yml'
+  workflow_dispatch:
+jobs:
+  rules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Gin Rummy game logic
+        run: node --test fifty-two-preview/tests/gin-rummy.test.cjs
