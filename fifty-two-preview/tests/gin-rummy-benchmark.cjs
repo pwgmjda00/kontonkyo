@@ -14,7 +14,7 @@ const settings=[['easy','balanced'],['normal','balanced'],['hard','balanced'],['
 function rng(seed){let x=seed>>>0;return()=>{x=(x+0x6D2B79F5)>>>0;let z=x;z=Math.imul(z^(z>>>15),z|1);z^=z+Math.imul(z^(z>>>7),z|61);return ((z^(z>>>14))>>>0)/4294967296}}
 function play(level,style,seed){
  const nodes=new Map(),store=new Map();
- const el=id=>{if(!nodes.has(id))nodes.set(id,{value:id==='difficulty'?level:id==='personality'?style:'',replaceChildren(){},setAttribute(){},textContent:'',disabled:false});return nodes.get(id)};
+ const el=id=>{if(!nodes.has(id))nodes.set(id,{value:id==='difficulty'?level:id==='personality'?style:'',replaceChildren(){},setAttribute(){},textContent:'',disabled:false,dataset:{}});return nodes.get(id)};
  const doc={body:{dataset:{}},getElementById:el,createElement:()=>({setAttribute(){}})};
  const math=Object.create(Math);math.random=rng(seed);
  const ctx={document:doc,localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v),removeItem:k=>store.delete(k)},confirm:()=>true,Math:math,console};
