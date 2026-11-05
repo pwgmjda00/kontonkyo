@@ -20,6 +20,20 @@ jobs:
           distribution: temurin
           java-version: '21'
       - uses: android-actions/setup-android@v3
+      - name: Validate web build
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const vm = require('vm');
+          const html = fs.readFileSync('fifty-two/index.html','utf8');
+          const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+          if (!script) throw Error('Missing inline game script');
+          new vm.Script(script);
+          for (const name of ['52 / FIFTY-TWO','忘却','じっくり','サクサク']) {
+            if (!html.includes(name)) throw Error('Missing '+name);
+          }
+          console.log('Web syntax and core UI checks passed');
+          NODE
       - name: Prepare Capacitor project
         run: |
           mkdir -p fifty-two/android-app/www
