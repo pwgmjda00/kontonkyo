@@ -59,3 +59,13 @@ test('empty discard pile renders safely during face-up pickup',()=>{
  assert.equal(s.phase,'discard');assert.equal(s.pile.length,0);
  assert.equal(g.valid(s),true);
 });
+
+test('CPU can play after the initial face-up discard was taken',()=>{
+ g.start();const s=g.getState();g.draw('pile');
+ const forbidden=s.me.findIndex(c=>c.si*13+c.r-1===s.pileTaken);
+ const choice=g.options(s.me,forbidden).sort((a,b)=>a.dead-b.dead)[0];
+ s.selected=choice.i;
+ assert.doesNotThrow(()=>g.discard(false));
+ assert.equal(g.valid(s),true);
+ assert.equal(s.pile.length>0,true);
+});
