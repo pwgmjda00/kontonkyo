@@ -5,7 +5,7 @@ const source=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 assert.ok(source,'embedded game script exists');new Function(source);
 const nodes=new Map();
 function el(id){if(!nodes.has(id))nodes.set(id,{id,value:id==='personality'?'balanced':'normal',disabled:false,hidden:false,dataset:{},textContent:'',className:'',open:true,replaceChildren(){},setAttribute(){},onclick:null});return nodes.get(id)}
-const store=new Map(),sandbox={document:{getElementById:el,createElement:()=>({textContent:'',className:'',disabled:false,setAttribute(){}})},localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v),removeItem:k=>store.delete(k)},confirm:()=>true,Math,Set,Map,JSON,Number,Array,console};
+const store=new Map(),sandbox={document:{body:{dataset:{}},getElementById:el,createElement:()=>({textContent:'',className:'',disabled:false,setAttribute(){}})},localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v),removeItem:k=>store.delete(k)},confirm:()=>true,Math,Set,Map,JSON,Number,Array,console};
 const injected=source.replace(/\}\)\(\);\s*$/, 'globalThis.GIN_TEST={analyze,layoff,deck,points:pts,options,valid,draw,discard,getState:()=>s,start,resetHand:startHand,meldSort};})();');
 vm.runInNewContext(injected,sandbox,{timeout:1500});
 const g=sandbox.GIN_TEST,c=(si,r)=>({si,r});
