@@ -42,13 +42,21 @@ function play(level,style,seed){
 }
 let failures=0;const results=[];const started=Date.now();
 for(const [level,style] of settings){
- const row={difficulty:level,style,matches:0,cpuWins:0,playerWins:0,cpuWinRatePct:0,avgHands:0,avgTurns:0,errors:0,elapsedMs:0};const rowStart=Date.now();
+ const row={difficulty:level,style,attempted:perSetting,matches:0,cpuWins:0,playerWins:0,cpuWinRatePct:null,avgHands:0,avgTurns:0,errors:0,elapsedMs:0,matchTimesMs:[]};const rowStart=Date.now();
  for(let i=0;i<perSetting;i++){
-  try{const game=play(level,style,0xA13F00+i);row.matches++;row[game.winner==='cpu'?'cpuWins':'playerWins']++;row.avgHands+=game.hands;row.avgTurns+=game.turns}
+  try{const matchStart=Date.now();const game=play(level,style,0xA13F00+i);row.matchTimesMs.push(Date.now()-matchStart);row.matches++;row[game.winner==='cpu'?'cpuWins':'playerWins']++;row.avgHands+=game.hands;row.avgTurns+=game.turns}
   catch(e){row.errors++;failures++;console.error(level,style,'seed',i,String(e))}
  }
  if(row.matches){row.avgHands=+(row.avgHands/row.matches).toFixed(1);row.avgTurns=+(row.avgTurns/row.matches).toFixed(1);row.cpuWinRatePct=+(100*row.cpuWins/row.matches).toFixed(1)}row.elapsedMs=Date.now()-rowStart;
  results.push(row);
 }
-console.log(JSON.stringify({matchesPerSetting:perSetting,elapsedMs:Date.now()-started,results},null,2));
+const report={seedBase:'0xA13F00',matchesPerSetting:perSetting,elapsedMs:Date.now()-started,results};
+console.log(JSON.stringify(report,null,2));
+if(process.env.GITHUB_STEP_SUMMARY){
+ const md=['## Gin Rummy seeded CPU benchmark','','Same initial seed per setting; later hands may diverge because CPU decisions consume random numbers.','','| Difficulty | Style | Finished / Attempted | CPU wins | CPU win rate | Avg turns | Duration | Errors |','|---|---|---:|---:|---:|---:|---:|---:|'];
+ for(const r of results)md.push('| '+[r.difficulty,r.style,r.matches+' / '+r.attempted,r.cpuWins,r.cpuWinRatePct===null?'n/a':r.cpuWinRatePct+'%',r.avgTurns,r.elapsedMs+'ms',r.errors].join(' | ')+' |');
+ md.push('','Rates are descriptive only, not a statistically reliable difficulty ranking.');
+ fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,md.join('\\n')+'\\n');
+}
+
 if(failures)process.exitCode=1;
