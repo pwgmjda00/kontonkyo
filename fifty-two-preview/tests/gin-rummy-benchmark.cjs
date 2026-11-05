@@ -8,6 +8,7 @@ if(!source)throw Error('game script not found');
 const code=source.replace(/\}\)\(\);\s*$/,'globalThis.BENCH={start,draw,discard,options,valid,get:()=>s};})();');
 if(code===source)throw Error('game script export injection failed');
 const perSetting=Math.min(100,Math.max(1,Number(process.argv[2])||5));
+const maxMatchMs=Math.min(120000,Math.max(1000,Number(process.env.GIN_BENCH_MATCH_TIMEOUT_MS)||15000));
 const settings=[['easy','balanced'],['normal','balanced'],['hard','balanced'],['hard','aggressive'],['hard','patient']];
 function rng(seed){let x=seed>>>0;return()=>{x=(x+0x6D2B79F5)>>>0;let z=x;z=Math.imul(z^(z>>>15),z|1);z^=z+Math.imul(z^(z>>>7),z|61);return ((z^(z>>>14))>>>0)/4294967296}}
 function play(level,style,seed){
@@ -17,8 +18,9 @@ function play(level,style,seed){
  const math=Object.create(Math);math.random=rng(seed);
  const ctx={document:doc,localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v),removeItem:k=>store.delete(k)},confirm:()=>true,Math:math,console};
  vm.createContext(ctx);vm.runInContext(code,ctx,{timeout:2000});
- const g=ctx.BENCH;let turns=0,hands=0;
+ const g=ctx.BENCH;let turns=0,hands=0;const began=Date.now();
  while(turns<1800&&hands<100){
+  if(Date.now()-began>maxMatchMs)throw Error('match time limit '+maxMatchMs+'ms exceeded');
   const s=g.get();
   if(!g.valid(s))throw Error('invalid state at turn '+turns+', phase '+s.phase);
   if(s.phase==='match')return {winner:s.myTotal>s.cpuTotal?'player':'cpu',hands,turns,score:[s.myTotal,s.cpuTotal]};
@@ -36,12 +38,12 @@ function play(level,style,seed){
 }
 let failures=0;const results=[];const started=Date.now();
 for(const [level,style] of settings){
- const row={difficulty:level,style,matches:0,cpuWins:0,playerWins:0,avgHands:0,avgTurns:0,errors:0};
+ const row={difficulty:level,style,matches:0,cpuWins:0,playerWins:0,cpuWinRatePct:0,avgHands:0,avgTurns:0,errors:0,elapsedMs:0};const rowStart=Date.now();
  for(let i=0;i<perSetting;i++){
   try{const game=play(level,style,0xA13F00+i);row.matches++;row[game.winner==='cpu'?'cpuWins':'playerWins']++;row.avgHands+=game.hands;row.avgTurns+=game.turns}
   catch(e){row.errors++;failures++;console.error(level,style,'seed',i,String(e))}
  }
- if(row.matches){row.avgHands=+(row.avgHands/row.matches).toFixed(1);row.avgTurns=+(row.avgTurns/row.matches).toFixed(1)}
+ if(row.matches){row.avgHands=+(row.avgHands/row.matches).toFixed(1);row.avgTurns=+(row.avgTurns/row.matches).toFixed(1);row.cpuWinRatePct=+(100*row.cpuWins/row.matches).toFixed(1)}row.elapsedMs=Date.now()-rowStart;
  results.push(row);
 }
 console.log(JSON.stringify({matchesPerSetting:perSetting,elapsedMs:Date.now()-started,results},null,2));
