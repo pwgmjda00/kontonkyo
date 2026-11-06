@@ -23,4 +23,4 @@ $('hit').onclick=()=>{if(state.phase!=='playing')return;state.me.push(take());if
 $('stand').onclick=finish;$('next').onclick=()=>{if(state.phase!=='revealed')return;state.round++;deal();render()};$('restart').onclick=()=>{if(confirm('対局を最初からやり直しますか？'))start(state.mode)};$('slow').onclick=()=>{if(state.mode!=='slow'&&confirm('5回勝負で新しく始めますか？'))start('slow')};$('fast').onclick=()=>{if(state.mode!=='fast'&&confirm('3回勝負で新しく始めますか？'))start('fast')};$('hideGuide').onclick=()=>{$('tutorial').open=false};
 try{const old=JSON.parse(localStorage.getItem(KEY));if(valid(old))state=old}catch(e){}if(!state)start('slow');else render();
 })();
-</script></body></html>
+</script><script src="./collection.js" defer></script></body></html>
