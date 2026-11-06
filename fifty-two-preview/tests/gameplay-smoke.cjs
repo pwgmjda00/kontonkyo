@@ -54,7 +54,7 @@ const server=http.createServer((req,res)=>{
    assert.ok(move,'a legal move must be found within 12 deals');
    const before=await p.locator('#stats').innerText();
    await p.locator('#area .clock button').nth(move[0]).click();
-   if(move.length===1)await p.locator('#area .board button').filter({hasText:'選択したKを消去'}).click();
+   if(move.length===1)await p.locator('#area > button').filter({hasText:'選択したKを消去'}).click();
    else await p.locator('#area .clock button').nth(move[1]).click();
    assert.notEqual(await p.locator('#stats').innerText(),before);
   },'index/thirteenth-hour');
