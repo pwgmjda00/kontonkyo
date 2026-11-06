@@ -20,7 +20,7 @@ const server=http.createServer((req,res)=>{
    assert.equal(await p.locator('#undo').isDisabled(),true);
    await p.locator('#hint').click();
    assert.match(await p.locator('#message').innerText(),/./);
-   assert.ok(await p.locator('#board button').count()>0);
+   assert.ok(await p.locator(game==='beleaguered-castle'?'#left button':'#board button').count()>0);
   });
   await run('gaps',async p=>{
    assert.match(await p.locator('#redeals').innerText(),/2/);
