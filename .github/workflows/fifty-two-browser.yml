@@ -1,0 +1,22 @@
+name: FIFTY-TWO mobile browser checks
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'fifty-two-preview/**'
+      - '.github/workflows/fifty-two-browser.yml'
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser test dependencies
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Test all card game pages in mobile Chromium
+        run: node fifty-two-preview/tests/browser-smoke.cjs
