@@ -14,6 +14,114 @@ const server=http.createServer((req,res)=>{
  const errors=[],tests=[];
  async function run(name,fn){const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});const crashes=[];page.on('pageerror',e=>crashes.push(e.message));try{await page.goto(base+'/'+name+'.html',{waitUntil:'load'});await fn(page);assert.deepEqual(crashes,[]);tests.push(name+' PASS')}catch(e){errors.push(name+': '+e.stack)}finally{await page.close()}}
  try{
+  // Solitaires: hint feedback, initial undo state and live card rendering.
+  for(const game of ['accordion','gaps','cruel','simple-simon','beleaguered-castle','forty-thieves'])await run(game,async p=>{
+   assert.equal(await p.locator('#hint').isEnabled(),true);
+   assert.equal(await p.locator('#undo').isDisabled(),true);
+   await p.locator('#hint').click();
+   assert.match(await p.locator('#message').innerText(),/./);
+   assert.ok(await p.locator('#board button').count()>0);
+  });
+  await run('gaps',async p=>{
+   assert.match(await p.locator('#redeals').innerText(),/2/);
+   await p.locator('#redeal').click();
+   assert.equal(await p.locator('#undo').isEnabled(),true);
+   await p.keyboard.press('u');
+   assert.equal(await p.locator('#undo').isDisabled(),true);
+  });
+  await run('cruel',async p=>{
+   await p.locator('#redeal').click();
+   assert.equal(await p.locator('#undo').isEnabled(),true);
+   await p.keyboard.press('Control+z');
+   assert.equal(await p.locator('#undo').isDisabled(),true);
+  });
+  await run('forty-thieves',async p=>{
+   const before=await p.locator('#stockcount').innerText();
+   await p.locator('#stock').click();
+   assert.notEqual(await p.locator('#stockcount').innerText(),before);
+   assert.equal(await p.locator('#undo').isEnabled(),true);
+   await p.locator('#undo').click();
+   assert.equal(await p.locator('#stockcount').innerText(),before);
+  });
+  await run('kings-road',async p=>{
+   assert.equal(await p.locator('#steps').innerText(),'0');
+   assert.ok(await p.locator('#board .cell:enabled').count()>0);
+   await p.locator('#board .cell:enabled').first().click();
+   assert.equal(await p.locator('#steps').innerText(),'1');
+   await p.keyboard.press('u');
+   assert.equal(await p.locator('#steps').innerText(),'0');
+  });
+  await run('royal-slide',async p=>{
+   assert.equal(await p.locator('#moves').innerText(),'0');
+   assert.ok(await p.locator('#board .tile:enabled').count()>0);
+   await p.locator('#board .tile:enabled').first().click();
+   assert.equal(await p.locator('#moves').innerText(),'1');
+   await p.locator('#undo').click();
+   assert.equal(await p.locator('#moves').innerText(),'0');
+  });
+  await run('crossfire',async p=>{
+   assert.equal(await p.locator('#placed').innerText(),'0 / 16');
+   await p.locator('#board button:enabled').first().click();
+   assert.equal(await p.locator('#placed').innerText(),'1 / 16');
+   await p.keyboard.press('Control+z');
+   assert.equal(await p.locator('#placed').innerText(),'0 / 16');
+  });
+  await run('balance',async p=>{
+   assert.equal(await p.locator('#turn').innerText(),'0 / 10');
+   await p.locator('#putLeft').click();
+   assert.equal(await p.locator('#turn').innerText(),'1 / 10');
+   await p.reload();
+   assert.equal(await p.locator('#turn').innerText(),'1 / 10');
+  });
+  await run('lighthouse',async p=>{
+   assert.equal(await p.locator('#placed').innerText(),'0');
+   await p.locator('#hand button').first().click();
+   assert.equal(await p.locator('#hand button[aria-pressed="true"]').count(),1);
+   await p.locator('#towers button:enabled').first().click();
+   assert.equal(await p.locator('#placed').innerText(),'1');
+   await p.reload();
+   assert.equal(await p.locator('#placed').innerText(),'1');
+  });
+  await run('alchemy',async p=>{
+   assert.equal(await p.locator('#turns').innerText(),'12');
+   await p.locator('#market button:enabled').first().click();
+   assert.equal(await p.locator('#turns').innerText(),'11');
+   await p.reload();
+   assert.equal(await p.locator('#turns').innerText(),'11');
+  });
+  await run('coronation',async p=>{
+   assert.equal(await p.locator('#hand button:enabled').count(),7);
+   await p.locator('#hand button:enabled').first().click();
+   assert.equal(await p.locator('#hand button').count(),6);
+   assert.equal(await p.locator('#next').isEnabled(),true);
+   await p.locator('#next').click();
+   assert.equal(await p.locator('#round').innerText(),'2 / 7');
+  });
+  await run('paradox',async p=>{
+   const before=await p.locator('#law').innerText();
+   await p.locator('#flip').click();
+   assert.notEqual(await p.locator('#law').innerText(),before);
+   await p.locator('#hand button:enabled').first().click();
+   assert.equal(await p.locator('#next').isEnabled(),true);
+   await p.locator('#next').click();
+   assert.equal(await p.locator('#round').innerText(),'2 / 7');
+  });
+  await run('judgment',async p=>{
+   assert.equal(await p.locator('#stand').isEnabled(),true);
+   await p.locator('#stand').click();
+   assert.equal(await p.locator('#stand').isDisabled(),true);
+   assert.equal(await p.locator('#next').isEnabled(),true);
+   await p.locator('#next').click();
+   assert.equal(await p.locator('#stand').isEnabled(),true);
+  });
+  await run('reverse-auction',async p=>{
+   assert.equal(await p.locator('#hand button:enabled').count(),13);
+   await p.locator('#hand button:enabled').first().click();
+   assert.equal(await p.locator('#hand button:enabled').count(),0);
+   assert.equal(await p.locator('#next').isVisible(),true);
+   await p.locator('#next').click();
+   assert.equal(await p.locator('#round').innerText(),'2 / 13');
+  });
   for(const game of ['freecell','klondike','spider','yukon','scorpion','eight-off','penguin','canfield'])await run(game,async p=>{assert.equal(await p.locator('#hint').isEnabled(),true);await p.locator('#hint').click();assert.match(await p.locator('#message').innerText(),/./);assert.equal(await p.locator('#undo').isDisabled(),true);assert.equal(await p.locator('#ft-game-ux').count(),1);assert.ok(await p.locator('button.card').count()>0)});
   for(const game of ['osmosis','la-belle-lucie','nestor','bakers-dozen','flower-garden'])await run(game,async p=>{assert.equal(await p.locator('#hint').isEnabled(),true);await p.locator('#hint').click();assert.match(await p.locator('#message').innerText(),/./);assert.equal(await p.locator('#undo').isDisabled(),true);assert.equal(await p.locator('#ft-game-ux').count(),1)});
   await run('clock',async p=>{assert.equal(await p.locator('#step').isEnabled(),true);await p.locator('#step').click();assert.match(await p.locator('#message').innerText(),/./);await p.locator('#auto').click();assert.equal(await p.locator('#step').isDisabled(),true)});
