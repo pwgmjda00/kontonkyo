@@ -12,8 +12,79 @@ const server=http.createServer((req,res)=>{
  await new Promise(r=>server.listen(0,'127.0.0.1',r));
  const browser=await chromium.launch({headless:true}),base='http://127.0.0.1:'+server.address().port;
  const errors=[],tests=[];
- async function run(name,fn){const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});const crashes=[];page.on('pageerror',e=>crashes.push(e.message));try{await page.goto(base+'/'+name+'.html',{waitUntil:'load'});await fn(page);assert.deepEqual(crashes,[]);tests.push(name+' PASS')}catch(e){errors.push(name+': '+e.stack)}finally{await page.close()}}
+ async function run(name,fn,label=name){const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});const crashes=[];page.on('pageerror',e=>crashes.push(e.message));try{await page.goto(base+'/'+name+'.html',{waitUntil:'load'});await fn(page);assert.deepEqual(crashes,[]);tests.push(label+' PASS')}catch(e){errors.push(label+': '+e.stack)}finally{await page.close()}}
  try{
+  // Five embedded games hosted in index.html, separate from standalone HTML titles.
+  await run('index',async p=>{
+   assert.equal(await p.locator('#games button').count(),5);
+   await p.locator('#games button').nth(0).click();
+   assert.match(await p.locator('#title').innerText(),/墓標/);
+   const stock=p.locator('#area > .top button').first();
+   const before=await stock.innerText();
+   assert.equal(await p.locator('#undo').isDisabled(),true);
+   await stock.click();
+   assert.notEqual(await stock.innerText(),before);
+   assert.equal(await p.locator('#undo').isEnabled(),true);
+   await p.locator('#undo').click();
+   assert.equal(await stock.innerText(),before);
+  },'index/tombstone');
+  await run('index',async p=>{
+   await p.locator('#games button').nth(1).click();
+   assert.match(await p.locator('#title').innerText(),/共犯/);
+   const hand=p.locator('#area .hand button');
+   const n=await hand.count();
+   await p.locator('#area .board button').filter({hasText:'山札から引く'}).click();
+   assert.equal(await hand.count(),n+1);
+   await hand.first().click();
+   await p.locator('#area .board button').filter({hasText:'選択した札を捨てる'}).click();
+   assert.match(await p.locator('#log').innerText(),/CPUが行動した/);
+  },'index/accomplice');
+  await run('index',async p=>{
+   await p.locator('#games button').nth(2).click();
+   assert.match(await p.locator('#title').innerText(),/13時/);
+   p.on('dialog',d=>d.accept());
+   let move=null;
+   for(let attempt=0;attempt<12&&!move;attempt++){
+    const text=await p.locator('#area .clock button').allInnerTexts();
+    const ranks=text.map(t=>{const m=t.trim().match(/^(A|J|Q|K|\d+)/);return m?({A:1,J:11,Q:12,K:13}[m[1]]||Number(m[1])):0});
+    const outer=ranks.length-1;
+    for(let i=0;i<ranks.length&&!move;i++){if(ranks[i]===13){move=[i];break}for(let j=i+1;j<ranks.length;j++)if(ranks[i]+ranks[j]===13&&(i===outer||j===outer||Math.abs(i-j)===1||Math.abs(i-j)===outer-1)){move=[i,j];break}}
+    if(!move)await p.locator('#new').click();
+   }
+   assert.ok(move,'a legal move must be found within 12 deals');
+   const before=await p.locator('#stats').innerText();
+   await p.locator('#area .clock button').nth(move[0]).click();
+   if(move.length===1)await p.locator('#area .board button').filter({hasText:'選択したKを消去'}).click();
+   else await p.locator('#area .clock button').nth(move[1]).click();
+   assert.notEqual(await p.locator('#stats').innerText(),before);
+  },'index/thirteenth-hour');
+  await run('index',async p=>{
+   await p.locator('#games button').nth(3).click();
+   assert.match(await p.locator('#title').innerText(),/四王国/);
+   const hand=p.locator('#area .hand').last();
+   const before=await hand.locator('button').count();
+   const label=await hand.locator('button').first().innerText();
+   const suit=['♠','♥','♦','♣'].findIndex(x=>label.includes(x));
+   assert.ok(suit>=0);
+   await hand.locator('button').first().click();
+   await p.locator('#area .board button').nth(suit).click();
+   assert.equal(await hand.locator('button').count(),before-1);
+   assert.equal(await p.locator('#undo').isEnabled(),true);
+   await p.locator('#undo').click();
+   assert.equal(await hand.locator('button').count(),before);
+  },'index/four-kingdoms');
+  await run('index',async p=>{
+   await p.clock.install();
+   await p.locator('#games button').nth(4).click();
+   assert.match(await p.locator('#title').innerText(),/忘却/);
+   p.on('dialog',d=>d.accept());
+   await p.locator('#fast').click();
+   assert.match(await p.locator('#area').innerText(),/記憶時間/);
+   await p.clock.fastForward(8100);
+   assert.equal(await p.locator('#area .memory button.back').count(),16);
+   await p.locator('#area .memory button').first().click();
+   assert.equal(await p.locator('#area .memory button.selected').count(),1);
+  },'index/oblivion');
   // Remaining standalone games: exercise a real state transition in every title.
   await run('auction',async p=>{
    assert.equal(await p.locator('#submit').isEnabled(),true);
@@ -115,7 +186,7 @@ const server=http.createServer((req,res)=>{
   });
   await run('redline',async p=>{
    await p.locator('#market button:enabled').first().click();
-   assert.equal(await p.locator('#youCards .card').count(),1);
+   assert.equal(await p.locator('#youCards .mini').count(),1);
    await p.locator('#stand').click();
    assert.equal(await p.locator('#next').isVisible(),true);
   });
