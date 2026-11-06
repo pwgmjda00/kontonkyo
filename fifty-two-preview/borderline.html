@@ -24,4 +24,4 @@ function render(){if(!s)return;const c=s.current;$('card').textContent=faces[c.r
 $('higher').onclick=()=>guess('higher');$('lower').onclick=()=>guess('lower');$('cash').onclick=()=>{if(s.done||!s.streak)return;const points=pending();s.bank+=points;s.streak=0;s.message=points+'点を確定しました。次の予想へ！';save();render()};$('restart').onclick=()=>{if(confirm('現在の得点を消して、最初から始めますか？'))start()};$('closeGuide').onclick=()=>{$('guide').open=false};
 try{const x=JSON.parse(localStorage.getItem(KEY));if(valid(x))s=x}catch(e){}if(!s)start();else render();
 })();
-</script></body></html>
+</script><script src="./collection.js" defer></script></body></html>
