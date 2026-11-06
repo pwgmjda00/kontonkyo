@@ -119,6 +119,6 @@ function close(){overlay.classList.remove('show');try{localStorage.setItem('fift
 document.getElementById('ft-guide-open').onclick=open;document.getElementById('ft-guide-prev').onclick=()=>{i=Math.max(0,i-1);render()};
 document.getElementById('ft-guide-next').onclick=()=>{if(i===pages.length-1)close();else{i++;render()}};document.getElementById('ft-guide-close').onclick=close;
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay.classList.contains('show'))close()});
-try{if(!localStorage.getItem('fifty-two-guide-seen'))open()}catch(e){open()}
+// 初回は自動表示しない。遊び方は必要なときに開ける。
 })();
 </script><script src="./collection.js" defer></script></body></html>
