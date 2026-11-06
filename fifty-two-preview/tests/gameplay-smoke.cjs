@@ -16,8 +16,9 @@ const server=http.createServer((req,res)=>{
  try{
   await run('countdown',async p=>{
    assert.equal(await p.locator('#number').innerText(),'50');
+   assert.equal(await p.locator('#ft-game-ux').count(),1);await p.keyboard.press('?');assert.equal(await p.locator('main details').first().getAttribute('open'),'');await p.keyboard.press('?');
    assert.match(await p.locator('.offer .choice').first().innerText(),/→/);assert.ok((await p.locator('.offer .choice').first().getAttribute('aria-label')).includes('結果'));
-   for(let i=0;i<10;i++){await p.locator('.offer .choice').first().click();if(i===0){assert.equal(await p.locator('#undo').isEnabled(),true);const v=await p.locator('#number').innerText();await p.locator('#undo').click();assert.equal(await p.locator('#number').innerText(),'50');await p.locator('.offer .choice').first().click();assert.equal(await p.locator('#number').innerText(),v)}}
+   for(let i=0;i<10;i++){await p.locator('.offer .choice').first().click();if(i===0){assert.equal(await p.locator('#undo').isEnabled(),true);const v=await p.locator('#number').innerText();await p.keyboard.press('Control+z');assert.equal(await p.locator('#number').innerText(),'50');await p.locator('.offer .choice').first().click();assert.equal(await p.locator('#number').innerText(),v)}}
    assert.equal(await p.locator('.offer').count(),0);assert.match(await p.locator('#message').innerText(),/全10手終了/);
    await p.locator('#restart').click();assert.equal(await p.locator('#number').innerText(),'50')
   });
