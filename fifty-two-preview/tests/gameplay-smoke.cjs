@@ -14,6 +14,157 @@ const server=http.createServer((req,res)=>{
  const errors=[],tests=[];
  async function run(name,fn){const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});const crashes=[];page.on('pageerror',e=>crashes.push(e.message));try{await page.goto(base+'/'+name+'.html',{waitUntil:'load'});await fn(page);assert.deepEqual(crashes,[]);tests.push(name+' PASS')}catch(e){errors.push(name+': '+e.stack)}finally{await page.close()}}
  try{
+  // Remaining standalone games: exercise a real state transition in every title.
+  await run('auction',async p=>{
+   assert.equal(await p.locator('#submit').isEnabled(),true);
+   await p.locator('#submit').click();
+   assert.equal(await p.locator('#next').isEnabled(),true);
+   await p.locator('#next').click();
+   assert.equal(await p.locator('#round').innerText(),'2 / 7');
+  });
+  await run('bluff',async p=>{
+   await p.locator('#hand button:enabled').first().click();
+   assert.equal(await p.locator('#hand button[aria-pressed="true"]').count(),1);
+   await p.locator('#call').click();
+   assert.equal(await p.locator('#hand button').count(),6);
+   assert.equal(await p.locator('#next').isEnabled(),true);
+  });
+  await run('borderline',async p=>{
+   const prev=await p.locator('#remain').innerText();
+   await p.locator('#higher').click();
+   assert.notEqual(await p.locator('#remain').innerText(),prev);
+   assert.match(await p.locator('#message').innerText(),/./);
+  });
+  await run('contagion',async p=>{
+   assert.equal(await p.locator('#turn').innerText(),'0 / 9');
+   await p.locator('#hand button:enabled').first().click();
+   await p.locator('#board button:enabled').first().click();
+   assert.equal(await p.locator('#turn').innerText(),'2 / 9');
+  });
+  await run('deadline',async p=>{
+   await p.locator('#draw').click();
+   assert.ok(await p.locator('#cards .card').count()>0);
+   await p.locator('#bank').click();
+   assert.equal(await p.locator('#next').isVisible(),true);
+   await p.locator('#next').click();
+   assert.equal(await p.locator('#round').innerText(),'2 / 12');
+  });
+  await run('echo',async p=>{
+   assert.ok(await p.locator('#hand button:enabled').count()>0);
+   await p.locator('#hand button:enabled').first().click();
+   assert.ok(await p.locator('#echo .card').count()>0);
+   assert.match(await p.locator('#message').innerText(),/./);
+  });
+  await run('eclipse',async p=>{
+   assert.equal(await p.locator('#left').innerText(),'8');
+   await p.locator('#hand button:enabled').first().click();
+   await p.locator('#board button:enabled').first().click();
+   assert.equal(await p.locator('#left').innerText(),'7');
+  });
+  await run('ghost-hand',async p=>{
+   await p.locator('#enemy button:enabled').first().click();
+   assert.ok(await p.locator('#mine button:enabled').count()>0);
+   await p.locator('#mine button:enabled').first().click();
+   const a=Number(await p.locator('#ys').innerText()),b=Number(await p.locator('#cs').innerText());
+   assert.equal(a+b,1);
+  });
+  await run('gin-rummy',async p=>{
+   assert.match(await p.locator('#phaseBanner').innerText(),/①/);
+   await p.locator('#stock').click();
+   assert.match(await p.locator('#phaseBanner').innerText(),/②/);
+  });
+  await run('indian-poker',async p=>{
+   assert.equal(await p.locator('#call').isEnabled(),true);
+   await p.locator('#call').click();
+   assert.equal(await p.locator('#next').isEnabled(),true);
+   await p.locator('#next').click();
+   assert.equal(await p.locator('#round').innerText(),'2 / 7');
+  });
+  await run('informant',async p=>{
+   await p.locator('[data-q="red"]').click();
+   assert.equal(await p.locator('#answers li').count(),1);
+   assert.equal(await p.locator('[data-q="red"]').isDisabled(),true);
+  });
+  await run('last-word',async p=>{
+   const before=await p.locator('#deckCount').innerText();
+   await p.locator('#deck').click();
+   assert.notEqual(await p.locator('#deckCount').innerText(),before);
+  });
+  await run('memory',async p=>{
+   assert.equal(await p.locator('#board button').count(),52);
+   await p.locator('#board button:enabled').first().click();
+   assert.equal(await p.locator('#board .face').count(),1);
+  });
+  await run('old-maid',async p=>{
+   assert.ok(await p.locator('#backs button:enabled').count()>0);
+   await p.locator('#backs button:enabled').first().click();
+   assert.match(await p.locator('#message').innerText(),/./);
+  });
+  await run('overdrive',async p=>{
+   await p.locator('#hold').click();
+   assert.equal(await p.locator('#next').isEnabled(),true);
+   await p.locator('#next').click();
+   assert.match(await p.locator('#message').innerText(),/./);
+  });
+  await run('paradox-switch',async p=>{
+   assert.equal(await p.locator('#moves').innerText(),'0');
+   await p.locator('#board button:enabled').first().click();
+   assert.equal(await p.locator('#moves').innerText(),'1');
+   await p.keyboard.press('u');
+   assert.equal(await p.locator('#moves').innerText(),'0');
+  });
+  await run('redline',async p=>{
+   await p.locator('#market button:enabled').first().click();
+   assert.equal(await p.locator('#youCards .card').count(),1);
+   await p.locator('#stand').click();
+   assert.equal(await p.locator('#next').isVisible(),true);
+  });
+  await run('seal',async p=>{
+   await p.locator('#hand button:enabled').first().click();
+   assert.equal(await p.locator('#clear').isEnabled(),true);
+   await p.locator('#clear').click();
+   assert.equal(await p.locator('#clear').isDisabled(),true);
+  });
+  await run('sevens',async p=>{
+   assert.match(await p.locator('#passes').innerText(),/3/);
+   await p.locator('#pass').click();
+   assert.match(await p.locator('#passes').innerText(),/2/);
+  });
+  await run('shift',async p=>{
+   assert.ok(await p.locator('#cards button:enabled').count()>1);
+   await p.locator('#cards button:enabled').first().click();
+   assert.equal(await p.locator('#cards button[aria-pressed="true"]').count(),1);
+  });
+  await run('suit-dominion',async p=>{
+   assert.equal(await p.locator('#left').innerText(),'8');
+   await p.locator('#hand button:enabled').first().click();
+   await p.locator('#board button:enabled').first().click();
+   assert.equal(await p.locator('#left').innerText(),'7');
+  });
+  await run('the-answer',async p=>{
+   const before=await p.locator('#shifts').innerText();
+   await p.locator('#shift').click();
+   assert.notEqual(await p.locator('#shifts').innerText(),before);
+   assert.equal(await p.locator('#undo').isEnabled(),true);
+  });
+  await run('trump-jack',async p=>{
+   assert.ok(await p.locator('#hand button:enabled').count()>0);
+   await p.locator('#hand button:enabled').first().click();
+   assert.equal(await p.locator('#next').isVisible(),true);
+   await p.locator('#next').click();
+   assert.equal(await p.locator('#round').innerText(),'2 / 13');
+  });
+  await run('witness',async p=>{
+   await p.locator('#hide').click();
+   assert.equal(await p.locator('#review').isEnabled(),true);
+   await p.locator('#review').click();
+   assert.equal(await p.locator('#hide').isEnabled(),true);
+  });
+  await run('zero-sum',async p=>{
+   await p.locator('#market button:enabled').first().click();
+   assert.equal(await p.locator('#youHand .mini').count(),1);
+   assert.match(await p.locator('#message').innerText(),/./);
+  });
   // Solitaires: hint feedback, initial undo state and live card rendering.
   for(const game of ['accordion','gaps','cruel','simple-simon','beleaguered-castle','forty-thieves'])await run(game,async p=>{
    assert.equal(await p.locator('#hint').isEnabled(),true);
