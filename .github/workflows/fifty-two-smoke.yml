@@ -1,0 +1,21 @@
+name: FIFTY-TWO smoke tests
+on:
+  push:
+    paths:
+      - 'fifty-two-preview/**'
+      - '.github/workflows/fifty-two-smoke.yml'
+  pull_request:
+    paths:
+      - 'fifty-two-preview/**'
+      - '.github/workflows/fifty-two-smoke.yml'
+  workflow_dispatch:
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Static smoke tests for all 77 games
+        run: node fifty-two-preview/tests/collection-smoke.cjs
