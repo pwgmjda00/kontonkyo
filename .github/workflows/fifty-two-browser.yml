@@ -20,3 +20,5 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Test all card game pages in mobile Chromium
         run: node fifty-two-preview/tests/browser-smoke.cjs
+      - name: Test actual gameplay actions and undo / finish
+        run: node fifty-two-preview/tests/gameplay-smoke.cjs
