@@ -356,6 +356,57 @@ const server=http.createServer((req,res)=>{
   await run('war',async p=>{assert.ok(await p.locator('#hand button:enabled').count()>0);await p.locator('#hand button:enabled').first().click();assert.equal(await p.locator('#next').isEnabled(),true);await p.locator('#next').click();assert.ok(await p.locator('#hand button:enabled').count()>0)});
   await run('pyramid',async p=>{assert.equal(await p.locator('#hint').isEnabled(),true);await p.locator('#hint').click();assert.match(await p.locator('#message').innerText(),/💡/);await p.locator('#stock').click();assert.equal(await p.locator('#undo').isEnabled(),true);await p.keyboard.press('u');assert.equal(await p.locator('#undo').isDisabled(),true)});
   await run('golf',async p=>{await p.locator('#hint').click();assert.match(await p.locator('#message').innerText(),/💡/);await p.locator('#stock').click();assert.equal(await p.locator('#undo').isEnabled(),true);await p.keyboard.press('Control+z');assert.equal(await p.locator('#undo').isDisabled(),true)});
+  // Daily JOKER catalog, persisted equipment and finite ability values.
+  await run('jokers',async p=>{
+   assert.equal(await p.locator('#catalog article.joker').count(),77);
+   assert.equal(await p.locator('#daily article.joker').count(),7);
+   await p.locator('#daily article.joker button').first().click();
+   assert.notEqual(await p.locator('#equipped').innerText(),'なし');
+   await p.reload();
+   assert.notEqual(await p.locator('#equipped').innerText(),'なし');
+   assert.equal(await p.locator('#daily article.joker button:disabled').count(),1);
+  });
+  await run('joker-test',async p=>{
+   assert.match(await p.locator('#summary').innerText(),/0件失敗/);
+   assert.ok(await p.locator('#results li.pass').count()>=80);
+   assert.equal(await p.locator('#results li.fail').count(),0);
+  });
+  // Regression: a daily-equipped Joker modifies the separate final score, never the base best.
+  for(const [game,turns,scoreSelector,moveSelector] of [
+   ['countdown',10,'#score','#market .offer .choice:enabled'],
+   ['fault-line',52,'#score','#lanes .lane:enabled'],
+   ['crossfire',16,'#score','#board button:enabled'],
+   ['poker-squares',25,'#total','#board button:enabled']
+  ])await run(game,async p=>{
+   await p.evaluate(()=>{
+    const j=window.FiftyTwoJokers,date=j.localDate();
+    localStorage.setItem('fifty-two-joker-equip-'+date,j.daily(date)[0].id);
+   });
+   await p.reload();
+   assert.equal(await p.locator('.ft-joker-mode button[aria-pressed="true"]').innerText(),'⚖️ 通常');
+   await p.locator('.ft-joker-mode button').nth(1).click();
+   assert.equal(await p.locator('.ft-joker-mode button[aria-pressed="true"]').innerText(),'🃏 JOKER');
+   assert.match(await p.locator('.ft-joker-status').innerText(),/装備中/);
+   assert.equal(await p.locator('.ft-joker-result').innerText(),'');
+   for(let i=0;i<turns;i++)await p.locator(moveSelector).first().click();
+   const raw=Number(await p.locator(scoreSelector).innerText());
+   const expected=await p.evaluate(({game,raw,turns})=>{
+    const j=window.FiftyTwoJokers;
+    return j.applyScore(j.equipped(),raw,{
+     round:turns,totalRounds:turns,final:true,
+     win:game==='countdown'?Number(document.querySelector('#number').textContent)===0:true
+    });
+   },{game,raw,turns});
+   const report=await p.locator('.ft-joker-result').innerText();
+   assert.match(report,/最終JOKER得点/);
+   assert.ok(report.includes('最終JOKER得点 '+expected.score+'点'),report);
+   assert.ok(report.includes('通常 '+raw+'点'),report);
+   assert.equal(expected.delta,expected.score-raw);
+   await p.locator('#undo').click();
+   assert.equal(await p.locator('.ft-joker-result').innerText(),'');
+   await p.reload();
+   assert.equal(await p.locator('.ft-joker-mode button[aria-pressed="true"]').innerText(),'🃏 JOKER');
+  },game+'/joker-score');
   await run('countdown',async p=>{
    assert.equal(await p.locator('#number').innerText(),'50');
    assert.equal(await p.locator('#ft-game-ux').count(),1);await p.keyboard.press('?');assert.equal(await p.locator('main details').first().getAttribute('open'),'');await p.keyboard.press('?');
