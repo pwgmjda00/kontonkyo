@@ -22,17 +22,17 @@ function get(id){return catalog.find(c=>c.id===id)||null}
 function validateEquip(id,date=localDate()){return !!get(id)&&daily(date).some(c=>c.id===id)}
 function resolve(id,context){const c=get(id);if(!c)return {supported:false,reason:'unknown joker'};const supported=Array.isArray(context?.supportedEffects)&&context.supportedEffects.includes(c.effect.type);return supported?{supported:true,joker:c,effect:c.effect}:{supported:false,joker:c,reason:'game has not implemented this effect'} }
 function equipped(date=localDate()){let id=null;try{id=localStorage.getItem('fifty-two-joker-equip-'+date)}catch(e){}return validateEquip(id,date)?get(id):null}
-function applyScore(joker,base,ctx={}){if(!joker||!Number.isFinite(base)||base<0)return {score:base,delta:0,description:'通常ルール'};const win=!!ctx.win,streak=ctx.streak||0,round=ctx.round||1;let score=base;switch(joker.id){
+function applyScore(joker,base,ctx={}){if(!joker||!Number.isFinite(base)||base<0)return {score:base,delta:0,description:'通常ルール'};const win=!!ctx.win,streak=ctx.streak||0,round=ctx.round||1,totalRounds=Number.isInteger(ctx.totalRounds)&&ctx.totalRounds>0?ctx.totalRounds:10,final=ctx.final===true||round>=totalRounds;let score=base;switch(joker.id){
 case 'J01': score=win?base+7:base;break;
 case 'J02': score=win?base+21:base;break;
 case 'J03': score=base+streak*5;break;
 case 'J04': score=win?base:base+3;break;
 case 'J05': score=ctx.behind?base+30:base;break;
 case 'J06': score=round%2===0?base*3:base;break;
-case 'J07': score=round>=10?base+77:base;break;
+case 'J07': score=final?base+77:base;break;
 case 'J08': score=round%2?Math.max(0,15-base):base;break;
 case 'J09': score=round%2===0?base+14:base;break;
-case 'J10': score=round<=5?Math.floor(base/2):base*2;break;
+case 'J10': score=round<=Math.floor(totalRounds/2)?Math.floor(base/2):base*2;break;
 case 'J11': score=ctx.tie?base+11:base;break;
 case 'J12': score=base+round*2;break;
 case 'J13': score=round%2?base+21:base;break;
@@ -42,8 +42,8 @@ case 'J16': score=round>=4?base+20:base;break;
 case 'J17': score=base+3;break;
 case 'J18': score=round===1?base+50:base;break;
 case 'J19': score=round%3===0?base+30:base;break;
-case 'J20': score=round>=9?base*3:base;break;
-case 'J21': score=round===10?base+100:base;break;
+case 'J20': score=round>=Math.max(1,totalRounds-1)?base*3:base;break;
+case 'J21': score=final?base+100:base;break;
 case 'J22': score=round===1?base+11:base;break;
 case 'J23': score=streak>=2?base+20:base;break;
 case 'J24': score=streak>=3?base+40:base;break;
@@ -57,7 +57,7 @@ case 'J31': score=Math.max(5,base);break;
 case 'J32': score=base%2===0?base*2:0;break;
 case 'J33': score=win?base:base+25;break;
 case 'J34': score=round%5===0?base+35:base;break;
-case 'J35': score=round===10?base+66:base;break;
+case 'J35': score=final?base+66:base;break;
 case 'J36': score=base>=13?base+13:base;break;
 case 'J37': score=base>=7?base+21:base;break;
 case 'J38': score=win?base+33:base;break;
@@ -92,17 +92,17 @@ case 'J66': score=streak===0?base+30:base;break;
 case 'J67': score=round===1?base+33:base;break;
 case 'J68': score=win?base:base+44;break;
 case 'J69': score=round===7?base+77:base;break;
-case 'J70': score=round===10?base*7:base;break;
+case 'J70': score=final?base*7:base;break;
 case 'J71': score=base%2===0?base+13:base;break;
 case 'J72': score=base+streak*9;break;
 case 'J73': score=round===7?base+77:base;break;
 case 'J74': score=round%3===0?base+33:base;break;
 case 'J75': score=win?base+30:Math.max(0,base-10);break;
 case 'J76': score=ctx.previousScore===base?base+50:base;break;
-case 'J77': score=round===10?77:base;break;
+case 'J77': score=final?77:base;break;
 }score=Math.max(0,Math.floor(score));return {score,delta:score-base,description:joker.name+'：'+(score-base>=0?'+':'')+(score-base)+'点'} }
 
-const battleRules=["自分の強さ2倍","自分3倍、敵+3","自分+ラウンド×4","自分+30、敵+15","負けるカードを敵+20に","自分4倍からラウンド×2を減算","最終戦777、それ以外-3","双方の数字を15から反転","自分と敵の数字を交換","敵の数字を複写して+1","同値なら自分+22","数字を交換して反転","同じスートなら+33","双方の数字を合算","序盤3戦+25","7戦目以降+40","偶数戦は敵の数字0","初戦のみ99","3戦ごとに+50","最終戦のみ999","第10戦で777","負けるとき敵+2","敵が弱いほど強化","敵の元の数字が小さいほど+3倍","数字差の2倍を追加","敵が偶数なら+50","スート一致で+60","敵が絵札なら+77","敵の強さを0にする","敵の強さ-7","敵が奇数なら0","敵のAを無効化","偶数戦で敵を消去","敵のスペードを消去","敵の絵札とAを消去","自分のKが100","双方のKが最弱","自分の絵札+35","敗北時に王位を簒奪","同値なら+50","自分の7が777","絵札に+77","乱数で自分+0〜30","乱数で敵+0〜20","乱数で自分+70か-7","自分が999か0","ラウンドで+0〜59","自分の数字を1〜15へ変異","3分の1で777","自分の数字+1","自分-1、敵+2","赤いカード+33","同じスートなら+70","敵の数字の2倍を吸収","自分2倍、敵半分","Aだけ1、他は3倍","劣勢カード+20","総得点劣勢なら+50","負けなら引き分け","両者の数字を平均化","敵を自分と同値にする","総得点劣勢なら100","同点なら+77","負けを勝ちに変える","数字1なら100（Aは14）","3差以内の敗北を+7で逆転","初戦+77","7差以内の敗北を逆転","第7戦で777","常に敵より強くするか+1","偶数戦+50、奇数戦-5","ラウンド×7を加算","7のカードを777、それ以外+7","3戦ごとに333","敗北は0、勝てるなら+40","過去のラウンド数×11","最終戦777、それ以外ラウンド数を加算"];
+const battleRules=["自分の強さ2倍","自分3倍、敵+3","自分+ラウンド×4","自分+30、敵+15","負けるカードを敵+20に","自分4倍からラウンド×2を減算","最終戦777、それ以外-3","双方の数字を15から反転","自分と敵の数字を交換","敵の数字を複写して+1","同値なら自分+22","数字を交換して反転","同じスートなら+33","双方の数字を合算","序盤3戦+25","7戦目以降+40","偶数戦は敵の数字0","初戦のみ99","3戦ごとに+50","最終戦のみ999","第10戦で777","負けるとき敵+2","敵が弱いほど強化","敵の元の数字が小さいほど+3倍","数字差の2倍を追加","敵が偶数なら+50","スート一致で+60","敵が絵札なら+77","敵の強さを0にする","敵の強さ-7","敵が奇数なら0","敵のAを無効化","偶数戦で敵を消去","敵のスペードを消去","敵の絵札とAを消去","自分のKが100","双方のKが最弱","自分の絵札+35","敗北時に王位を簒奪","同値なら+50","自分の7が777","絵札に+77","乱数で自分+0〜30","乱数で敵+0〜20","乱数で自分+70か-7","自分が999か0","ラウンドで+0〜59","自分の数字を1〜15へ変異","3分の1で777","自分の数字+1","自分-1、敵+2","赤いカード+33","同じスートなら+70","敵の数字の2倍を吸収","自分2倍、敵半分","Aだけ1、他は3倍","劣勢カード+20","総得点劣勢なら+50","負けなら引き分け","両者の数字を平均化","敵を自分と同値にする","総得点劣勢なら100","同点なら+77","負けを勝ちに変える","Aなら100（通常のAは14）","3差以内の敗北を+7で逆転","初戦+77","7差以内の敗北を逆転","第7戦で777","常に敵より強くするか+1","偶数戦+50、奇数戦-5","ラウンド×7を加算","7のカードを777、それ以外+7","3戦ごとに333","敗北は0、勝てるなら+40","過去のラウンド数×11","最終戦777、それ以外ラウンド数を加算"];
 function battlePower(joker,player,enemy,ctx={}){const p=player?.r===1?14:(player?.r||0),e=enemy?.r===1?14:(enemy?.r||0);if(!joker)return {player:p,enemy:e,note:''};const round=ctx.round||1;let a=p,b=e;switch(joker.id){
 case 'J01':a=p*2;break;
 case 'J02':a=p*3;b=e+3;break;
@@ -168,7 +168,7 @@ case 'J61':a=p;b=p;break;
 case 'J62':a=ctx.behind?100:p;break;
 case 'J63':a=p===e?p+77:p;break;
 case 'J64':if(p<e)a=e+1;break;
-case 'J65':a=p===1?100:p;break;
+case 'J65':a=player.r===1?100:p;break;
 case 'J66':a=p<e&&e-p<=3?e+7:p;break;
 case 'J67':a=round===1?p+77:p;break;
 case 'J68':a=p<e&&e-p<=7?e+1:p;break;
