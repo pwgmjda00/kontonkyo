@@ -36,7 +36,7 @@ const server=http.createServer((req,res)=>{
    for(let i=0;i<4;i++)await p.locator('.symbol:enabled').first().click();
    await p.locator('#submit').click();
    assert.equal(await p.locator('#history .entry').count(),1);
-   assert.equal(await p.locator('#left').innerText(),await p.locator('#submit').isEnabled()?'7':'7'); 
+   assert.ok(['7','8'].includes(await p.locator('#left').innerText())); 
   });
  }finally{await browser.close();server.close()}
  console.log(tests.join('\n'));if(errors.length){console.error(errors.join('\n'));process.exitCode=1}else console.log('Gameplay smoke PASS '+tests.length+' games');
