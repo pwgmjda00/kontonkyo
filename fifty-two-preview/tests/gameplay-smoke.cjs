@@ -23,12 +23,13 @@ const server=http.createServer((req,res)=>{
   });
   await run('fault-line',async p=>{
    assert.equal(await p.locator('#left').innerText(),'52');
-   await p.locator('.lane').first().click();assert.equal(await p.locator('#left').innerText(),'51');
+   assert.match(await p.locator('.lane .forecast').first().innerText(),/置くと|完成|崩壊/);await p.locator('.lane').first().click();assert.equal(await p.locator('#left').innerText(),'51');
    await p.locator('#undo').click();assert.equal(await p.locator('#left').innerText(),'52');
    for(let i=0;i<52;i++)await p.locator('.lane').first().click();
    assert.equal(await p.locator('#left').innerText(),'0');assert.equal(await p.locator('.lane:enabled').count(),0);
    await p.locator('#restart').click();assert.equal(await p.locator('#left').innerText(),'52')
   });
+  await run('seven-seals',async p=>{assert.equal(await p.locator('.handcard').count(),21);await p.locator('.handcard').first().click();assert.equal(await p.locator('.handcard[aria-pressed="true"]').count(),1);assert.equal(await p.locator('.seal .forecast').count(),7);await p.locator('.handcard').first().click();assert.equal(await p.locator('.handcard[aria-pressed="true"]').count(),0);await p.locator('.handcard').first().click();await p.locator('.seal').first().click();assert.equal(await p.locator('.handcard').count(),20);await p.locator('#undo').click();assert.equal(await p.locator('.handcard').count(),21)});
   await run('suit-code',async p=>{
    await p.locator('#submit').click();assert.match(await p.locator('#message').innerText(),/4つのマーク/);
    assert.equal(await p.locator('.slot').first().isDisabled(),true);
