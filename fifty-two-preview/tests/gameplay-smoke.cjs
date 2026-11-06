@@ -16,6 +16,7 @@ const server=http.createServer((req,res)=>{
  try{
   await run('countdown',async p=>{
    assert.equal(await p.locator('#number').innerText(),'50');
+   assert.match(await p.locator('.offer .choice').first().innerText(),/→/);assert.ok((await p.locator('.offer .choice').first().getAttribute('aria-label')).includes('結果'));
    for(let i=0;i<10;i++){await p.locator('.offer .choice').first().click();if(i===0){assert.equal(await p.locator('#undo').isEnabled(),true);const v=await p.locator('#number').innerText();await p.locator('#undo').click();assert.equal(await p.locator('#number').innerText(),'50');await p.locator('.offer .choice').first().click();assert.equal(await p.locator('#number').innerText(),v)}}
    assert.equal(await p.locator('.offer').count(),0);assert.match(await p.locator('#message').innerText(),/全10手終了/);
    await p.locator('#restart').click();assert.equal(await p.locator('#number').innerText(),'50')
@@ -30,6 +31,7 @@ const server=http.createServer((req,res)=>{
   });
   await run('suit-code',async p=>{
    await p.locator('#submit').click();assert.match(await p.locator('#message').innerText(),/4つのマーク/);
+   assert.equal(await p.locator('.slot').first().isDisabled(),true);
    for(let i=0;i<4;i++)await p.locator('.symbol:enabled').first().click();
    assert.equal(await p.locator('.slot.filled').count(),4);
    await p.locator('#clear').click();assert.equal(await p.locator('.slot.filled').count(),0);
