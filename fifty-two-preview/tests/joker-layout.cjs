@@ -313,6 +313,111 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
    assert.equal(await page.locator('.card.joker-hint').count(),0);
   },{date:'2026-12-02',id:'J22'});
 
+
+  // Phase 5: pair-removal games. Respect their exact legal pair/triple rules.
+  const rankOf=t=>({A:1,J:11,Q:12,K:13}[t.slice(0,-1)]||Number(t.slice(0,-1)));
+  async function elevensGroup(page){
+   const a=await page.locator('#board button.card').allTextContents();
+   for(let i=0;i<a.length;i++)for(let j=i+1;j<a.length;j++){
+    const x=rankOf(a[i]),y=rankOf(a[j]);
+    if(x<=10&&y<=10&&x+y===11)return [i,j];
+   }
+   const idx=[11,12,13].map(r=>a.findIndex(t=>rankOf(t)===r));
+   return idx.every(i=>i>=0)?idx:[];
+  }
+  async function monteGroup(page){
+   const a=await page.locator('#board button.card').allTextContents();
+   for(let i=0;i<25;i++)for(let j=i+1;j<25;j++){
+    if(rankOf(a[i])===rankOf(a[j])&&Math.abs(i%5-j%5)<=1&&Math.abs(Math.floor(i/5)-Math.floor(j/5))<=1)return [i,j];
+   }
+   return [];
+  }
+  async function restartUntil(page,get,check,limit=25){
+   for(let n=0;n<limit;n++){
+    const x=await get(page);
+    if(check(x))return x;
+    page.once('dialog',d=>d.accept());await page.locator('#restart').click();
+   }
+   throw new Error('Could not produce the required legal pair on reroll');
+  }
+  for(const game of ['elevens','fourteen-out','monte-carlo','nestor'])await run(game,async page=>{
+   assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
+   assert.equal(await page.locator('#wins').innerText(),'0');
+   assert.equal(await page.locator('#jokerWins').innerText(),'0');
+   assert.equal(await page.locator('#undo').isDisabled(),true);
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  });
+  await run('elevens',async page=>{
+   const ids=await restartUntil(page,elevensGroup,x=>x.length>=2);
+   const old=await page.locator('.ft-joker-ability').innerText();
+   assert.match(old,/次の補充札/);
+   const planned=old.split('：').at(-1).trim().split(/\s+/);
+   assert.equal(planned.length,3);
+   for(const i of ids)await page.locator('#board button.card').nth(i).click();
+   assert.equal(await page.locator('#removed').innerText(),ids.length+' / 52');
+   for(let j=0;j<ids.length;j++)assert.equal(await page.locator('#board button.card').nth(ids[j]).innerText(),planned[j]);
+   await page.locator('#undo').click();
+   assert.equal(await page.locator('#removed').innerText(),'0 / 52');
+   assert.equal(await page.locator('.ft-joker-ability').innerText(),old);
+  },{date:'2026-12-02',id:'J22'});
+  await run('elevens',async page=>{
+   const sum=async()=>[...(await page.locator('.ft-joker-ability').innerText()).matchAll(/([♠♥♦♣]) (\d+)枚/g)].reduce((n,m)=>n+Number(m[2]),0);
+   assert.equal(await sum(),43);
+   const ids=await restartUntil(page,elevensGroup,x=>x.length>=2);
+   for(const i of ids)await page.locator('#board button.card').nth(i).click();
+   assert.equal(await sum(),43-ids.length);
+   await page.locator('#undo').click();
+   assert.equal(await sum(),43);
+  },{date:'2026-12-02',id:'J24'});
+  await run('monte-carlo',async page=>{
+   const ids=await restartUntil(page,monteGroup,x=>x.length===2);
+   const old=await page.locator('.ft-joker-ability').innerText();
+   assert.match(old,/次の補充札/);
+   const planned=old.split('：').at(-1).trim().split(/\s+/);
+   assert.equal(planned.length,3);
+   for(const i of ids)await page.locator('#board button.card').nth(i).click();
+   assert.equal(await page.locator('#removed').innerText(),'2 / 52');
+   await page.locator('#compact').click();
+   assert.equal(await page.locator('#stock').innerText(),'25');
+   assert.equal(await page.locator('#board button.card').nth(23).innerText(),planned[0]);
+   assert.equal(await page.locator('#board button.card').nth(24).innerText(),planned[1]);
+   await page.locator('#undo').click();
+   assert.equal(await page.locator('#stock').innerText(),'27');
+   await page.locator('#undo').click();
+   assert.equal(await page.locator('#removed').innerText(),'0 / 52');
+   assert.equal(await page.locator('.ft-joker-ability').innerText(),old);
+  },{date:'2026-12-02',id:'J22'});
+  await run('monte-carlo',async page=>{
+   const sum=async()=>[...(await page.locator('.ft-joker-ability').innerText()).matchAll(/([♠♥♦♣]) (\d+)枚/g)].reduce((n,m)=>n+Number(m[2]),0);
+   assert.equal(await sum(),27);
+   const ids=await restartUntil(page,monteGroup,x=>x.length===2);
+   for(const i of ids)await page.locator('#board button.card').nth(i).click();
+   await page.locator('#compact').click();
+   assert.equal(await sum(),25);
+   await page.locator('#undo').click();
+   assert.equal(await sum(),27);
+  },{date:'2026-12-02',id:'J24'});
+  for(const game of ['elevens','fourteen-out','monte-carlo','nestor'])await run(game,async page=>{
+   const selector=game==='nestor'?'#board button.card, #reserve button.card':'#board button.card';
+   async function picks(){return page.locator(selector).evaluateAll(els=>els.map((b,i)=>b.classList.contains('joker-hint')?i:-1).filter(i=>i>=0))}
+   const ids=await restartUntil(page,()=>picks(),x=>x.length>=2);
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/推奨手/);
+   const count=ids.length;
+   assert.ok(count===2||(game==='elevens'&&count===3),'JOKER hint must be valid pair/trio');
+   for(const i of ids)await page.locator(selector).nth(i).click();
+   assert.equal(await page.locator('#removed').innerText(),count+' / 52');
+   assert.equal(await page.locator('#undo').isEnabled(),true);
+   await page.locator('#undo').click();
+   assert.equal(await page.locator('#removed').innerText(),'0 / 52');
+   await page.locator('.ft-joker-mode button').first().click();
+   assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  },{date:'2026-11-12',id:'J26'});
+  await run('fourteen-out',async page=>{
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/終了時の得点補正/);
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  },{date:'2026-11-21',id:'J50'});
+
   console.log(results.join('\n'));console.log('JOKER layout mobile checks PASS '+results.length);
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
 })().catch(e=>{console.error(e);process.exitCode=1});
