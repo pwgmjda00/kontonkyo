@@ -294,10 +294,10 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
    assert.equal(await page.locator('.card.joker-hint').count(),0);
   },{date:'2026-11-12',id:'J26'});
   await run('black-hole',async page=>{
-   assert.match(await page.locator('.ft-joker-ability').innerText(),/推奨手/);
    for(let i=0;i<12&&!await page.locator('.card.joker-hint').count();i++){
     page.once('dialog',d=>d.accept());await page.locator('#restart').click();
    }
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/推奨手/);
    const recommended=page.locator('#board .card.joker-hint');
    assert.equal(await recommended.count(),1,'Black Hole only highlights the best available option');
    assert.match(await recommended.first().getAttribute('aria-label'),/吸収可能/);
