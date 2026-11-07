@@ -356,6 +356,75 @@ const server=http.createServer((req,res)=>{
   await run('war',async p=>{assert.ok(await p.locator('#hand button:enabled').count()>0);await p.locator('#hand button:enabled').first().click();assert.equal(await p.locator('#next').isEnabled(),true);await p.locator('#next').click();assert.ok(await p.locator('#hand button:enabled').count()>0)});
   await run('pyramid',async p=>{assert.equal(await p.locator('#hint').isEnabled(),true);await p.locator('#hint').click();assert.match(await p.locator('#message').innerText(),/💡/);await p.locator('#stock').click();assert.equal(await p.locator('#undo').isEnabled(),true);await p.keyboard.press('u');assert.equal(await p.locator('#undo').isDisabled(),true)});
   await run('golf',async p=>{await p.locator('#hint').click();assert.match(await p.locator('#message').innerText(),/💡/);await p.locator('#stock').click();assert.equal(await p.locator('#undo').isEnabled(),true);await p.keyboard.press('Control+z');assert.equal(await p.locator('#undo').isDisabled(),true)});
+  async function forceJoker(p,id,date,game){
+   await p.clock.setFixedTime(new Date(date+'T12:00:00Z'));
+   await p.addInitScript(()=>{Math.random=()=>0.5});
+   await p.evaluate(({id,date,game})=>{
+    localStorage.setItem('fifty-two-joker-equip-'+date,id);
+    localStorage.setItem('fifty-two-mode-'+game,'joker');
+   },{id,date,game});
+   await p.reload();
+   assert.equal(await p.evaluate(()=>window.FiftyTwoJokers.equipped()?.id),id);
+  }
+  await run('countdown',async p=>{
+   await forceJoker(p,'J22','2026-12-02','countdown');
+   const forecast=await p.locator('.ft-joker-ability').innerText();
+   assert.match(forecast,/次の3枚/);
+   const future=forecast.split('次の3枚 ')[1].split(' / ');
+   assert.equal(future.length,3);
+   await p.locator('#market .offer .choice:enabled').first().click();
+   assert.deepEqual(await p.locator('#market .offer .card').allInnerTexts(),future);
+  },'countdown/joker-peek-next-hand');
+  await run('countdown',async p=>{
+   await forceJoker(p,'J24','2026-12-02','countdown');
+   assert.match(await p.locator('.ft-joker-ability').innerText(),/残り山札.*♠.*♥.*♦.*♣/);
+  },'countdown/joker-suit-intelligence');
+  await run('countdown',async p=>{
+   await forceJoker(p,'J26','2026-11-12','countdown');
+   assert.equal(await p.locator('.joker-hint').count(),1);
+   const after=(await p.locator('.joker-hint .preview').innerText()).replace('→','').trim();
+   await p.locator('.joker-hint').click();
+   assert.equal(await p.locator('#number').innerText(),after);
+  },'countdown/joker-hint-execution');
+  await run('countdown',async p=>{
+   await forceJoker(p,'J50','2026-11-21','countdown');
+   assert.match(await p.locator('.ft-joker-ability').innerText(),/変異.*\+1/);
+   const mutated=await p.locator('#market .offer .card').first().innerText();
+   await p.evaluate(()=>localStorage.setItem('fifty-two-mode-countdown','normal'));
+   await p.reload();
+   assert.equal(await p.locator('.ft-joker-ability').innerText(),'');
+   const original=await p.locator('#market .offer .card').first().innerText();
+   const n=s=>{const m=s.match(/^(A|J|Q|K|\d+)/);return ({A:1,J:11,Q:12,K:13}[m[1]]||Number(m[1]))};
+   assert.equal(n(mutated),Math.min(13,n(original)+1));
+   assert.equal(mutated.slice(-1),original.slice(-1));
+  },'countdown/joker-rank-mutation-and-normal-isolation');
+  await run('high-low',async p=>{
+   await forceJoker(p,'J22','2026-12-02','high-low');
+   const expected=await p.locator('#next').innerText();
+   assert.notEqual(expected,'?');
+   await p.locator('#high').click();
+   assert.equal(await p.locator('#current').innerText(),expected);
+  },'high-low/joker-peek-and-reveal');
+  await run('high-low',async p=>{
+   await forceJoker(p,'J26','2026-11-12','high-low');
+   assert.equal(await p.locator('.joker-hint').count(),1);
+   assert.match(await p.locator('#jokerAbility').innerText(),/推奨/);
+  },'high-low/joker-hint');
+  await run('high-low',async p=>{
+   await forceJoker(p,'J64','2026-11-10','high-low');
+   assert.equal(await p.locator('#current').innerText(),'A♦');
+   assert.match(await p.locator('#jokerAbility').innerText(),/残り1回/);
+   await p.locator('#low').click();
+   assert.match(await p.locator('#message').innerText(),/失点を1回無効化/);
+   assert.match(await p.locator('#jokerAbility').innerText(),/使用済み/);
+  },'high-low/joker-single-use-rescue');
+  await run('high-low',async p=>{
+   await forceJoker(p,'J51','2026-11-17','high-low');
+   assert.equal(await p.locator('#current').innerText(),'A♦');
+   await p.locator('#high').click();
+   assert.equal(await p.locator('#current').innerText(),'Q♥');
+   assert.match(await p.locator('#history').innerText(),/元 K♥/);
+  },'high-low/joker-card-mutation');
   // Daily JOKER catalog, persisted equipment and finite ability values.
   await run('jokers',async p=>{
    assert.equal(await p.locator('#catalog article.joker').count(),77);
