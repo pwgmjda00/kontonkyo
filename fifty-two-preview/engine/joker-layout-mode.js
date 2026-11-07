@@ -3,7 +3,7 @@
 const score=root.FiftyTwoJokerScoreMode,actions=root.FiftyTwoJokerActions;
 if(!score||!actions)throw new Error('JOKER layout dependencies missing');
 const suits=['♠','♥','♦','♣'];
-function create(game,{reset,hasProgress,label,hiddenDeck=false,rankMutation=false,peekFormat=null,singleSuit=false,deckLabel='山札'}={}){
+function create(game,{reset,hasProgress,label,hiddenDeck=false,rankMutation=false,rescueRemoval=false,peekFormat=null,singleSuit=false,deckLabel='山札'}={}){
  if(typeof label!=='function')throw new TypeError('card label callback required');
  const mode=score.create(game,{reset,hasProgress});
  function active(){return mode.mode==='joker'&&!!mode.joker}
@@ -24,7 +24,7 @@ function create(game,{reset,hasProgress,label,hiddenDeck=false,rankMutation=fals
     abilityText=recommendation?'💡 推奨手：'+recommendation:'💡 今は推奨できる手がありません';
    }else if(rankMutation&&(t==='upgradeRank'||t==='downgradeRank')){
     abilityText='🧬 場札と捨て札の数字が'+(t==='upgradeRank'?'+1':'-1')+'（A〜Kで固定）。表示も判定も変化';
-   }else if(['eraseMistake','reviveOnce','shieldMistake'].includes(t)&&rankMutation){
+   }else if(['eraseMistake','reviveOnce','shieldMistake'].includes(t)&&rescueRemoval){
     abilityText='🪄 山札が尽きて手詰まりになると、公開中の場札を1枚だけ救済除去できます';
    }else{
     abilityText='この作品では終了時の得点補正として発動。カード操作への効果はありません';
