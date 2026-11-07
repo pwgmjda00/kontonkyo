@@ -34,7 +34,18 @@ function countdownHint(joker,value,offer){
  options.sort((a,b)=>Math.abs(a.after)-Math.abs(b.after)||a.after-b.after||a.index-b.index||a.sign-b.sign);
  return options[0]||null;
 }
-const api=Object.freeze({type,supports,describe,effectiveCard,canRescue,peek,suitCounts,highLowHint,countdownHint});
+function lineHint(joker,lanes,card,value,target=13){
+ if(type(joker)!=='hintChance'||!card||!Array.isArray(lanes)||typeof value!=='function')return null;
+ const options=lanes.map((lane,index)=>{
+  const sum=lane.reduce((n,c)=>n+value(c),0),total=sum+value(card);
+  return {index,total,outcome:total===target?'complete':total>target?'bust':'continue',
+   priority:total===target?100:total>target?-100-sum:total-target};
+ });
+ options.sort((a,b)=>b.priority-a.priority||a.index-b.index);
+ const best=options[0];
+ return best?{index:best.index,total:best.total,outcome:best.outcome}:null;
+}
+const api=Object.freeze({type,supports,describe,effectiveCard,canRescue,peek,suitCounts,highLowHint,countdownHint,lineHint});
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.FiftyTwoJokerActions=api;
 })(typeof window!=='undefined'?window:globalThis);
