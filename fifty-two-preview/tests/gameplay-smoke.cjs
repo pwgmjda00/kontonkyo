@@ -398,6 +398,32 @@ const server=http.createServer((req,res)=>{
    assert.equal(n(mutated),Math.min(13,n(original)+1));
    assert.equal(mutated.slice(-1),original.slice(-1));
   },'countdown/joker-rank-mutation-and-normal-isolation');
+  await run('fault-line',async p=>{
+   await forceJoker(p,'J22','2026-12-02','fault-line');
+   const note=await p.locator('.ft-joker-ability').innerText();
+   assert.match(note,/透視：次のカード/);
+   const future=note.split('次のカード ')[1].trim();
+   await p.locator('#lanes .lane').first().click();
+   assert.equal(await p.locator('#current').innerText(),future);
+  },'fault-line/joker-peek-next-card');
+  await run('fault-line',async p=>{
+   await forceJoker(p,'J26','2026-11-12','fault-line');
+   assert.equal(await p.locator('.lane.joker-hint').count(),1);
+   assert.match(await p.locator('.ft-joker-ability').innerText(),/推奨 LINE/);
+   await p.locator('.lane.joker-hint').click();
+   assert.equal(await p.locator('#left').innerText(),'51');
+  },'fault-line/joker-line-hint');
+  await run('fault-line',async p=>{
+   await forceJoker(p,'J50','2026-11-21','fault-line');
+   assert.match(await p.locator('.ft-joker-ability').innerText(),/変異.*\+1/);
+   const modified=await p.locator('#current').innerText();
+   await p.evaluate(()=>localStorage.setItem('fifty-two-mode-fault-line','normal'));
+   await p.reload();
+   const raw=await p.locator('#current').innerText();
+   const rank=s=>{const m=s.match(/^(A|J|Q|K|\d+)/);return ({A:1,J:11,Q:12,K:13}[m[1]]||Number(m[1]))};
+   assert.equal(rank(modified),Math.min(13,rank(raw)+1));
+   assert.equal(modified.slice(-1),raw.slice(-1));
+  },'fault-line/joker-mutation');
   await run('high-low',async p=>{
    await forceJoker(p,'J22','2026-12-02','high-low');
    const expected=await p.locator('#next').innerText();
