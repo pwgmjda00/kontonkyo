@@ -11,7 +11,7 @@ function create(game,{reset,hasProgress}={}){
  if(typeof reset!=='function'||typeof hasProgress!=='function')throw new Error('missing score mode callbacks');
  if(!engine)throw new Error('JOKER engine not loaded');
  const key='fifty-two-mode-'+game;
- let mode='normal',joker=null,host=null,info=null,status=null,normal=null,boosted=null;
+ let mode='normal',joker=null,host=null,info=null,status=null,ability=null,normal=null,boosted=null;
  try{mode=localStorage.getItem(key)==='joker'?'joker':'normal'}catch(e){}
  function refreshEquip(){joker=mode==='joker'?engine.equipped():null}
  refreshEquip();
@@ -27,6 +27,8 @@ function create(game,{reset,hasProgress}={}){
 .ft-joker-mode button:focus-visible,.ft-joker-mode a:focus-visible{outline:3px solid #fff;outline-offset:3px}
 .ft-joker-mode a{color:#f7dca9;font-weight:650}
 .ft-joker-mode .ft-joker-status{color:#d8ccdd;font-size:13px;margin:6px 0}
+.ft-joker-mode .ft-joker-ability{font-size:14px;color:#d7f5ec;margin:6px 0;font-weight:650;line-height:1.6}
+.ft-joker-mode .ft-joker-ability:empty{display:none}
 .ft-joker-mode .ft-joker-result{font-size:15px;font-weight:800;color:#fff2c6}
 .ft-joker-mode .ft-joker-result:empty{display:none}
 `;document.head.append(style);
@@ -38,9 +40,10 @@ function create(game,{reset,hasProgress}={}){
   const link=document.createElement('a');link.href='./jokers.html';link.textContent='今日の7枚・装備';
   controls.append(label,normal,boosted,link);
   info=document.createElement('div');info.className='ft-joker-status';info.setAttribute('aria-live','polite');
+  ability=document.createElement('div');ability.className='ft-joker-ability';ability.setAttribute('aria-live','polite');
   status=document.createElement('div');status.className='ft-joker-result';status.setAttribute('aria-live','polite');
-  const foot=document.createElement('small');foot.textContent='JOKER得点は終了時に別枠で計算。通常得点・自己ベスト・カードのルールは変更しません。';
-  host.append(controls,info,status,foot);
+  const foot=document.createElement('small');foot.textContent='JOKER得点は終了時に別枠で計算。対応する作品では追加のカード能力も発動します。通常モードの記録とは分けて扱います。';
+  host.append(controls,info,ability,status,foot);
   normal.onclick=()=>change('normal');boosted.onclick=()=>change('joker');
   const panel=main.querySelector('section.panel');
   if(panel)main.insertBefore(host,panel);else main.append(host);
@@ -51,13 +54,14 @@ function create(game,{reset,hasProgress}={}){
   mode=next;try{localStorage.setItem(key,mode)}catch(e){}
   refreshEquip();reset();
  }
- function refresh({base=0,finished=false,round=1,totalRounds=1,win=false,streak=0,behind=false,tie=false,previousScore=null}={}){
-  build();refreshEquip();
+ function refresh({base=0,finished=false,round=1,totalRounds=1,win=false,streak=0,behind=false,tie=false,previousScore=null,abilityText=''}={}){
+  build();
   normal.setAttribute('aria-pressed',String(mode==='normal'));
   boosted.setAttribute('aria-pressed',String(mode==='joker'));
   info.textContent=mode==='normal'?'通常ルール。JOKER補正なし。':joker?
    '装備中：'+joker.icon+' '+joker.name+'｜'+joker.description+'（終了時に精算）':
    '本日のJOKERが未装備です。図鑑で7枚から1枚を装備してください。';
+  ability.textContent=mode==='joker'&&joker?abilityText:'';
   const ctx={round,totalRounds,final:finished,win,streak,behind,tie,previousScore};
   const result=compute(mode,joker,base,ctx);
   status.textContent=finished&&mode==='joker'&&joker?
@@ -65,7 +69,7 @@ function create(game,{reset,hasProgress}={}){
    '';
   return result;
  }
- return Object.freeze({refresh,get mode(){return mode},get joker(){return joker}});
+ return Object.freeze({refresh,begin:refreshEquip,get mode(){return mode},get joker(){return joker}});
 }
 const api=Object.freeze({create,compute});
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
