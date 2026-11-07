@@ -617,6 +617,126 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
    assert.equal(await page.locator('.joker-hint').count(),0);
   },{date:'2026-12-02',id:'J22'});
 
+
+  // Phase 8: puzzles with no stock, fixed rows and mathematical foundations.
+  for(const game of ['accordion','gaps','cruel','calculation'])await run(game,async page=>{
+   assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
+   assert.equal(await page.locator('#wins').innerText(),'0');
+   assert.equal(await page.locator('#jokerWins').innerText(),'0');
+   assert.equal(await page.locator('#undo').isDisabled(),true);
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  });
+  await run('calculation',async page=>{
+   const prior=await page.locator('.ft-joker-ability').innerText();
+   assert.match(prior,/次の山札/);
+   const expected=prior.split('：').at(-1).trim();
+   await page.locator('#draw').click();
+   assert.equal(await page.locator('#stock').innerText(),'47');
+   assert.equal(await page.locator('#hand').innerText(),expected);
+   await page.locator('#undo').click();
+   assert.equal(await page.locator('#stock').innerText(),'48');
+   assert.equal(await page.locator('#hand').innerText(),'なし');
+   assert.equal(await page.locator('.ft-joker-ability').innerText(),prior);
+  },{date:'2026-12-02',id:'J22'});
+  await run('calculation',async page=>{
+   const sum=async()=>[...(await page.locator('.ft-joker-ability').innerText()).matchAll(/([♠♥♦♣]) (\d+)枚/g)].reduce((n,m)=>n+Number(m[2]),0);
+   assert.equal(await sum(),48);
+   await page.locator('#draw').click();
+   assert.equal(await sum(),47);
+   await page.locator('#undo').click();
+   assert.equal(await sum(),48);
+  },{date:'2026-12-02',id:'J24'});
+  await run('calculation',async page=>{
+   assert.equal(await page.locator('#draw.joker-hint').count(),1);
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/山札をめくる/);
+   await page.locator('#draw').click();
+   const m=(await page.locator('.ft-joker-ability').innerText()).match(/推奨手：手札 → (組札|仮置き)(\d+)/);
+   assert.ok(m,'J26 must name a valid destination for the drawn hand');
+   assert.equal(await page.locator('#hand.joker-hint').count(),1);
+   const target=m[1]==='組札'?page.locator('#foundations .slot').nth(Number(m[2])-1).locator('.card'):page.locator('#wastes .slot').nth(Number(m[2])-1).locator('.card');
+   assert.equal(await target.count(),1);
+   await target.click();
+   assert.equal(await page.locator('#undo').isEnabled(),true);
+   assert.equal(await page.locator('#hand').innerText(),'なし');
+   await page.locator('#undo').click();
+   assert.notEqual(await page.locator('#hand').innerText(),'なし');
+   await page.locator('#undo').click();
+   assert.equal(await page.locator('#stock').innerText(),'48');
+   assert.equal(await page.locator('#undo').isDisabled(),true);
+   await page.locator('.ft-joker-mode button').first().click();
+   assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  },{date:'2026-11-12',id:'J26'});
+  await run('accordion',async page=>{
+   for(let i=0;i<10&&!await page.locator('.pile.joker-hint').count();i++){
+    page.once('dialog',d=>d.accept());await page.locator('#restart').click();
+   }
+   const m=(await page.locator('.ft-joker-ability').innerText()).match(/推奨手：山(\d+) → 山(\d+)/);
+   assert.ok(m,'Accordion J26 recommendation must name two legal piles');
+   assert.equal(await page.locator('.pile.joker-hint').count(),2);
+   const before=await page.locator('#remaining').innerText();
+   const src=Number(m[1])-1,dst=Number(m[2])-1;
+   await page.locator('#board .pile').nth(src).click();
+   await page.locator('#board .pile').nth(dst).click();
+   assert.equal(await page.locator('#moves').innerText(),'1');
+   assert.equal(await page.locator('#remaining').innerText(),'51 / 52');
+   await page.locator('#undo').click();
+   assert.equal(await page.locator('#remaining').innerText(),before);
+   await page.locator('.ft-joker-mode button').first().click();
+   assert.equal(await page.locator('.pile.joker-hint').count(),0);
+  },{date:'2026-11-12',id:'J26'});
+  await run('gaps',async page=>{
+   for(let i=0;i<20&&!await page.locator('.card.joker-hint').count();i++){
+    page.once('dialog',d=>d.accept());await page.locator('#restart').click();
+   }
+   const m=(await page.locator('.ft-joker-ability').innerText()).match(/推奨手：位置(\d+) → 空白(\d+)/);
+   assert.ok(m,'Gaps J26 recommendation must name a legal move');
+   assert.equal(await page.locator('.card.joker-hint').count(),2);
+   const src=Number(m[1])-1,dst=Number(m[2])-1;
+   const current=await page.locator('#board .card').nth(src).innerText();
+   await page.locator('#board .card').nth(src).click();
+   await page.locator('#board .card').nth(dst).click();
+   assert.equal(await page.locator('#board .card').nth(dst).innerText(),current);
+   assert.equal(await page.locator('#undo').isEnabled(),true);
+   await page.locator('#undo').click();
+   assert.equal(await page.locator('#board .card').nth(src).innerText(),current);
+   assert.equal(await page.locator('#undo').isDisabled(),true);
+   await page.locator('.ft-joker-mode button').first().click();
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  },{date:'2026-11-12',id:'J26'});
+  await run('gaps',async page=>{
+   assert.equal(await page.locator('#redeals').innerText(),'2回残り');
+   await page.locator('#redeal').click();
+   assert.equal(await page.locator('#redeals').innerText(),'1回残り');
+   await page.locator('#undo').click();
+   assert.equal(await page.locator('#redeals').innerText(),'2回残り');
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/終了時の得点補正/);
+  },{date:'2026-12-02',id:'J22'});
+  await run('cruel',async page=>{
+   for(let i=0;i<30&&!await page.locator('.card.joker-hint').count();i++){
+    page.once('dialog',d=>d.accept());await page.locator('#restart').click();
+   }
+   const m=(await page.locator('.ft-joker-ability').innerText()).match(/推奨手：列(\d+) → (列(\d+)|([♠♥♦♣])組札)/);
+   assert.ok(m,'Cruel J26 recommendation must name a legal move');
+   assert.equal(await page.locator('.card.joker-hint').count(),2);
+   const src=Number(m[1])-1;
+   await page.locator('#board .pile').nth(src).locator('.card').last().click();
+   if(m[3])await page.locator('#board .pile').nth(Number(m[3])-1).locator('.card').last().click();
+   else await page.locator('#foundations .foundation').nth(['♠','♥','♦','♣'].indexOf(m[4])).locator('.card').click();
+   assert.equal(await page.locator('#undo').isEnabled(),true);
+   await page.locator('#undo').click();
+   assert.equal(await page.locator('#undo').isDisabled(),true);
+   await page.locator('.ft-joker-mode button').first().click();
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  },{date:'2026-11-12',id:'J26'});
+  await run('cruel',async page=>{
+   assert.equal(await page.locator('#redeals').innerText(),'0回');
+   await page.locator('#redeal').click();
+   assert.equal(await page.locator('#redeals').innerText(),'1回');
+   await page.locator('#undo').click();
+   assert.equal(await page.locator('#redeals').innerText(),'0回');
+  },{date:'2026-12-02',id:'J22'});
+
   console.log(results.join('\n'));console.log('JOKER layout mobile checks PASS '+results.length);
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
 })().catch(e=>{console.error(e);process.exitCode=1});
