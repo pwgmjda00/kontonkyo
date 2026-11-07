@@ -283,7 +283,7 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
    const changed=page.locator('#board .card[title^="元のカード"]');
    assert.ok(await changed.count()>0,'J51 should affect exposed cards');
    assert.notEqual(await changed.first().innerText(),(await changed.first().getAttribute('title')).replace('元のカード：',''));
-  },{date:'2026-11-21',id:'J51'});
+  },{date:'2026-11-17',id:'J51'});
   await run('tripeaks',async page=>{
    assert.match(await page.locator('.ft-joker-ability').innerText(),/推奨手/);
    for(let i=0;i<12&&!await page.locator('.card.joker-hint').count();i++){
