@@ -1257,6 +1257,156 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
    assert.match(await page.locator('.ft-joker-ability').innerText(),/終了時の得点補正/);
   },{date:'2026-12-02',id:'J22'});
 
+
+  // Phase 14: crafting, weighing, increasing foundations and target-sum seals.
+  for(const game of ['alchemy','balance','lighthouse','seal'])await run(game,async page=>{
+   assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
+   for(const id of ['wins','jokerWins','best','jokerBest'])assert.equal(await page.locator('#'+id).innerText(),'0');
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  });
+  await run('alchemy',async page=>{
+   const text=await page.locator('.ft-joker-ability').innerText();
+   assert.match(text,/次の山札/);
+   const expected=text.split('：').at(-1).trim();
+   assert.equal(await page.locator('#market .card').count(),3);
+   await page.locator('#market .card').first().click();
+   assert.equal(await page.locator('#market .card').first().innerText(),expected,'J22 must match replenished material');
+   assert.equal(await page.locator('#turns').innerText(),'11');
+  },{date:'2026-12-02',id:'J22'});
+  await run('alchemy',async page=>{
+   const sum=async()=>[...(await page.locator('.ft-joker-ability').innerText()).matchAll(/([♠♥♦♣]) (\d+)枚/g)].reduce((n,m)=>n+Number(m[2]),0);
+   assert.equal(await sum(),49);
+   await page.locator('#market .card').first().click();
+   assert.equal(await sum(),48);
+  },{date:'2026-12-02',id:'J24'});
+  await run('alchemy',async page=>{
+   assert.equal(await page.locator('#market .card.joker-hint').count(),1);
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/推奨手/);
+   await page.locator('#market .card.joker-hint').click();
+   assert.equal(await page.locator('#turns').innerText(),'11');
+   await page.reload();
+   assert.equal(await page.locator('#turns').innerText(),'11','JOKER crafting state survives reload');
+   page.once('dialog',d=>d.accept());await page.locator('.ft-joker-mode button').first().click();
+   assert.equal(await page.locator('#turns').innerText(),'12');
+   assert.equal(await page.locator('.joker-hint').count(),0);
+   assert.deepEqual(await page.evaluate(()=>[localStorage.getItem('fifty-two-mode-alchemy'),JSON.parse(localStorage.getItem('fifty-two-alchemy-v1')).jokerMode]),['normal','normal']);
+  },{date:'2026-11-12',id:'J26'});
+  await run('alchemy',async page=>{
+   for(let i=0;i<12;i++)await page.locator('#market .card').first().click();
+   assert.equal(await page.locator('#turns').innerText(),'0');
+   assert.equal(await page.locator('#finish').isEnabled(),true);
+   await page.locator('#finish').click();
+   assert.equal(await page.locator('#wins').innerText(),'0');
+   assert.equal(await page.locator('#jokerWins').innerText(),'1');
+   await page.reload();
+   assert.equal(await page.locator('#jokerWins').innerText(),'1');
+  },{date:'2026-11-12',id:'J26'});
+  await run('balance',async page=>{
+   const text=await page.locator('.ft-joker-ability').innerText();
+   assert.match(text,/次の表示待ちの札/);
+   const expected=text.split('：').at(-1).trim();
+   await page.locator('#putLeft').click();
+   assert.equal(await page.locator('#current').innerText(),expected,'balance J22 previews next face-up card');
+   assert.equal(await page.locator('#turn').innerText(),'1 / 10');
+  },{date:'2026-12-02',id:'J22'});
+  await run('balance',async page=>{
+   const sum=async()=>[...(await page.locator('.ft-joker-ability').innerText()).matchAll(/([♠♥♦♣]) (\d+)枚/g)].reduce((n,m)=>n+Number(m[2]),0);
+   assert.equal(await sum(),9);
+   await page.locator('#putRight').click();
+   assert.equal(await sum(),8);
+  },{date:'2026-12-02',id:'J24'});
+  await run('balance',async page=>{
+   assert.equal(await page.locator('#putLeft.joker-hint,#putRight.joker-hint').count(),1);
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/推奨手/);
+   await page.locator('#putLeft.joker-hint,#putRight.joker-hint').click();
+   assert.equal(await page.locator('#turn').innerText(),'1 / 10');
+   page.once('dialog',d=>d.accept());await page.locator('.ft-joker-mode button').first().click();
+   assert.equal(await page.locator('#turn').innerText(),'0 / 10');
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  },{date:'2026-11-12',id:'J26'});
+  await run('balance',async page=>{
+   for(let i=0;i<10;i++)await page.locator('#putLeft').click();
+   assert.equal(await page.locator('#turn').innerText(),'10 / 10');
+   assert.equal(await page.locator('#jokerWins').innerText(),'1');
+   assert.equal(await page.locator('#wins').innerText(),'0');
+   const score=await page.locator('#score').innerText();
+   assert.equal(await page.locator('#jokerBest').innerText(),score);
+   await page.reload();
+   assert.equal(await page.locator('#jokerWins').innerText(),'1');
+   assert.equal(await page.locator('#jokerBest').innerText(),score);
+  },{date:'2026-11-12',id:'J26'});
+  await run('lighthouse',async page=>{
+   const text=await page.locator('.ft-joker-ability').innerText();
+   assert.match(text,/次の山札/);
+   const expected=text.split('：').at(-1).trim();
+   const hand=await page.locator('#hand .card').allInnerTexts();
+   const i=hand.findIndex(x=>x.startsWith('A')||x.startsWith('2')||x.startsWith('3')||x.startsWith('4')||x.startsWith('5')||x.startsWith('6')||x.startsWith('7')||x.startsWith('8')||x.startsWith('9')||x.startsWith('10')||x.startsWith('J')||x.startsWith('Q')||x.startsWith('K'));
+   assert.ok(i>=0);
+   const si=['♠','♥','♦','♣'].indexOf(hand[i].slice(-1));
+   await page.locator('#hand .card').nth(i).click();
+   await page.locator('#towers .tower').nth(si).click();
+   assert.equal(await page.locator('#hand .card').last().innerText(),expected,'lighthouse J22 matches actual refill');
+   assert.equal(await page.locator('#placed').innerText(),'1');
+  },{date:'2026-12-02',id:'J22'});
+  await run('lighthouse',async page=>{
+   const sum=async()=>[...(await page.locator('.ft-joker-ability').innerText()).matchAll(/([♠♥♦♣]) (\d+)枚/g)].reduce((n,m)=>n+Number(m[2]),0);
+   assert.equal(await sum(),47);
+   const first=await page.locator('#hand .card').first().innerText();
+   const si=['♠','♥','♦','♣'].indexOf(first.slice(-1));
+   await page.locator('#hand .card').first().click();
+   await page.locator('#towers .tower').nth(si).click();
+   assert.equal(await sum(),46);
+  },{date:'2026-12-02',id:'J24'});
+  await run('lighthouse',async page=>{
+   assert.equal(await page.locator('#hand .card.joker-hint').count(),1);
+   await page.locator('#hand .card.joker-hint').click();
+   assert.equal(await page.locator('#towers .tower.joker-hint').count(),1);
+   assert.equal(await page.locator('#towers .tower.joker-hint').isEnabled(),true);
+   await page.locator('#towers .tower.joker-hint').click();
+   assert.equal(await page.locator('#placed').innerText(),'1');
+   page.once('dialog',d=>d.accept());await page.locator('.ft-joker-mode button').first().click();
+   assert.equal(await page.locator('#placed').innerText(),'0');
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  },{date:'2026-11-12',id:'J26'});
+  async function solveSealOnPage(page){
+   const raw=await page.locator('#hand .card').allInnerTexts();
+   const values=raw.map(t=>{const r=t.slice(0,-1);return r==='A'?1:r==='J'?11:r==='Q'?12:r==='K'?13:Number(r)});
+   const target=Number(await page.locator('#target').innerText());
+   let solution=null;
+   for(let i=0;i<values.length;i++){if(values[i]===target)solution=[i];for(let j=i+1;j<values.length;j++){if(values[i]+values[j]===target)solution=[i,j];for(let k=j+1;k<values.length;k++)if(values[i]+values[j]+values[k]===target)solution=[i,j,k]}}
+   assert.ok(solution,'seal must have a valid target by original rules');
+   for(const index of solution)await page.locator('#hand .card').nth(index).click();
+   await page.locator('#solve').click();
+   return solution.length;
+  }
+  await run('seal',async page=>{
+   const text=await page.locator('.ft-joker-ability').innerText();
+   assert.match(text,/次の山札/);
+   const expected=text.split('：').at(-1).trim();
+   const n=await solveSealOnPage(page);
+   assert.equal(await page.locator('#hand .card').nth(7-n).innerText(),expected,'J22 seal preview matches first refill');
+   assert.equal(await page.locator('#solved').innerText(),'1');
+  },{date:'2026-12-02',id:'J22'});
+  await run('seal',async page=>{
+   const sum=async()=>[...(await page.locator('.ft-joker-ability').innerText()).matchAll(/([♠♥♦♣]) (\d+)枚/g)].reduce((n,m)=>n+Number(m[2]),0);
+   assert.equal(await sum(),45);
+   const n=await solveSealOnPage(page);
+   assert.equal(await sum(),45-n);
+  },{date:'2026-12-02',id:'J24'});
+  await run('seal',async page=>{
+   const indices=await page.locator('#hand .card').evaluateAll(els=>els.map((el,i)=>el.classList.contains('joker-hint')?i:-1).filter(i=>i>=0));
+   assert.ok(indices.length>=1&&indices.length<=3,'J26 suggests 1 to 3 cards');
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/推奨手/);
+   for(const i of indices)await page.locator('#hand .card').nth(i).click();
+   assert.equal(await page.locator('#solve.joker-hint').count(),1);
+   await page.locator('#solve.joker-hint').click();
+   assert.equal(await page.locator('#solved').innerText(),'1');
+   assert.equal(await page.locator('#score').innerText(),indices.length===3?'130':'100');
+   page.once('dialog',d=>d.accept());await page.locator('.ft-joker-mode button').first().click();
+   assert.equal(await page.locator('#solved').innerText(),'0');
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  },{date:'2026-11-12',id:'J26'});
+
   console.log(results.join('\n'));console.log('JOKER layout mobile checks PASS '+results.length);
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
 })().catch(e=>{console.error(e);process.exitCode=1});
