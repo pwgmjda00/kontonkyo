@@ -915,6 +915,96 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
    assert.equal(await page.locator('.joker-hint').count(),0);
   },{date:'2026-12-02',id:'J22'});
 
+
+  // Phase 11: legal hand advice for seven seals, reverse auction, trump and sevens.
+  for(const game of ['seven-seals','reverse-auction','trump-jack','sevens'])await run(game,async page=>{
+   assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
+   assert.equal(await page.locator('#wins').innerText(),'0');
+   assert.equal(await page.locator('#jokerWins').innerText(),'0');
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  });
+  await run('seven-seals',async page=>{
+   assert.equal(await page.locator('#hand .handcard').count(),21);
+   assert.equal(await page.locator('#seals .seal').count(),7);
+   const text=await page.locator('.ft-joker-ability').innerText();
+   assert.match(text,/推奨手：手札\d+ .* → 封印\d+/);
+   assert.equal(await page.locator('#hand .handcard.joker-hint').count(),1);
+   assert.equal(await page.locator('#seals .seal.joker-hint').count(),1);
+   await page.locator('#hand .handcard.joker-hint').click();
+   assert.equal(await page.locator('#seals .seal.joker-hint').isEnabled(),true);
+   await page.locator('#seals .seal.joker-hint').click();
+   assert.equal(await page.locator('#placed').innerText(),'1 / 21');
+   assert.equal(await page.locator('#undo').isEnabled(),true);
+   await page.locator('#undo').click();
+   assert.equal(await page.locator('#placed').innerText(),'0 / 21');
+   assert.equal(await page.locator('#undo').isDisabled(),true);
+   assert.equal(await page.locator('#jokerWins').innerText(),'0');
+   await page.locator('.ft-joker-mode button').first().click();
+   assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  },{date:'2026-11-12',id:'J26'});
+  await run('reverse-auction',async page=>{
+   assert.equal(await page.locator('#hand .card').count(),13);
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/推奨手：.*で入札/);
+   assert.equal(await page.locator('#hand .card.joker-hint').count(),1);
+   const predicted=await page.locator('#hand .card.joker-hint').innerText();
+   await page.locator('#hand .card.joker-hint').click();
+   assert.equal(await page.locator('#yourBid').innerText(),predicted);
+   assert.equal(await page.locator('#next').isVisible(),true);
+   await page.locator('#next').click();
+   assert.equal(await page.locator('#hand .card').count(),12);
+   page.once('dialog',d=>d.accept());
+   await page.locator('.ft-joker-mode button').first().click();
+   assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
+   assert.equal(await page.locator('#hand .card').count(),13);
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  },{date:'2026-11-12',id:'J26'});
+  await run('trump-jack',async page=>{
+   assert.equal(await page.locator('#hand .card').count(),13);
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/推奨手：.*を出す/);
+   assert.equal(await page.locator('#hand .card.joker-hint').count(),1);
+   const predicted=await page.locator('#hand .card.joker-hint').innerText();
+   await page.locator('#hand .card.joker-hint').click();
+   assert.equal(await page.locator('#hand .card').count(),12);
+   assert.equal(await page.locator('#yourCard').innerText(),predicted);
+   assert.equal(await page.locator('#history > div').count(),1);
+   assert.equal(await page.locator('#next').isVisible(),true);
+   await page.locator('#next').click();
+   assert.equal(await page.locator('#round').innerText(),'2 / 13');
+   page.once('dialog',d=>d.accept());
+   await page.locator('.ft-joker-mode button').first().click();
+   assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
+   assert.equal(await page.locator('#hand .card').count(),13);
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  },{date:'2026-11-12',id:'J26'});
+  await run('sevens',async page=>{
+   const starting=await page.locator('#hand .card').count();
+   assert.ok(starting>=9&&starting<=13);
+   const hint=await page.locator('.ft-joker-ability').innerText();
+   assert.match(hint,/推奨手/);
+   const cards=page.locator('#hand .card.joker-hint');
+   if(await cards.count()){
+    assert.equal(await cards.count(),1);
+    assert.equal(await cards.isEnabled(),true);
+    await cards.click();
+    assert.equal(await page.locator('#hand .card').count(),starting-1);
+   }else{
+    assert.equal(await page.locator('#pass.joker-hint').count(),1);
+    await page.locator('#pass').click();
+    assert.equal(await page.locator('#passes').innerText(),'パス残り 2');
+   }
+   page.once('dialog',d=>d.accept());
+   await page.locator('.ft-joker-mode button').first().click();
+   assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
+   assert.equal(await page.locator('.joker-hint').count(),0);
+   assert.equal(await page.locator('#wins').innerText(),'0');
+   assert.equal(await page.locator('#jokerWins').innerText(),'0');
+  },{date:'2026-11-12',id:'J26'});
+  for(const game of ['seven-seals','reverse-auction','trump-jack','sevens'])await run(game,async page=>{
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/終了時の得点補正/);
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  },{date:'2026-12-02',id:'J22'});
+
   console.log(results.join('\n'));console.log('JOKER layout mobile checks PASS '+results.length);
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
 })().catch(e=>{console.error(e);process.exitCode=1});
