@@ -44,6 +44,13 @@ test('COUNTDOWN hint avoids illegal negative values',()=>{
  assert.equal(a.countdownHint(j.get('J22'),4,c),null);
  assert.equal(a.countdownHint(j.get('J26'),0,[]),null);
 });
+test('line completion hints prefer exact 13 over risky overflow',()=>{
+ const lanes=[[{r:8,si:0},{r:4,si:1}],[],[{r:12,si:3}],[]],card={r:1,si:0};
+ const val=c=>Math.min(c.r,10);
+ assert.deepEqual(a.lineHint(j.get('J26'),lanes,card,val),{index:0,total:13,outcome:'complete'});
+ assert.equal(a.lineHint(j.get('J22'),lanes,card,val),null);
+ assert.equal(a.lineHint(j.get('J26'),lanes,null,val),null);
+});
 test('rescue ability works once and never extends to unrelated effects',()=>{
  for(const id of ['J30','J64','J68']){assert.equal(a.canRescue(j.get(id),false),true);assert.equal(a.canRescue(j.get(id),true),false)}
  assert.equal(a.canRescue(j.get('J22'),false),false);
