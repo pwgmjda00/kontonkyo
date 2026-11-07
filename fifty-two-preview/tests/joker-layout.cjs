@@ -1022,8 +1022,8 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
    await hand.click();
    await cell.click();
    assert.equal(await page.locator('#left').innerText(),'7');
-   assert.equal(await page.locator('#board .cell.you').count(),1);
-   assert.equal(await page.locator('#board .cell.cpu').count(),1);
+   assert.equal(await page.locator('#board .cell.you,#board .cell.cpu').count(),2,'one player card and one CPU card were placed');
+   assert.ok(await page.locator('#board .cell.cpu').count()>=1,'CPU may immediately capture the player card');
    page.once('dialog',d=>d.accept());await page.locator('.ft-joker-mode button').first().click();
    assert.equal(await page.locator('#left').innerText(),'8');
    assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
