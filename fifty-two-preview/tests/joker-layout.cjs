@@ -737,6 +737,100 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
    assert.equal(await page.locator('#redeals').innerText(),'0回');
   },{date:'2026-12-02',id:'J22'});
 
+
+  // Phase 9: maze, 8-puzzle, flip puzzle and chance-based clock solitaire.
+  for(const game of ['kings-road','royal-slide','paradox-switch','clock'])await run(game,async page=>{
+   assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
+   assert.equal(await page.locator('#wins').innerText(),'0');
+   assert.equal(await page.locator('#jokerWins').innerText(),'0');
+   assert.equal(await page.locator('#undo').isDisabled(),true);
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  });
+  await run('clock',async page=>{
+   const prior=await page.locator('.ft-joker-ability').innerText();
+   assert.match(prior,/次の時計札/);
+   const predicted=prior.split('：').at(-1).trim();
+   assert.ok(predicted);
+   await page.locator('#step').click();
+   assert.equal(await page.locator('#revealed').innerText(),'1 / 52');
+   assert.equal(await page.locator('#clock .pile').nth(12).locator('.face').innerText(),predicted);
+   await page.locator('#undo').click();
+   assert.equal(await page.locator('#revealed').innerText(),'0 / 52');
+   assert.equal(await page.locator('.ft-joker-ability').innerText(),prior);
+   assert.equal(await page.locator('#undo').isDisabled(),true);
+  },{date:'2026-12-02',id:'J22'});
+  await run('clock',async page=>{
+   const sum=async()=>[...(await page.locator('.ft-joker-ability').innerText()).matchAll(/([♠♥♦♣]) (\d+)枚/g)].reduce((n,m)=>n+Number(m[2]),0);
+   assert.equal(await sum(),52);
+   await page.locator('#step').click();
+   assert.equal(await sum(),51);
+   await page.locator('#undo').click();
+   assert.equal(await sum(),52);
+  },{date:'2026-12-02',id:'J24'});
+  await run('clock',async page=>{
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/一択/);
+   assert.equal(await page.locator('#clock .pile.joker-hint').count(),1);
+   await page.locator('#step').click();
+   assert.equal(await page.locator('#revealed').innerText(),'1 / 52');
+   await page.locator('#undo').click();
+   assert.equal(await page.locator('#revealed').innerText(),'0 / 52');
+   await page.locator('.ft-joker-mode button').first().click();
+   assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  },{date:'2026-11-12',id:'J26'});
+  await run('kings-road',async page=>{
+   const m=(await page.locator('.ft-joker-ability').innerText()).match(/推奨手：位置1 → (\d+)/);
+   assert.ok(m,'Kings Road should recommend a legal adjacent cell');
+   const i=Number(m[1])-1;
+   assert.equal(await page.locator('#board .cell').nth(i).isEnabled(),true);
+   assert.equal(await page.locator('#board .cell.joker-hint').count(),1);
+   await page.locator('#board .cell').nth(i).click();
+   assert.equal(await page.locator('#steps').innerText(),'1');
+   await page.locator('#undo').click();
+   assert.equal(await page.locator('#steps').innerText(),'0');
+   assert.equal(await page.locator('#hp').innerText(),'25');
+   await page.locator('.ft-joker-mode button').first().click();
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  },{date:'2026-11-12',id:'J26'});
+  await run('royal-slide',async page=>{
+   const m=(await page.locator('.ft-joker-ability').innerText()).match(/推奨手：位置(\d+)を空白/);
+   assert.ok(m,'Royal Slide should recommend a legal tile');
+   const i=Number(m[1])-1;
+   assert.equal(await page.locator('#board .tile.joker-hint').count(),1);
+   assert.equal(await page.locator('#board .tile').nth(i).isEnabled(),true);
+   await page.locator('#board .tile').nth(i).click();
+   assert.equal(await page.locator('#moves').innerText(),'1');
+   await page.locator('#undo').click();
+   assert.equal(await page.locator('#moves').innerText(),'0');
+   await page.locator('.ft-joker-mode button').first().click();
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  },{date:'2026-11-12',id:'J26'});
+  await run('paradox-switch',async page=>{
+   let iterations=0;
+   while(await page.locator('#wins').innerText()==='0'&&await page.locator('#jokerWins').innerText()==='0'&&iterations++<17){
+    const m=(await page.locator('.ft-joker-ability').innerText()).match(/推奨手：行(\d+)列(\d+)を反転/);
+    assert.ok(m,'Paradox J26 should recommend a minimum-solution step');
+    const i=(Number(m[1])-1)*4+Number(m[2])-1;
+    assert.equal(await page.locator('#board .card.joker-hint').count(),1);
+    await page.locator('#board .card').nth(i).click();
+   }
+   assert.ok(iterations<=16,'recommended sequence must solve within 16 flips');
+   assert.equal(await page.locator('#wins').innerText(),'0','normal wins remain separate');
+   assert.equal(await page.locator('#jokerWins').innerText(),'1','JOKER win recorded');
+   assert.match(await page.locator('#jokerBest').innerText(),/手/);
+   await page.locator('#undo').click();
+   assert.equal(await page.locator('#jokerWins').innerText(),'0','undo must restore win count');
+   assert.equal(await page.locator('#jokerBest').innerText(),'未達','undo must restore best');
+   assert.equal(await page.locator('#undo').isEnabled(),true);
+   page.once('dialog',d=>d.accept());await page.locator('.ft-joker-mode button').first().click();
+   assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  },{date:'2026-11-12',id:'J26'});
+  for(const game of ['kings-road','royal-slide','paradox-switch'])await run(game,async page=>{
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/終了時の得点補正/);
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  },{date:'2026-12-02',id:'J22'});
+
   console.log(results.join('\n'));console.log('JOKER layout mobile checks PASS '+results.length);
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
 })().catch(e=>{console.error(e);process.exitCode=1});
