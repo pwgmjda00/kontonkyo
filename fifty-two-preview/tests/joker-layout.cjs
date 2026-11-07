@@ -512,6 +512,111 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
    assert.match(await page.locator('.ft-joker-ability').innerText(),/終了時の得点補正/);
   },{date:'2026-12-02',id:'J24'});
 
+
+  // Phase 7: 104-card and foundation-building solitaire variants.
+  for(const game of ['forty-thieves','beleaguered-castle','simple-simon','osmosis'])await run(game,async page=>{
+   assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
+   assert.equal(await page.locator('#wins').innerText(),'0');
+   assert.equal(await page.locator('#jokerWins').innerText(),'0');
+   assert.equal(await page.locator('#undo').isDisabled(),true);
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  });
+  for(const [game,count] of [['forty-thieves',64],['osmosis',35]])await run(game,async page=>{
+   const text=await page.locator('.ft-joker-ability').innerText();
+   assert.match(text,/次の山札/);
+   const planned=text.split('：').at(-1).trim();
+   await page.locator('#stock').click();
+   assert.equal(await page.locator('#stockcount').innerText(),String(count-1));
+   assert.equal(await page.locator('#waste .card').innerText(),planned);
+   assert.equal(await page.locator('#undo').isEnabled(),true);
+   await page.locator('#undo').click();
+   assert.equal(await page.locator('#stockcount').innerText(),String(count));
+   assert.equal(await page.locator('.ft-joker-ability').innerText(),text);
+   assert.equal(await page.locator('#undo').isDisabled(),true);
+  },{date:'2026-12-02',id:'J22'});
+  for(const [game,count] of [['forty-thieves',64],['osmosis',35]])await run(game,async page=>{
+   const sum=async()=>[...(await page.locator('.ft-joker-ability').innerText()).matchAll(/([♠♥♦♣]) (\d+)枚/g)].reduce((n,m)=>n+Number(m[2]),0);
+   assert.equal(await sum(),count);
+   await page.locator('#stock').click();
+   assert.equal(await sum(),count-1);
+   await page.locator('#undo').click();
+   assert.equal(await sum(),count);
+  },{date:'2026-12-02',id:'J24'});
+  async function ensureFoundationHint(page,game){
+   for(let i=0;i<28;i++){
+    if(await page.locator('.card.joker-hint').count()>=2)return;
+    if((game==='forty-thieves'||game==='osmosis')&&i%3!==2&&await page.locator('#stock').isEnabled()){
+     await page.locator('#stock').click();
+    }else{
+     page.once('dialog',d=>d.accept());
+     await page.locator('#restart').click();
+    }
+   }
+   assert.fail(game+' did not produce an opening J26 action');
+  }
+  for(const game of ['forty-thieves','beleaguered-castle','osmosis'])await run(game,async page=>{
+   await ensureFoundationHint(page,game);
+   const msg=await page.locator('.ft-joker-ability').innerText();
+   const match=msg.match(/推奨手：([^\n]+)/);
+   assert.ok(match,'J26 recommendation should name a move');
+   const [from,to]=match[1].trim().split(/\s*→\s*/);
+   assert.ok(from&&to);
+   const suits=['♠','♥','♦','♣'];
+   const col=(n)=>page.locator('#board .pile').nth(n-1).locator('.card').last();
+   async function tapName(name){
+    if(name==='捨て札')return page.locator('#waste .card').click();
+    if(name.startsWith('予備'))return page.locator('#reserve .pile').nth(Number(name.match(/\d+/)[0])-1).locator('.card').click();
+    if(name.startsWith('列')){
+     const n=Number(name.match(/\d+/)[0]);
+     if(game==='beleaguered-castle')return page.locator(n<=4?'#left .pile':'#right .pile').nth(n<=4?n-1:n-5).locator('.card').last().click();
+     return col(n).click();
+    }
+    if(name.includes('組札')){
+     const si=suits.findIndex(x=>name.startsWith(x));assert.ok(si>=0);
+     const index=game==='forty-thieves'?si+4*(Number(name.match(/組札(\d+)/)?.[1]||1)-1):si;
+     return page.locator('#foundations').locator(game==='forty-thieves'?'.foundation':':scope > div').nth(index).locator('.card').last().click();
+    }
+    if(name.includes('段')){
+     const n=Number(name.match(/\d+/)[0]);return page.locator('#foundations .pile').nth(n-1).locator('.card').click();
+    }
+    throw new Error('Unknown recommended destination: '+name);
+   }
+   const before=await page.locator('#undo').isEnabled();
+   await tapName(from);
+   await tapName(to);
+   assert.equal(await page.locator('#undo').isEnabled(),true);
+   await page.locator('#undo').click();
+   assert.equal(await page.locator('#undo').isEnabled(),before);
+   if(!before){
+    await page.locator('.ft-joker-mode button').first().click();
+   }else{
+    page.once('dialog',d=>d.accept());await page.locator('.ft-joker-mode button').first().click();
+   }
+   assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  },{date:'2026-11-12',id:'J26'});
+  await run('simple-simon',async page=>{
+   await ensureFoundationHint(page,'simple-simon');
+   const msg=await page.locator('.ft-joker-ability').innerText();
+   const m=msg.match(/推奨手：列(\d+) (.+?)から(\d+)枚 → 列(\d+)/);
+   assert.ok(m,'Simon should specify exact moving run');
+   const src=Number(m[1])-1,dst=Number(m[4])-1,card=m[2],count=Number(m[3]);
+   assert.ok(count>=1);
+   const from=page.locator('#board .pile').nth(src).locator('.card').filter({hasText:card}).last();
+   assert.equal(await from.count(),1);
+   await from.click({position:{x:8,y:8}});
+   await page.locator('#board .pile').nth(dst).locator('.card').last().click();
+   assert.equal(await page.locator('#undo').isEnabled(),true);
+   await page.locator('#undo').click();
+   assert.equal(await page.locator('#undo').isEnabled(),false);
+   await page.locator('.ft-joker-mode button').first().click();
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  },{date:'2026-11-12',id:'J26'});
+  for(const game of ['beleaguered-castle','simple-simon'])await run(game,async page=>{
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/終了時の得点補正/);
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  },{date:'2026-12-02',id:'J22'});
+
   console.log(results.join('\n'));console.log('JOKER layout mobile checks PASS '+results.length);
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
 })().catch(e=>{console.error(e);process.exitCode=1});
