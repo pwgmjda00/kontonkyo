@@ -22,3 +22,5 @@ jobs:
         run: node fifty-two-preview/tests/browser-smoke.cjs
       - name: Test actual gameplay actions and undo / finish
         run: node fifty-two-preview/tests/gameplay-smoke.cjs
+      - name: Test JOKER layout gameplay and mobile controls
+        run: node fifty-two-preview/tests/joker-layout.cjs
