@@ -3,7 +3,7 @@
 const score=root.FiftyTwoJokerScoreMode,actions=root.FiftyTwoJokerActions;
 if(!score||!actions)throw new Error('JOKER layout dependencies missing');
 const suits=['♠','♥','♦','♣'];
-function create(game,{reset,hasProgress,label,hiddenDeck=false,rankMutation=false}={}){
+function create(game,{reset,hasProgress,label,hiddenDeck=false,rankMutation=false,peekFormat=null,singleSuit=false,deckLabel='山札'}={}){
  if(typeof label!=='function')throw new TypeError('card label callback required');
  const mode=score.create(game,{reset,hasProgress});
  function active(){return mode.mode==='joker'&&!!mode.joker}
@@ -16,10 +16,10 @@ function create(game,{reset,hasProgress,label,hiddenDeck=false,rankMutation=fals
   if(active()){
    if(t==='peekNext'&&hiddenDeck){
     const seen=actions.peek(mode.joker,deck);
-    abilityText='👁 次の山札：'+(seen.length?label(seen.at(-1)):'山札は空');
+    abilityText='👁 '+(peekFormat?peekFormat(seen):'次の'+deckLabel+'：'+(seen.length?label(seen.at(-1)):deckLabel+'は空'));
    }else if(t==='revealCount'&&hiddenDeck){
     const counts=actions.suitCounts(mode.joker,deck)||[0,0,0,0];
-    abilityText='📊 未公開の山札：'+counts.map((n,i)=>suits[i]+' '+n+'枚').join(' / ');
+    abilityText='📊 未公開の'+deckLabel+'：'+(singleSuit?'♠ '+counts[0]+'枚':counts.map((n,i)=>suits[i]+' '+n+'枚').join(' / '));
    }else if(t==='hintChance'){
     abilityText=recommendation?'💡 推奨手：'+recommendation:'💡 今は推奨できる手がありません';
    }else if(rankMutation&&(t==='upgradeRank'||t==='downgradeRank')){
