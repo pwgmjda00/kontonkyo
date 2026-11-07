@@ -214,6 +214,105 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
    assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
   },{date:'2026-11-12',id:'J26'});
 
+
+  // Phase 4: ±1 solitaire family and the wraparound Black Hole.
+  for(const game of ['golf','tripeaks','black-hole'])await run(game,async page=>{
+   assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
+   assert.equal(await page.locator('#wins').innerText(),'0');
+   assert.equal(await page.locator('#jokerWins').innerText(),'0');
+   assert.equal(await page.locator('#undo').isDisabled(),true);
+  });
+  await run('golf',async page=>{
+   const prior=await page.locator('.ft-joker-ability').innerText();
+   assert.match(prior,/次の山札/);
+   const card=prior.split('：').at(-1).trim();
+   await page.locator('#stock').click();
+   assert.equal(await page.locator('#base').innerText(),card);
+   assert.equal(await page.locator('#undo').isEnabled(),true);
+   await page.locator('#undo').click();
+   assert.equal(await page.locator('#stockCount').innerText(),'16');
+   assert.equal(await page.locator('.ft-joker-ability').innerText(),prior);
+  },{date:'2026-12-02',id:'J22'});
+  await run('golf',async page=>{
+   const all=async()=>[...(await page.locator('.ft-joker-ability').innerText()).matchAll(/([♠♥♦♣]) (\d+)枚/g)].reduce((s,m)=>s+Number(m[2]),0);
+   assert.equal(await all(),16);
+   await page.locator('#stock').click();
+   assert.equal(await all(),15);
+   await page.locator('#undo').click();
+   assert.equal(await all(),16);
+  },{date:'2026-12-02',id:'J24'});
+  await run('golf',async page=>{
+   const changed=page.locator('#columns .card[title^="元のカード"]');
+   assert.ok(await changed.count()>0,'J50 rank-shift display required');
+   assert.notEqual(await changed.first().innerText(),(await changed.first().getAttribute('title')).replace('元のカード：',''));
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/数字が\+1/);
+   await page.locator('#stock').click();
+   assert.equal(await page.locator('#undo').isEnabled(),true);
+   page.once('dialog',d=>d.accept());await page.locator('.ft-joker-mode button').first().click();
+   assert.equal(await page.locator('#undo').isDisabled(),true);
+   assert.equal(await page.locator('#columns .card[title^="元のカード"]').count(),0);
+  },{date:'2026-11-21',id:'J50'});
+  await run('golf',async page=>{
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/推奨手/);
+   for(let i=0;i<12&&!await page.locator('.card.joker-hint').count();i++){
+    page.once('dialog',d=>d.accept());await page.locator('#restart').click();
+   }
+   assert.ok(await page.locator('.card.joker-hint').count()>0,'Golf legal candidate highlight');
+   await page.locator('.ft-joker-mode button').first().click();
+   assert.equal(await page.locator('.card.joker-hint').count(),0);
+  },{date:'2026-11-12',id:'J26'});
+  await run('tripeaks',async page=>{
+   const before=await page.locator('.ft-joker-ability').innerText();
+   assert.match(before,/次の山札/);
+   await page.locator('#stock').click();
+   assert.equal(await page.locator('#base').innerText(),before.split('：').at(-1).trim());
+   await page.locator('#undo').click();
+   assert.equal(await page.locator('#stockCount').innerText(),'23');
+   assert.equal(await page.locator('.ft-joker-ability').innerText(),before);
+  },{date:'2026-12-02',id:'J22'});
+  await run('tripeaks',async page=>{
+   const sum=async()=>[...(await page.locator('.ft-joker-ability').innerText()).matchAll(/([♠♥♦♣]) (\d+)枚/g)].reduce((s,m)=>s+Number(m[2]),0);
+   assert.equal(await sum(),23);
+   await page.locator('#stock').click();
+   assert.equal(await sum(),22);
+   await page.locator('#undo').click();
+   assert.equal(await sum(),23);
+  },{date:'2026-12-02',id:'J24'});
+  await run('tripeaks',async page=>{
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/数字が-1/);
+   const changed=page.locator('#board .card[title^="元のカード"]');
+   assert.ok(await changed.count()>0,'J51 should affect exposed cards');
+   assert.notEqual(await changed.first().innerText(),(await changed.first().getAttribute('title')).replace('元のカード：',''));
+  },{date:'2026-11-21',id:'J51'});
+  await run('tripeaks',async page=>{
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/推奨手/);
+   for(let i=0;i<12&&!await page.locator('.card.joker-hint').count();i++){
+    page.once('dialog',d=>d.accept());await page.locator('#restart').click();
+   }
+   assert.ok(await page.locator('.card.joker-hint').count()>0,'Tripeaks J26 must mark an available card');
+   await page.locator('.ft-joker-mode button').first().click();
+   assert.equal(await page.locator('.card.joker-hint').count(),0);
+  },{date:'2026-11-12',id:'J26'});
+  await run('black-hole',async page=>{
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/推奨手/);
+   for(let i=0;i<12&&!await page.locator('.card.joker-hint').count();i++){
+    page.once('dialog',d=>d.accept());await page.locator('#restart').click();
+   }
+   const recommended=page.locator('#board .card.joker-hint');
+   assert.equal(await recommended.count(),1,'Black Hole only highlights the best available option');
+   assert.match(await recommended.first().getAttribute('aria-label'),/吸収可能/);
+   await recommended.first().click();
+   assert.equal(await page.locator('#undo').isEnabled(),true);
+   await page.locator('#undo').click();
+   assert.equal(await page.locator('#undo').isDisabled(),true);
+   await page.locator('.ft-joker-mode button').first().click();
+   assert.equal(await page.locator('.card.joker-hint').count(),0);
+  },{date:'2026-11-12',id:'J26'});
+  await run('black-hole',async page=>{
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/終了時の得点補正/);
+   assert.equal(await page.locator('.card.joker-hint').count(),0);
+  },{date:'2026-12-02',id:'J22'});
+
   console.log(results.join('\n'));console.log('JOKER layout mobile checks PASS '+results.length);
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
 })().catch(e=>{console.error(e);process.exitCode=1});
