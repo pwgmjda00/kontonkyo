@@ -1121,6 +1121,142 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
    assert.equal(await page.locator('#jokerWins').innerText(),'1');
   },{date:'2026-12-02',id:'J22'});
 
+
+  // Phase 13: memory-safe advice, chain hand play and conserved trick value.
+  for(const game of ['last-word','echo','coronation','memory'])await run(game,async page=>{
+   assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
+   assert.equal(await page.locator('#wins').innerText(),'0');
+   assert.equal(await page.locator('#jokerWins').innerText(),'0');
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  });
+  await run('last-word',async page=>{
+   const ability=await page.locator('.ft-joker-ability').innerText();
+   assert.match(ability,/次の山札/);
+   const expected=ability.split('：').at(-1).trim();
+   assert.equal(await page.locator('#countYou').innerText(),'7');
+   assert.equal(await page.locator('#deckCount').innerText(),'37枚');
+   await page.locator('#deck').click();
+   assert.equal(await page.locator('#countYou').innerText(),'8');
+   assert.equal(await page.locator('#youHand .card').last().innerText(),expected);
+   assert.equal(await page.locator('#deckCount').innerText(),'36枚');
+  },{date:'2026-12-02',id:'J22'});
+  await run('last-word',async page=>{
+   const sum=async()=>[...(await page.locator('.ft-joker-ability').innerText()).matchAll(/([♠♥♦♣]) (\d+)枚/g)].reduce((n,m)=>n+Number(m[2]),0);
+   assert.equal(await sum(),37);
+   await page.locator('#deck').click();
+   assert.equal(await sum(),36);
+  },{date:'2026-12-02',id:'J24'});
+  await run('last-word',async page=>{
+   const card=page.locator('#youHand .card.joker-hint');
+   const draw=page.locator('#deck.joker-hint');
+   const pass=page.locator('#pass.joker-hint');
+   assert.equal(await card.count()+await draw.count()+await pass.count(),1,'J26 picks one legal action');
+   if(await card.count()){
+    assert.equal(await card.isEnabled(),true);
+    await card.click();
+    assert.equal(await page.locator('#countYou').innerText(),'6');
+   }else if(await draw.count()){
+    await draw.click();assert.equal(await page.locator('#countYou').innerText(),'8');
+   }else await pass.click();
+   page.once('dialog',d=>d.accept());
+   await page.locator('.ft-joker-mode button').first().click();
+   assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
+   assert.equal(await page.locator('#countYou').innerText(),'7');
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  },{date:'2026-11-12',id:'J26'});
+  await run('echo',async page=>{
+   const ability=await page.locator('.ft-joker-ability').innerText();
+   assert.match(ability,/次の山札/);
+   const predicted=ability.split('：').at(-1).trim();
+   assert.equal(await page.locator('#hand .card').count(),5);
+   await page.locator('#hand .card').first().click();
+   assert.equal(await page.locator('#hand .card').count(),5);
+   assert.equal(await page.locator('#hand .card').last().innerText(),predicted);
+   assert.match(await page.locator('#remain').innerText(),/山札 46枚/);
+  },{date:'2026-12-02',id:'J22'});
+  await run('echo',async page=>{
+   const sum=async()=>[...(await page.locator('.ft-joker-ability').innerText()).matchAll(/([♠♥♦♣]) (\d+)枚/g)].reduce((n,m)=>n+Number(m[2]),0);
+   assert.equal(await sum(),47);
+   await page.locator('#hand .card').first().click();
+   assert.equal(await sum(),46);
+  },{date:'2026-12-02',id:'J24'});
+  await run('echo',async page=>{
+   assert.equal(await page.locator('#hand .card.joker-hint').count(),1);
+   await page.locator('#hand .card.joker-hint').click();
+   const score=await page.locator('#score').innerText();
+   assert.ok(Number(score)>0);
+   assert.equal(await page.locator('#wins').innerText(),'0');
+   await page.reload();
+   assert.equal(await page.locator('#score').innerText(),score,'JOKER game must resume after reload');
+   assert.match(await page.locator('.ft-joker-status').innerText(),/装備中/);
+   page.once('dialog',d=>d.accept());await page.locator('.ft-joker-mode button').first().click();
+   assert.equal(await page.locator('#score').innerText(),'0');
+   assert.equal(await page.locator('#hand .card').count(),5);
+   assert.equal(await page.locator('.joker-hint').count(),0);
+   assert.deepEqual(await page.evaluate(()=>[localStorage.getItem('fifty-two-mode-echo'),JSON.parse(localStorage.getItem('fifty-two-echo-v1')).jokerMode]),['normal','normal'],'mode and persisted run must both be normal');
+   assert.equal(await page.locator('#score').innerText(),'0');
+  },{date:'2026-11-12',id:'J26'});
+  await run('coronation',async page=>{
+   assert.equal(await page.locator('#hand .card.joker-hint').count(),1);
+   await page.locator('#hand .card.joker-hint').click();
+   assert.equal(await page.locator('#hand .card').count(),6);
+   assert.equal(await page.locator('#next').isEnabled(),true);
+   await page.locator('#next').click();
+   assert.equal(await page.locator('#round').innerText(),'2 / 7');
+   await page.reload();
+   assert.equal(await page.locator('#round').innerText(),'2 / 7','JOKER game must survive reload');
+   assert.match(await page.locator('.ft-joker-status').innerText(),/装備中/);
+   page.once('dialog',d=>d.accept());await page.locator('.ft-joker-mode button').first().click();
+   assert.equal(await page.locator('#round').innerText(),'1 / 7');
+   assert.equal(await page.locator('#hand .card').count(),7);
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  },{date:'2026-11-12',id:'J26'});
+  await run('coronation',async page=>{
+   for(let i=1;i<=7;i++){
+    assert.equal(await page.locator('#round').innerText(),i+' / 7');
+    await page.locator('#hand .card').first().click();
+    if(i<7)await page.locator('#next').click();
+   }
+   assert.equal(await page.locator('#hand .card').count(),0);
+   assert.equal(await page.locator('#wins').innerText(),'0');
+   const text=await page.locator('#message').innerText();
+   assert.equal(await page.locator('#jokerWins').innerText(),text.includes('あなたの総合優勝')?'1':'0');
+   await page.reload();
+   assert.equal(await page.locator('#jokerWins').innerText(),text.includes('あなたの総合優勝')?'1':'0');
+  },{date:'2026-11-12',id:'J26'});
+  await run('memory',async page=>{
+   const msg=await page.locator('.ft-joker-ability').innerText();
+   assert.match(msg,/次に開く裏札/);
+   const predicted=msg.split('：').at(-1).trim();
+   assert.equal(await page.locator('#board .card').count(),52);
+   await page.locator('#board .card').first().click();
+   assert.equal(await page.locator('#board .card').first().innerText(),predicted);
+   assert.equal(await page.locator('#wins').innerText(),'0');
+   assert.equal(await page.locator('#jokerWins').innerText(),'0');
+  },{date:'2026-12-02',id:'J22'});
+  await run('memory',async page=>{
+   const sum=async()=>[...(await page.locator('.ft-joker-ability').innerText()).matchAll(/([♠♥♦♣]) (\d+)枚/g)].reduce((n,m)=>n+Number(m[2]),0);
+   assert.equal(await sum(),52);
+   await page.locator('#board .card').first().click();
+   assert.equal(await sum(),51,'opened cards are excluded from hidden counts');
+  },{date:'2026-12-02',id:'J24'});
+  await run('memory',async page=>{
+   assert.equal(await page.locator('#board .card.joker-hint').count(),1);
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/未知の札を調べる/);
+   await page.locator('#board .card.joker-hint').click();
+   assert.equal(await page.locator('#board .card.face').count(),1);
+   assert.equal(await page.locator('#board .card.joker-hint').count(),1);
+   await page.locator('#board .card.joker-hint').click();
+   assert.equal(await page.locator('#board .card.face').count(),2);
+   page.once('dialog',d=>d.accept());await page.locator('.ft-joker-mode button').first().click();
+   assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
+   assert.equal(await page.locator('#board .card.face').count(),0);
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  },{date:'2026-11-12',id:'J26'});
+  for(const game of ['coronation'])await run(game,async page=>{
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/終了時の得点補正/);
+  },{date:'2026-12-02',id:'J22'});
+
   console.log(results.join('\n'));console.log('JOKER layout mobile checks PASS '+results.length);
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
 })().catch(e=>{console.error(e);process.exitCode=1});
