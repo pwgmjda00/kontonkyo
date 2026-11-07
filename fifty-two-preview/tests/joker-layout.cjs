@@ -418,6 +418,100 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
    assert.equal(await page.locator('.joker-hint').count(),0);
   },{date:'2026-11-21',id:'J50'});
 
+
+  // Phase 6: Aces Up, Baker's Dozen, Flower Garden, La Belle Lucie.
+  for(const game of ['aces-up','bakers-dozen','flower-garden','la-belle-lucie'])await run(game,async page=>{
+   assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
+   assert.equal(await page.locator('#wins').innerText(),'0');
+   assert.equal(await page.locator('#jokerWins').innerText(),'0');
+   assert.equal(await page.locator('#undo').isDisabled(),true);
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  });
+  await run('aces-up',async page=>{
+   const text=await page.locator('.ft-joker-ability').innerText();
+   assert.match(text,/次の4列へ配るカード/);
+   const planned=text.split('：').at(-1).trim().split(/\s+/);
+   assert.equal(planned.length,4);
+   await page.locator('#deal').click();
+   assert.equal(await page.locator('#stock').innerText(),'44');
+   assert.equal(await page.locator('#undo').isEnabled(),true);
+   for(let i=0;i<4;i++)assert.equal(await page.locator('#columns .column').nth(i).locator('.card').innerText(),planned[i]);
+   await page.locator('#undo').click();
+   assert.equal(await page.locator('#stock').innerText(),'48');
+   assert.equal(await page.locator('.ft-joker-ability').innerText(),text);
+   assert.equal(await page.locator('#undo').isDisabled(),true);
+  },{date:'2026-12-02',id:'J22'});
+  await run('aces-up',async page=>{
+   const all=async()=>[...(await page.locator('.ft-joker-ability').innerText()).matchAll(/([♠♥♦♣]) (\d+)枚/g)].reduce((n,m)=>n+Number(m[2]),0);
+   assert.equal(await all(),48);
+   await page.locator('#deal').click();
+   assert.equal(await all(),44);
+   await page.locator('#undo').click();
+   assert.equal(await all(),48);
+  },{date:'2026-12-02',id:'J24'});
+  async function j26Deal(page){
+   for(let i=0;i<16&&await page.locator('.card.joker-hint').count()===0;i++){
+    page.once('dialog',d=>d.accept());await page.locator('#restart').click();
+   }
+   assert.ok(await page.locator('.card.joker-hint').count()>0,'J26 must highlight a legal move');
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/推奨手/);
+  }
+  await run('aces-up',async page=>{
+   await j26Deal(page);
+   const hinted=page.locator('#columns .card.joker-hint');
+   assert.equal(await hinted.count(),1);
+   await hinted.click();
+   assert.equal(await page.locator('#removed').innerText(),'1 / 48');
+   await page.locator('#undo').click();
+   assert.equal(await page.locator('#removed').innerText(),'0 / 48');
+   await page.locator('.ft-joker-mode button').first().click();
+   assert.equal(await page.locator('.card.joker-hint').count(),0);
+  },{date:'2026-11-12',id:'J26'});
+  for(const game of ['bakers-dozen','flower-garden','la-belle-lucie'])await run(game,async page=>{
+   await j26Deal(page);
+   const msg=await page.locator('.ft-joker-ability').innerText();
+   const match=msg.match(/推奨手：([^\n]+)/);
+   assert.ok(match,'J26 should display the recommended move');
+   const [from,to]=match[1].trim().split(/\s*→\s*/);
+   assert.ok(from&&to,'recommendation has source and destination');
+   async function clickPlace(name,asSource){
+    const n=Number(name.match(/\d+/)?.[0]),si=['♠','♥','♦','♣'].findIndex(s=>name.startsWith(s));
+    if(name.includes('組札')){
+     assert.ok(si>=0,'foundation must have a suit');
+     await page.locator('#foundations').locator(game==='flower-garden'?'.pile':'.foundation').nth(si).locator('.card').last().click();
+    }else if(game==='bakers-dozen'){
+     assert.ok(n>=1);await page.locator('#board .pile').nth(n-1).locator('.card').last().click();
+    }else if(game==='flower-garden'){
+     assert.ok(n>=1);
+     if(name.startsWith('花束'))await page.locator('#reserve .card').nth(n-1).click();
+     else await page.locator('#board .pile').nth(n-1).locator('.card').last().click();
+    }else{
+     assert.ok(n>=1);await page.locator('#board .fan').nth(n-1).locator('.card').last().click();
+    }
+   }
+   await clickPlace(from,true);
+   await clickPlace(to,false);
+   assert.equal(await page.locator('#undo').isEnabled(),true,game+' J26 should be executable');
+   await page.locator('#undo').click();
+   assert.equal(await page.locator('#undo').isDisabled(),true);
+   page.once('dialog',d=>d.accept());
+   await page.locator('.ft-joker-mode button').first().click();
+   assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
+   assert.equal(await page.locator('.card.joker-hint').count(),0);
+  },{date:'2026-11-12',id:'J26'});
+  await run('la-belle-lucie',async page=>{
+   assert.equal(await page.locator('#redeals').innerText(),'2回');
+   await page.locator('#redeal').click();
+   assert.equal(await page.locator('#redeals').innerText(),'1回');
+   await page.locator('#undo').click();
+   assert.equal(await page.locator('#redeals').innerText(),'2回');
+   assert.equal(await page.locator('#undo').isDisabled(),true);
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/終了時の得点補正/);
+  },{date:'2026-12-02',id:'J22'});
+  await run('flower-garden',async page=>{
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/終了時の得点補正/);
+  },{date:'2026-12-02',id:'J24'});
+
   console.log(results.join('\n'));console.log('JOKER layout mobile checks PASS '+results.length);
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
 })().catch(e=>{console.error(e);process.exitCode=1});
