@@ -1005,6 +1005,122 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
    assert.equal(await page.locator('.joker-hint').count(),0);
   },{date:'2026-12-02',id:'J22'});
 
+
+  // Phase 12: area control, hidden information, old maid and risk-limited bank.
+  for(const game of ['eclipse','ghost-hand','old-maid','deadline'])await run(game,async page=>{
+   assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
+   assert.equal(await page.locator('#wins').innerText(),'0');
+   assert.equal(await page.locator('#jokerWins').innerText(),'0');
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  });
+  await run('eclipse',async page=>{
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/推奨手/);
+   const hand=page.locator('#hand button.joker-hint'),cell=page.locator('#board .cell.joker-hint');
+   assert.equal(await hand.count(),1);
+   assert.equal(await cell.count(),1);
+   assert.equal(await cell.isEnabled(),true);
+   await hand.click();
+   await cell.click();
+   assert.equal(await page.locator('#left').innerText(),'7');
+   assert.equal(await page.locator('#board .cell.you').count(),1);
+   assert.equal(await page.locator('#board .cell.cpu').count(),1);
+   page.once('dialog',d=>d.accept());await page.locator('.ft-joker-mode button').first().click();
+   assert.equal(await page.locator('#left').innerText(),'8');
+   assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  },{date:'2026-11-12',id:'J26'});
+  await run('ghost-hand',async page=>{
+   assert.equal(await page.locator('#enemy .card').count(),5);
+   assert.equal(await page.locator('#mine .card').count(),5);
+   assert.equal(await page.locator('#enemy .card.joker-hint').count(),1);
+   await page.locator('#enemy .card.joker-hint').click();
+   assert.equal(await page.locator('#mine .card.joker-hint').count(),1);
+   assert.equal(await page.locator('#mine .card.joker-hint').isEnabled(),true);
+   await page.locator('#mine .card.joker-hint').click();
+   assert.equal(await page.locator('#mine .card').count(),4);
+   assert.equal(await page.locator('#history > div').count(),1);
+   page.once('dialog',d=>d.accept());await page.locator('.ft-joker-mode button').first().click();
+   assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
+   assert.equal(await page.locator('#mine .card').count(),5);
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  },{date:'2026-11-12',id:'J26'});
+  await run('ghost-hand',async page=>{
+   const msg=await page.locator('.ft-joker-ability').innerText();
+   assert.match(msg,/左端のCPU伏せ札/);
+   const card=msg.split('：').at(-1).trim();
+   await page.locator('#peek').click();
+   await page.locator('#enemy .card').first().click();
+   assert.ok((await page.locator('#enemy .card').first().innerText()).includes(card),'native peek must match J22 preview');
+   assert.equal(await page.locator('#peeks').innerText(),'1');
+  },{date:'2026-12-02',id:'J22'});
+  await run('ghost-hand',async page=>{
+   const sum=async()=>[...(await page.locator('.ft-joker-ability').innerText()).matchAll(/([♠♥♦♣]) (\d+)枚/g)].reduce((n,m)=>n+Number(m[2]),0);
+   assert.equal(await sum(),5);
+   await page.locator('#enemy .card').first().click();
+   await page.locator('#mine .card').first().click();
+   assert.equal(await sum(),4);
+  },{date:'2026-12-02',id:'J24'});
+  await run('old-maid',async page=>{
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/次の|CPUの左端/);
+   const predicted=(await page.locator('.ft-joker-ability').innerText()).split('：').at(-1).trim();
+   await page.locator('#backs .back').first().click();
+   assert.ok((await page.locator('#history').innerText()).includes('あなたが'+predicted+'を引いた'),'old maid J22 preview must match drawn card');
+   assert.equal(await page.locator('#wins').innerText(),'0');
+   assert.equal(await page.locator('#jokerWins').innerText(),'0');
+  },{date:'2026-12-02',id:'J22'});
+  await run('old-maid',async page=>{
+   const ability=await page.locator('.ft-joker-ability').innerText();
+   assert.match(ability,/未公開のCPUの伏せ札/);
+   const total=[...ability.matchAll(/([♠♥♦♣]) (\d+)枚/g)].reduce((n,m)=>n+Number(m[2]),0);
+   const count=await page.locator('#backs .back').count();
+   assert.ok(total===count||total===count-1,'JOKER without suit is excluded');
+  },{date:'2026-12-02',id:'J24'});
+  await run('old-maid',async page=>{
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/当たり確率は同じ/);
+   assert.equal(await page.locator('#backs .back.joker-hint').count(),1);
+   await page.locator('#backs .back.joker-hint').click();
+   assert.ok(await page.locator('#history li').count()>=1);
+   assert.equal(await page.locator('#wins').innerText(),'0');
+  },{date:'2026-11-12',id:'J26'});
+  await run('deadline',async page=>{
+   const msg=await page.locator('.ft-joker-ability').innerText();
+   assert.match(msg,/次の山札/);
+   const predicted=msg.split('：').at(-1).trim();
+   await page.locator('#draw').click();
+   assert.equal(await page.locator('#cards .card').last().innerText(),predicted);
+   assert.equal(await page.locator('#deck').innerText(),'山札 51枚');
+   assert.equal(await page.locator('#jokerWins').innerText(),'0');
+  },{date:'2026-12-02',id:'J22'});
+  await run('deadline',async page=>{
+   const total=async()=>[...(await page.locator('.ft-joker-ability').innerText()).matchAll(/([♠♥♦♣]) (\d+)枚/g)].reduce((n,m)=>n+Number(m[2]),0);
+   assert.equal(await total(),52);
+   await page.locator('#draw').click();
+   assert.equal(await total(),51);
+  },{date:'2026-12-02',id:'J24'});
+  await run('deadline',async page=>{
+   assert.equal(await page.locator('#draw.joker-hint').count(),1);
+   await page.locator('#draw.joker-hint').click();
+   assert.equal(await page.locator('#cards .card').count(),1);
+   assert.equal(await page.locator('#draw.joker-hint,#bank.joker-hint').count(),1);
+   page.once('dialog',d=>d.accept());await page.locator('.ft-joker-mode button').first().click();
+   assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
+   assert.equal(await page.locator('#round').innerText(),'1 / 12');
+   assert.equal(await page.locator('#cards .card').count(),0);
+  },{date:'2026-11-12',id:'J26'});
+  await run('deadline',async page=>{
+   for(let r=1;r<=12;r++){
+    assert.equal(await page.locator('#round').innerText(),r+' / 12');
+    await page.locator('#bank').click();
+    if(r<12)await page.locator('#next').click();
+   }
+   assert.equal(await page.locator('#jokerWins').innerText(),'1','JOKER completion recorded');
+   assert.equal(await page.locator('#wins').innerText(),'0','normal completion stays separate');
+   assert.equal(await page.locator('#jokerBest').innerText(),'0');
+   await page.locator('.ft-joker-mode button').first().click();
+   assert.equal(await page.locator('#wins').innerText(),'0');
+   assert.equal(await page.locator('#jokerWins').innerText(),'1');
+  },{date:'2026-12-02',id:'J22'});
+
   console.log(results.join('\n'));console.log('JOKER layout mobile checks PASS '+results.length);
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
 })().catch(e=>{console.error(e);process.exitCode=1});
