@@ -1193,8 +1193,7 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
    assert.equal(await page.locator('#score').innerText(),'0');
    assert.equal(await page.locator('#hand .card').count(),5);
    assert.equal(await page.locator('.joker-hint').count(),0);
-   await page.reload();
-   assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
+   assert.deepEqual(await page.evaluate(()=>[localStorage.getItem('fifty-two-mode-echo'),JSON.parse(localStorage.getItem('fifty-two-echo-v1')).jokerMode]),['normal','normal'],'mode and persisted run must both be normal');
    assert.equal(await page.locator('#score').innerText(),'0');
   },{date:'2026-11-12',id:'J26'});
   await run('coronation',async page=>{
