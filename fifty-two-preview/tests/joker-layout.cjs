@@ -134,6 +134,86 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
    assert.equal(await page.locator('.card.hinted').count(),0);
    assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
   },{date:'2026-11-12',id:'J26'});
+
+  // Phase 3: Scorpion, Penguin, Canfield use the shared score bridge without changing solitaire rules.
+  for(const game of ['scorpion','penguin','canfield'])await run(game,async page=>{
+   assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
+   assert.equal(await page.locator('#wins').innerText(),'0');
+   assert.equal(await page.locator('#jokerWins').innerText(),'0');
+   assert.equal(await page.locator('#undo').isDisabled(),true);
+  });
+  await run('scorpion',async page=>{
+   const text=await page.locator('.ft-joker-ability').innerText();
+   assert.match(text,/次の追加配札/);
+   const planned=text.split('：').at(-1).trim().split(/\s+/);
+   assert.equal(planned.length,3);
+   await page.locator('#deal').click();
+   assert.equal(await page.locator('#undo').isEnabled(),true);
+   for(let i=0;i<3;i++)assert.equal(await page.locator('#board .pile').nth(i).locator('button.card').last().innerText(),planned[i]);
+   await page.locator('#undo').click();
+   assert.equal(await page.locator('#undo').isDisabled(),true);
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/次の追加配札/);
+  },{date:'2026-12-02',id:'J22'});
+  await run('scorpion',async page=>{
+   const getCount=async()=>[...(await page.locator('.ft-joker-ability').innerText()).matchAll(/([♠♥♦♣]) (\d+)枚/g)].reduce((n,m)=>n+Number(m[2]),0);
+   assert.equal(await getCount(),3);
+   await page.locator('#deal').click();
+   assert.equal(await getCount(),0);
+   await page.locator('#undo').click();
+   assert.equal(await getCount(),3);
+  },{date:'2026-12-02',id:'J24'});
+  await run('scorpion',async page=>{
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/推奨手/);
+   for(let i=0;i<12&&await page.locator('.card.hinted').count()===0;i++){
+    page.once('dialog',d=>d.accept());await page.locator('#restart').click();
+   }
+   assert.ok(await page.locator('.card.hinted').count()>0,'Scorpion J26 must mark a legal move');
+   await page.locator('.ft-joker-mode button').first().click();
+   assert.equal(await page.locator('.card.hinted').count(),0);
+  },{date:'2026-11-12',id:'J26'});
+  await run('penguin',async page=>{
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/推奨手/);
+   assert.ok(await page.locator('.card.hinted').count()>0,'Penguin J26 must mark a legal move');
+   await page.locator('#board .pile').first().locator('button.card').last().click();
+   await page.locator('#slots .card').first().click();
+   assert.equal(await page.locator('#undo').isEnabled(),true);
+   await page.locator('#undo').click();
+   assert.equal(await page.locator('#undo').isDisabled(),true);
+   await page.locator('.ft-joker-mode button').first().click();
+   assert.equal(await page.locator('.card.hinted').count(),0);
+  },{date:'2026-11-12',id:'J26'});
+  await run('canfield',async page=>{
+   const before=await page.locator('.ft-joker-ability').innerText();
+   assert.match(before,/次の3枚/);
+   const planned=before.split('：').at(-1).trim().split(/\s+/);
+   assert.equal(planned.length,3);
+   assert.equal(await page.locator('#stockcount').innerText(),'34');
+   await page.locator('#stock').click();
+   assert.equal(await page.locator('#waste .card').innerText(),planned.at(-1));
+   assert.equal(await page.locator('#stockcount').innerText(),'31');
+   await page.locator('#undo').click();
+   assert.equal(await page.locator('#stockcount').innerText(),'34');
+   assert.equal(await page.locator('.ft-joker-ability').innerText(),before);
+  },{date:'2026-12-02',id:'J22'});
+  await run('canfield',async page=>{
+   const total=async()=>[...(await page.locator('.ft-joker-ability').innerText()).matchAll(/([♠♥♦♣]) (\d+)枚/g)].reduce((n,m)=>n+Number(m[2]),0);
+   assert.equal(await total(),34);
+   await page.locator('#stock').click();
+   assert.equal(await total(),31);
+   await page.locator('#undo').click();
+   assert.equal(await total(),34);
+  },{date:'2026-12-02',id:'J24'});
+  await run('canfield',async page=>{
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/推奨手/);
+   await page.locator('#stock').click();
+   assert.equal(await page.locator('#undo').isEnabled(),true);
+   page.once('dialog',d=>d.accept());
+   await page.locator('.ft-joker-mode button').first().click();
+   assert.equal(await page.locator('.card.hinted').count(),0);
+   assert.equal(await page.locator('#undo').isDisabled(),true);
+   assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
+  },{date:'2026-11-12',id:'J26'});
+
   console.log(results.join('\n'));console.log('JOKER layout mobile checks PASS '+results.length);
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
 })().catch(e=>{console.error(e);process.exitCode=1});
