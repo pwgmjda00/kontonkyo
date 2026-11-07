@@ -831,6 +831,90 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
    assert.equal(await page.locator('.joker-hint').count(),0);
   },{date:'2026-12-02',id:'J22'});
 
+
+  // Phase 10: deduction, territory and market drafting.
+  for(const game of ['suit-code','suit-dominion','zero-sum','redline'])await run(game,async page=>{
+   assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
+   assert.equal(await page.locator('#wins').innerText(),'0');
+   assert.equal(await page.locator('#jokerWins').innerText(),'0');
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  });
+  for(const game of ['zero-sum','redline'])await run(game,async page=>{
+   const text=await page.locator('.ft-joker-ability').innerText();
+   assert.match(text,/次の山札/);
+   const next=text.split('：').at(-1).trim();
+   await page.locator('#market .choice').first().click();
+   const expectedIndex=game==='zero-sum'?3:0;
+   assert.ok((await page.locator('#market .choice').nth(expectedIndex).innerText()).includes(next),game+' predicted card must be actually drawn');
+   page.once('dialog',d=>d.accept());await page.locator('.ft-joker-mode button').first().click();
+   assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
+  },{date:'2026-12-02',id:'J22'});
+  for(const [game,initial,after] of [['zero-sum',47,45],['redline',49,46]])await run(game,async page=>{
+   const sum=async()=>[...(await page.locator('.ft-joker-ability').innerText()).matchAll(/([♠♥♦♣]) (\d+)枚/g)].reduce((n,m)=>n+Number(m[2]),0);
+   assert.equal(await sum(),initial,game+' initial stock');
+   await page.locator('#market .choice').first().click();
+   assert.equal(await sum(),after,game+' hidden stock after refill');
+  },{date:'2026-12-02',id:'J24'});
+  await run('suit-code',async page=>{
+   const suits=['♠','♥','♦','♣'];
+   for(let attempt=0;attempt<8;attempt++){
+    const text=await page.locator('.ft-joker-ability').innerText();
+    const match=text.match(/推奨手：([♠♥♦♣](?:\s+[♠♥♦♣]){3})/);
+    assert.ok(match,'J26 should recommend a complete suit permutation');
+    const order=match[1].split(/\s+/);
+    assert.equal(new Set(order).size,4);
+    for(const ch of order){
+     const index=suits.indexOf(ch);
+     assert.ok(index>=0);
+     await page.locator('#symbols .symbol').nth(index).click();
+    }
+    assert.equal(await page.locator('#submit').isEnabled(),true);
+    await page.locator('#submit').click();
+    if(await page.locator('#jokerWins').innerText()==='1')break;
+   }
+   assert.equal(await page.locator('#jokerWins').innerText(),'1','deduction should solve within 8 guesses');
+   assert.equal(await page.locator('#wins').innerText(),'0','normal wins remain separate');
+   assert.match(await page.locator('#jokerBest').innerText(),/手/);
+  },{date:'2026-11-12',id:'J26'});
+  await run('suit-dominion',async page=>{
+   const text=await page.locator('.ft-joker-ability').innerText();
+   const m=text.match(/推奨手：([^\s]+) → 行(\d+)列(\d+)/);
+   assert.ok(m,'J26 should recommend a playable hand and free cell');
+   const hand=page.locator('#hand button.joker-hint');
+   const cell=page.locator('#board .cell.joker-hint');
+   assert.equal(await hand.count(),1);
+   assert.equal(await cell.count(),1);
+   assert.equal(await cell.isEnabled(),true);
+   await hand.click();
+   await cell.click();
+   assert.equal(await page.locator('#left').innerText(),'7');
+   assert.equal(await page.locator('#board .cell.mine').count(),1);
+   assert.equal(await page.locator('#board .cell.cpu').count(),1);
+   page.once('dialog',d=>d.accept());await page.locator('.ft-joker-mode button').first().click();
+   assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
+   assert.equal(await page.locator('#left').innerText(),'8');
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  },{date:'2026-11-12',id:'J26'});
+  for(const game of ['zero-sum','redline'])await run(game,async page=>{
+   const text=await page.locator('.ft-joker-ability').innerText();
+   assert.match(text,/推奨手/);
+   const hinted=page.locator('#market .choice.joker-hint');
+   assert.equal(await hinted.count(),1,'J26 should mark one legal market choice');
+   await hinted.click();
+   if(game==='zero-sum'){
+    assert.equal(await page.locator('#youHand .mini').count(),1);
+   }else{
+    assert.equal(await page.locator('#youCards .mini').count(),1);
+   }
+   page.once('dialog',d=>d.accept());await page.locator('.ft-joker-mode button').first().click();
+   assert.match(await page.locator('.ft-joker-status').innerText(),/通常ルール/);
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  },{date:'2026-11-12',id:'J26'});
+  for(const game of ['suit-code','suit-dominion'])await run(game,async page=>{
+   assert.match(await page.locator('.ft-joker-ability').innerText(),/終了時の得点補正/);
+   assert.equal(await page.locator('.joker-hint').count(),0);
+  },{date:'2026-12-02',id:'J22'});
+
   console.log(results.join('\n'));console.log('JOKER layout mobile checks PASS '+results.length);
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
 })().catch(e=>{console.error(e);process.exitCode=1});
