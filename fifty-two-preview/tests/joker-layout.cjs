@@ -1650,6 +1650,20 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
     results.push('hub/'+id+' PASS');
    }finally{await page.close()}
   }
+  // Phase 20: embedded saves must be separate for each game and mode.
+  {
+   const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+   try{
+    await page.goto(base+'/index.html');
+    await page.locator('#games button').first().click();
+    assert.ok(await page.evaluate(()=>!!localStorage.getItem('fifty-two-save-tombstone')));
+    await page.locator('#home').click();
+    await page.locator('#games button').nth(2).click();
+    assert.ok(await page.evaluate(()=>!!localStorage.getItem('fifty-two-save-thirteenth-hour')));
+    assert.ok(await page.evaluate(()=>!!localStorage.getItem('fifty-two-save-tombstone')));
+    results.push('hub/save-isolation PASS');
+   }finally{await page.close()}
+  }
   console.log(results.join('\n'));console.log('JOKER layout mobile checks PASS '+results.length);
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
 })().catch(e=>{console.error(e);process.exitCode=1});
