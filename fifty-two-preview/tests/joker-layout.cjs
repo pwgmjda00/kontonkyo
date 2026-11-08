@@ -1548,6 +1548,48 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
    assert.equal(await page.locator('.joker-hint').count(),0);
   },{date:'2026-12-02',id:'J22'});
 
+  // Phase 16: verify the four standalone games on a touch-sized viewport.
+  async function phase16(game,id,exercise){
+   const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+   const errors=[];page.on('pageerror',e=>errors.push(e.message));
+   try{
+    await page.addInitScript(({game,id})=>{
+     localStorage.setItem('fifty-two-mode-'+game,'joker');
+     localStorage.setItem('fifty-two-joker-equip-2026-12-02',id);
+     const RealDate=Date;window.Date=class extends RealDate{constructor(...a){super(...(a.length?a:['2026-12-02T12:00:00']))}static now(){return new RealDate('2026-12-02T12:00:00').getTime()}};
+    },{game,id});
+    await page.goto(base+'/'+game+'.html');
+    await exercise(page);
+    assert.deepEqual(errors,[],game+' page errors');
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)<=35,game+' mobile overflow');
+    results.push(game+'/'+id+' PASS');
+   }finally{await page.close()}
+  }
+  await phase16('judgment','J22',async p=>{
+   assert.match(await p.locator('.ft-joker-ability').innerText(),/次の札/);
+   const predicted=(await p.locator('.ft-joker-ability').innerText()).split('：').at(-1).trim();
+   await p.locator('#hit').click();
+   assert.equal((await p.locator('#myCards .card').last().innerText()),predicted);
+   assert.equal(await p.locator('.ft-joker-mode').count(),1);
+  });
+  await phase16('informant','J24',async p=>{
+   assert.match(await p.locator('.ft-joker-ability').innerText(),/残り山札/);
+   await p.locator('[data-q="high"]').click();
+   assert.equal(await p.locator('#answers li').count(),1);
+   assert.equal(await p.locator('.ft-joker-mode').count(),1);
+  });
+  await phase16('indian-poker','J26',async p=>{
+   assert.match(await p.locator('.ft-joker-ability').innerText(),/相手の公開札/);
+   assert.equal(await p.locator('#myCard').innerText(),'?');
+   await p.locator('#fold').click();
+   assert.equal(await p.locator('#next').isEnabled(),true);
+  });
+  await phase16('overdrive','J22',async p=>{
+   assert.match(await p.locator('#jokerInfo').innerText(),/次の札/);
+   const predicted=(await p.locator('#jokerInfo').innerText()).split('次の札：').at(-1).trim();
+   await p.locator('#draw').click();
+   assert.equal(await p.locator('#myCards .card').last().innerText(),predicted);
+  });
   console.log(results.join('\n'));console.log('JOKER layout mobile checks PASS '+results.length);
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
 })().catch(e=>{console.error(e);process.exitCode=1});
