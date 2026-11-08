@@ -19,6 +19,8 @@ jobs:
           node-version: '22'
       - name: Static smoke tests for all 77 games
         run: node fifty-two-preview/tests/collection-smoke.cjs
+      - name: JOKER source coverage inventory
+        run: node fifty-two-preview/tests/joker-inventory.cjs
       - name: JOKER actions and score isolation unit tests
         run: node fifty-two-preview/tests/joker-actions.cjs
 
