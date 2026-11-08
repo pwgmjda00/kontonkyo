@@ -19,7 +19,8 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
      static now(){return new OriginalDate(date+'T12:00:00').valueOf()}
     }
     window.Date=FixedDate;
-    localStorage.setItem('fifty-two-joker-equip-'+date,id);
+    localStorage.setItem('fifty-two-joker-collection-v2',JSON.stringify([id]));
+    localStorage.setItem('fifty-two-joker-equipped-v2',id);
     localStorage.setItem('fifty-two-mode-'+game,'joker');
    },{date,id,game});
    await page.goto(base+'/'+game+'.html',{waitUntil:'load'});
