@@ -16,7 +16,7 @@ function create(game,{reset,hasProgress}={}){
  function refreshEquip(){joker=mode==='joker'?engine.equipped():null}
  refreshEquip();
  function build(){
-  if(host)return;
+  if(host){if(!host.isConnected){const main=document.querySelector('main');if(main)main.append(host)}return;}
   const main=document.querySelector('main');
   if(!main)throw new Error('game main missing');
   const style=document.createElement('style');style.textContent=`
@@ -69,7 +69,7 @@ function create(game,{reset,hasProgress}={}){
    '';
   return result;
  }
- return Object.freeze({refresh,begin:refreshEquip,get mode(){return mode},get joker(){return joker}});
+ return Object.freeze({refresh,begin:refreshEquip,get mode(){return mode},get joker(){return joker},get panel(){return host}});
 }
 const api=Object.freeze({create,compute});
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
