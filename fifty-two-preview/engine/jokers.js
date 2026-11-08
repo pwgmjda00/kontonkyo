@@ -19,9 +19,19 @@ function hash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i)
 function localDate(d=new Date()){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function daily(date=localDate()){if(!/^\d{4}-\d{2}-\d{2}$/.test(date))throw Error('invalid date');const ids=catalog.map((_,i)=>i);let seed=hash('FIFTY-TWO|JOKER77|'+date);function rand(){seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296}for(let i=ids.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[ids[i],ids[j]]=[ids[j],ids[i]]}return ids.slice(0,7).map(i=>catalog[i])}
 function get(id){return catalog.find(c=>c.id===id)||null}
-function validateEquip(id,date=localDate()){return !!get(id)&&daily(date).some(c=>c.id===id)}
+const collectionKey='fifty-two-joker-collection-v2',equipKey='fifty-two-joker-equipped-v2';
+function readCollection(){try{const a=JSON.parse(localStorage.getItem(collectionKey)||'[]');return Array.isArray(a)?[...new Set(a.filter(id=>!!get(id)))]:[]}catch(e){return []}}
+function writeCollection(ids){try{localStorage.setItem(collectionKey,JSON.stringify(ids));return true}catch(e){return false}}
+function owned(){return readCollection().map(get)}
+function validateEquip(id){return !!get(id)&&readCollection().includes(id)}
+function equip(id){if(id!==null&&!validateEquip(id))return false;try{if(id===null)localStorage.removeItem(equipKey);else localStorage.setItem(equipKey,id);return true}catch(e){return false}}
+function equipped(){let id=null;try{id=localStorage.getItem(equipKey)}catch(e){}return validateEquip(id)?get(id):null}
+function dailyOffers(date=localDate()){const claimed=claimDate();if(claimed===date)return [];const ids=new Set(readCollection());return daily(date).filter(c=>!ids.has(c.id)).slice(0,3)}
+function claimDate(){try{return localStorage.getItem('fifty-two-joker-daily-claimed-v2')}catch(e){return null}}
+function claimDaily(id,date=localDate()){if(claimDate()===date||!dailyOffers(date).some(c=>c.id===id))return false;const ids=readCollection();if(ids.includes(id))return false;try{localStorage.setItem('fifty-two-joker-daily-claimed-v2',date);if(!writeCollection([...ids,id])){localStorage.removeItem('fifty-two-joker-daily-claimed-v2');return false}equip(id);return true}catch(e){return false}}
+function awardAchievement(gameId){if(typeof gameId!=='string'||!/^[a-z0-9-]{1,60}$/.test(gameId))return null;const key='fifty-two-joker-achievement-v2-'+gameId;try{if(localStorage.getItem(key))return null;const ids=new Set(readCollection());const available=catalog.filter(c=>!ids.has(c.id));if(!available.length)return null;const index=hash('JOKER-ACHIEVEMENT|'+gameId+'|'+ids.size)%available.length;const chosen=available[index];if(!writeCollection([...ids,chosen.id]))return null;localStorage.setItem(key,chosen.id);return chosen}catch(e){return null}}
 function resolve(id,context){const c=get(id);if(!c)return {supported:false,reason:'unknown joker'};const supported=Array.isArray(context?.supportedEffects)&&context.supportedEffects.includes(c.effect.type);return supported?{supported:true,joker:c,effect:c.effect}:{supported:false,joker:c,reason:'game has not implemented this effect'} }
-function equipped(date=localDate()){let id=null;try{id=localStorage.getItem('fifty-two-joker-equip-'+date)}catch(e){}return validateEquip(id,date)?get(id):null}
+
 function applyScore(joker,base,ctx={}){if(!joker||!Number.isFinite(base)||base<0)return {score:base,delta:0,description:'通常ルール'};const win=!!ctx.win,streak=ctx.streak||0,round=ctx.round||1,totalRounds=Number.isInteger(ctx.totalRounds)&&ctx.totalRounds>0?ctx.totalRounds:10,final=ctx.final===true||round>=totalRounds;let score=base;switch(joker.id){
 case 'J01': score=win?base+7:base;break;
 case 'J02': score=win?base+21:base;break;
@@ -197,5 +207,5 @@ case 'balance':if(ctx.behind)a+=t*3;note='劣勢で強化';break;
 case 'miracle':if(a>limit&&a-limit<=t*2)a=limit;note='バーストを救済';break;
 case 'causality':if(round===5)a=limit;note='最終戦で目標値に収束';break;
 }return {player:a,dealer:b,note}}
-const api=Object.freeze({catalog,families,localDate,daily,get,validateEquip,resolve,equipped,applyScore,battlePower,battleDescription,abilityDescription,targetPower});if(typeof module!=='undefined'&&module.exports)module.exports=api;root.FiftyTwoJokers=api;
+const api=Object.freeze({catalog,families,localDate,daily,dailyOffers,claimDaily,claimDate,owned,equip,awardAchievement,get,validateEquip,resolve,equipped,applyScore,battlePower,battleDescription,abilityDescription,targetPower});if(typeof module!=='undefined'&&module.exports)module.exports=api;root.FiftyTwoJokers=api;
 })(typeof window!=='undefined'?window:globalThis);
