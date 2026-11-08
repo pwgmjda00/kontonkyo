@@ -17,7 +17,7 @@ function play(level,style,seed){
  const el=id=>{if(!nodes.has(id))nodes.set(id,{value:id==='difficulty'?level:id==='personality'?style:'',replaceChildren(){},setAttribute(){},textContent:'',disabled:false,dataset:{}});return nodes.get(id)};
  const doc={body:{dataset:{}},getElementById:el,createElement:()=>({setAttribute(){}})};
  const math=Object.create(Math);math.random=rng(seed);
- const ctx={document:doc,localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v),removeItem:k=>store.delete(k)},confirm:()=>true,Math:math,console};
+ const ctx={window:{FiftyTwoJokerScoreMode:{create:()=>({mode:'normal',joker:null,begin(){},refresh(){return {score:0,delta:0}}})},FiftyTwoJokerActions:{type:()=>null}},document:doc,localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v),removeItem:k=>store.delete(k)},confirm:()=>true,Math:math,console};
  vm.createContext(ctx);vm.runInContext(code,ctx,{timeout:2000});
  const g=ctx.BENCH;let turns=0,hands=0;const began=Date.now();
  while(turns<runMaxTurns&&hands<100){

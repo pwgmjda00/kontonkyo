@@ -1622,6 +1622,33 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
    assert.equal(await p.locator('#undo').isEnabled(),true);
    await p.locator('#undo').click();
   });
+  // Phase 18: Gin Rummy deck prediction must match the actual draw.
+  await phase16('gin-rummy','J22',async p=>{
+   assert.match(await p.locator('.ft-joker-ability').innerText(),/次の山札/);
+   const predicted=(await p.locator('.ft-joker-ability').innerText()).split('：').at(-1).trim();
+   await p.locator('#stock').click();
+   assert.equal(await p.locator('.ft-joker-mode').count(),1);
+   assert.ok(await p.locator('body').innerText().then(t=>t.includes(predicted)),'predicted card shown after draw');
+  });
+  // Phase 18: all five embedded games expose live JOKER controls on mobile.
+  for(const [i,id] of ['tombstone','accomplice','thirteenth-hour','four-kingdoms','oblivion'].entries()){
+   const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+   const errors=[];page.on('pageerror',e=>errors.push(e.message));
+   try{
+    await page.addInitScript(({id})=>{
+     localStorage.setItem('fifty-two-mode-'+id,'joker');
+     localStorage.setItem('fifty-two-joker-equip-2026-12-02','J22');
+     const RealDate=Date;window.Date=class extends RealDate{constructor(...a){super(...(a.length?a:['2026-12-02T12:00:00']))}static now(){return new RealDate('2026-12-02T12:00:00').getTime()}};
+    },{id});
+    await page.goto(base+'/index.html');
+    await page.locator('#games button').nth(i).click();
+    assert.match(await page.locator('.ft-joker-ability').innerText(),/次の山札/);
+    assert.equal(await page.locator('.ft-joker-mode').count(),1);
+    assert.deepEqual(errors,[],id+' page errors');
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)<=35,id+' mobile overflow');
+    results.push('hub/'+id+' PASS');
+   }finally{await page.close()}
+  }
   console.log(results.join('\n'));console.log('JOKER layout mobile checks PASS '+results.length);
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
 })().catch(e=>{console.error(e);process.exitCode=1});
