@@ -1664,6 +1664,20 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
     results.push('hub/save-isolation PASS');
    }finally{await page.close()}
   }
+  // Phase 21: changing embedded games must never accumulate JOKER panels.
+  {
+   const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+   try{
+    await page.goto(base+'/index.html');
+    for(const index of [0,1,2,0]){
+     await page.locator('#games button').nth(index).click();
+     assert.equal(await page.locator('.ft-joker-mode').count(),1,'only one active JOKER panel');
+     assert.equal(await page.locator('#play > .ft-joker-mode').count(),1,'panel in active game');
+     await page.locator('#home').click();
+    }
+    results.push('hub/panel-lifecycle PASS');
+   }finally{await page.close()}
+  }
   console.log(results.join('\n'));console.log('JOKER layout mobile checks PASS '+results.length);
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
 })().catch(e=>{console.error(e);process.exitCode=1});
