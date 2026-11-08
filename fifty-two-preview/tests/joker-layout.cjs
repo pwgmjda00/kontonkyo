@@ -1622,6 +1622,14 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
    assert.equal(await p.locator('#undo').isEnabled(),true);
    await p.locator('#undo').click();
   });
+  // Phase 18: Gin Rummy deck prediction must match the actual draw.
+  await phase16('gin-rummy','J22',async p=>{
+   assert.match(await p.locator('.ft-joker-ability').innerText(),/次の山札/);
+   const predicted=(await p.locator('.ft-joker-ability').innerText()).split('：').at(-1).trim();
+   await p.locator('#stock').click();
+   assert.equal(await p.locator('.ft-joker-mode').count(),1);
+   assert.ok(await p.locator('body').innerText().then(t=>t.includes(predicted)),'predicted card shown after draw');
+  });
   console.log(results.join('\n'));console.log('JOKER layout mobile checks PASS '+results.length);
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
 })().catch(e=>{console.error(e);process.exitCode=1});
