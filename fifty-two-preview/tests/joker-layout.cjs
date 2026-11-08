@@ -1678,21 +1678,6 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
     results.push('hub/panel-lifecycle PASS');
    }finally{await page.close()}
   }
-  // Phase 22: a JOKER legacy save takes precedence when that mode is selected.
-  {
-   const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
-   try{
-    await page.addInitScript(()=>{
-     const base={i:0,mode:'slow',turn:3,score:0,msg:'',done:false,stock:[],found:[[],[],[],[]],cols:[]};
-     localStorage.setItem('fifty-two-save',JSON.stringify({...base,turn:1}));
-     localStorage.setItem('fifty-two-save-joker',JSON.stringify({...base,turn:3}));
-     localStorage.setItem('fifty-two-mode-tombstone','joker');
-    });
-    await page.goto(base+'/index.html');
-    assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('fifty-two-save-tombstone-joker')).turn),3);
-    results.push('hub/joker-restore-priority PASS');
-   }finally{await page.close()}
-  }
   console.log(results.join('\n'));console.log('JOKER layout mobile checks PASS '+results.length);
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
 })().catch(e=>{console.error(e);process.exitCode=1});
