@@ -21,3 +21,10 @@ jobs:
         run: node fifty-two-preview/tests/collection-smoke.cjs
       - name: JOKER actions and score isolation unit tests
         run: node fifty-two-preview/tests/joker-actions.cjs
+
+      - name: Install Playwright Chromium for mobile interaction tests
+        run: |
+          npm install --no-save playwright@1.58.2
+          npx playwright install --with-deps chromium
+      - name: JOKER layout mobile interaction tests
+        run: node fifty-two-preview/tests/joker-layout.cjs
