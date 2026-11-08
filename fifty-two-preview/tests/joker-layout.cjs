@@ -1716,6 +1716,20 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
     results.push('hub/normal-restore-priority PASS');
    }finally{await page.close()}
   }
+  // Phase 24: fresh installations have only per-game saves, no legacy save keys.
+  {
+   const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+   try{
+    await page.goto(base+'/index.html');
+    await page.locator('#games button').nth(2).click();
+    assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('fifty-two-last-save')).i),2);
+    await page.reload();
+    assert.equal(await page.locator('#resume').isVisible(),true,'new per-game save can resume after reload');
+    await page.locator('#resume').click();
+    assert.equal(await page.locator('#play').isVisible(),true,'resumed game is playable');
+    results.push('hub/fresh-save-reload PASS');
+   }finally{await page.close()}
+  }
   console.log(results.join('\n'));console.log('JOKER layout mobile checks PASS '+results.length);
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
 })().catch(e=>{console.error(e);process.exitCode=1});
