@@ -1615,6 +1615,11 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
    assert.match(await p.locator('.ft-joker-ability').innerText(),/42の組合せ/);
    assert.equal(await p.locator('#board .card').count(),7);
    await p.locator('#board .card').first().click();
+   assert.equal(await p.locator('#board .card.selected').count(),1);
+   await p.locator('#board .card').first().click();
+   assert.equal(await p.locator('#board .card.selected').count(),0);
+   await p.locator('#shift').click();
+   assert.equal(await p.locator('#undo').isEnabled(),true);
    await p.locator('#undo').click();
   });
   console.log(results.join('\n'));console.log('JOKER layout mobile checks PASS '+results.length);
