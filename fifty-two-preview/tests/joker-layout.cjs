@@ -1697,6 +1697,25 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
     results.push('hub/joker-restore-priority PASS');
    }finally{await page.close()}
   }
+  // Phase 23: normal mode must prefer normal legacy state, not a stale JOKER save.
+  {
+   const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+   try{
+    await page.goto(base+'/index.html');
+    await page.locator('#games button').first().click();
+    const valid=await page.evaluate(()=>JSON.parse(localStorage.getItem('fifty-two-save-tombstone')));
+    await page.evaluate(valid=>{
+     localStorage.setItem('fifty-two-save',JSON.stringify({...valid,turn:5}));
+     localStorage.setItem('fifty-two-save-joker',JSON.stringify({...valid,turn:9}));
+     localStorage.setItem('fifty-two-mode-tombstone','normal');
+     localStorage.removeItem('fifty-two-save-tombstone');
+     localStorage.removeItem('fifty-two-save-tombstone-joker');
+    },valid);
+    await page.reload();
+    assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('fifty-two-save-tombstone')).turn),5,'normal legacy save restored');
+    results.push('hub/normal-restore-priority PASS');
+   }finally{await page.close()}
+  }
   console.log(results.join('\n'));console.log('JOKER layout mobile checks PASS '+results.length);
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
 })().catch(e=>{console.error(e);process.exitCode=1});
