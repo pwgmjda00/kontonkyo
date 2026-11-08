@@ -1643,7 +1643,8 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
     await page.goto(base+'/index.html');
     await page.locator('#games button').nth(i).click();
     assert.match(await page.locator('.ft-joker-ability').innerText(),/次の山札/);
-    assert.equal(await page.locator('.ft-joker-mode').count(),1);
+    assert.equal(await page.locator('#play > .ft-joker-mode').count(),1);
+    assert.equal(await page.locator('#play > .ft-joker-mode').isVisible(),true);
     assert.deepEqual(errors,[],id+' page errors');
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)<=35,id+' mobile overflow');
     results.push('hub/'+id+' PASS');
