@@ -1590,6 +1590,38 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
    await p.locator('#draw').click();
    assert.equal(await p.locator('#myCards .card').last().innerText(),predicted);
   });
+  // Phase 17: actual touch interactions and live JOKER ability panels.
+  await phase16('shift','J26',async p=>{
+   assert.match(await p.locator('.ft-joker-ability').innerText(),/推奨/);
+   const cards=p.locator('#cards .card');
+   assert.equal(await cards.count(),5);
+   await cards.nth(0).click();await cards.nth(1).click();
+   assert.equal(await p.locator('#undo').isEnabled(),true);
+   await p.locator('#undo').click();
+  });
+  await phase16('witness','J26',async p=>{
+   assert.match(await p.locator('.ft-joker-ability').innerText(),/対象は左から/);
+   await p.locator('#hide').click();
+   assert.equal(await p.locator('#answerArea').isVisible(),true);
+   await p.locator('#choices button').first().click();
+   assert.equal(await p.locator('#answerArea').isVisible(),false);
+  });
+  await phase16('paradox','J26',async p=>{
+   assert.match(await p.locator('.ft-joker-ability').innerText(),/推奨札/);
+   await p.locator('#hand .card').first().click();
+   assert.equal(await p.locator('#next').isEnabled(),true);
+  });
+  await phase16('the-answer','J26',async p=>{
+   assert.match(await p.locator('.ft-joker-ability').innerText(),/42の組合せ/);
+   assert.equal(await p.locator('#board .card').count(),7);
+   await p.locator('#board .card').first().click();
+   assert.equal(await p.locator('#board .card.selected').count(),1);
+   await p.locator('#board .card').first().click();
+   assert.equal(await p.locator('#board .card.selected').count(),0);
+   await p.locator('#shift').click();
+   assert.equal(await p.locator('#undo').isEnabled(),true);
+   await p.locator('#undo').click();
+  });
   console.log(results.join('\n'));console.log('JOKER layout mobile checks PASS '+results.length);
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
 })().catch(e=>{console.error(e);process.exitCode=1});
