@@ -171,12 +171,24 @@ function apply(match,seat,action){
  if(s.log.length>100)s.log.splice(0,s.log.length-100);
  return {ok:true,state:s};
 }
+function numericPreview(match,seat,card){
+ const original=match.state;
+ const players=original.players.map(p=>({...p,hand:p.hand.map(c=>({...c})),deck:p.deck.map(c=>({...c})),discard:p.discard.map(c=>({...c})),relicFlags:{...p.relicFlags}}));
+ const state={...original,players,active:seat,relicOffer:null,over:false,log:[],relics:original.relics.map(x=>x.slice())};
+ const a=players[seat];a.energy=Math.max(a.energy,card.cost);
+ let rng=match.getRngState(),randomUsed=false;
+ const simulated={state,random:()=>{randomUsed=true;rng=(Math.imul(1664525,rng)+1013904223)>>>0;return rng/4294967296},getRngState:()=>rng,setRngState:v=>{rng=v>>>0}};
+ try{const result=apply(simulated,seat,{type:'play',uid:card.uid});if(!result.ok)return null;const e=state.log.find(x=>x.type==='play');if(!e)return null;
+ const parts=[];if(e.damage)parts.push('敵HP −'+e.damage);if(e.enemyBlock)parts.push('敵防御 '+(e.enemyBlock>0?'+':'')+e.enemyBlock);if(e.block)parts.push('防御 +'+e.block);if(e.healing)parts.push('HP +'+e.healing);if(e.selfDamage)parts.push('HP −'+e.selfDamage);if(e.drawn)parts.push(e.drawn+'枚引く');if(e.fate)parts.push('因果 '+(e.fate>0?'+':'')+e.fate);if(e.enemyFate)parts.push('敵因果 '+(e.enemyFate>0?'+':'')+e.enemyFate);const energy=e.energy+card.cost;if(energy)parts.push('エネルギー '+(energy>0?'+':'')+energy);
+ return randomUsed?null:(parts.join(' / ')||'現在の状態では数値変化なし');
+ }catch(_){return null}
+}
 function publicView(match,seat){
  const s=match.state;
  if(seat!==0&&seat!==1)throw Error('Invalid seat');
  const own=s.players[seat],other=s.players[1-seat];
  const redact=p=>({job:p.job,skillUsed:p.skillUsed,hp:p.hp,maxHp:p.maxHp,block:p.block,energy:p.energy,fate:p.fate,handCount:p.hand.length,deckCount:p.deck.length,discardCount:p.discard.length});
- return {version:s.version,turn:s.turn,active:s.active,over:s.over,winner:s.winner,player:{...redact(own),hand:own.hand.map(c=>({id:c.id,uid:c.uid,name:c.name,cost:c.cost,desc:c.desc}))},opponent:redact(other),log:s.log.slice(-30),relics:s.relics.map(ids=>ids.map(id=>RELICS.find(r=>r.id===id))),relicOffer:s.relicOffer&&s.relicOffer.seat===seat?s.relicOffer.choices.map(id=>RELICS.find(r=>r.id===id)):null,relicPending:!!s.relicOffer};
+ return {version:s.version,turn:s.turn,active:s.active,over:s.over,winner:s.winner,player:{...redact(own),hand:own.hand.map(c=>({id:c.id,uid:c.uid,name:c.name,cost:c.cost,desc:c.desc,preview:s.active===seat&&!s.over&&!s.relicOffer?numericPreview(match,seat,c):null}))},opponent:redact(other),log:s.log.slice(-30),relics:s.relics.map(ids=>ids.map(id=>RELICS.find(r=>r.id===id))),relicOffer:s.relicOffer&&s.relicOffer.seat===seat?s.relicOffer.choices.map(id=>RELICS.find(r=>r.id===id)):null,relicPending:!!s.relicOffer};
 }
 root.IngaDuel=Object.freeze({createMatch,apply,publicView,relicCatalog:()=>RELICS.map(r=>({...r}))});
 })(typeof globalThis!=='undefined'?globalThis:this);
