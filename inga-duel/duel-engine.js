@@ -120,7 +120,7 @@ function apply(match,seat,action){
   
   const owned=s.relics[seat].map(id=>RELICS.find(r=>r.id===id)).filter(Boolean);
   const bonus=(effect,condition=true)=>owned.filter(r=>r.effect===effect&&condition).reduce((n,r)=>n+r.value,0);
-  let hitIndex=0,actualHits=0,actualDraws=0;const ctx={hit:(target,n)=>{if(target===b)actualHits++;const first=hitIndex++===0;const added=target===b&&first?bonus('firstHit',a.attacksPlayed===0)+bonus('secondHit',a.attacksPlayed===1)+bonus('thirdHit',a.attacksPlayed===2)+bonus('lowHit',a.hp<=30&&a.attacksPlayed===0)+bonus('blockHit',b.block>0&&a.attacksPlayed===0):0;const outcome=core.damage(target,n+added);if(target===b&&outcome.dealt>0){for(const id of s.relics[1-seat]){const r=RELICS.find(x=>x.id===id);if(r?.effect==='retaliate'&&!b.relicFlags.retaliate){core.damage(a,r.value);b.relicFlags.retaliate=true}}}return outcome},draw:(p,n)=>{const before=p.hand.length;draw(p,n,match.random);actualDraws+=p.hand.length-before},random:match.random,
+  let hitIndex=0,actualHits=0,actualDraws=0;const hitValues=[];const ctx={hit:(target,n)=>{if(target===b)actualHits++;const first=hitIndex++===0;const added=target===b&&first?bonus('firstHit',a.attacksPlayed===0)+bonus('secondHit',a.attacksPlayed===1)+bonus('thirdHit',a.attacksPlayed===2)+bonus('lowHit',a.hp<=30&&a.attacksPlayed===0)+bonus('blockHit',b.block>0&&a.attacksPlayed===0):0;if(target===b)hitValues.push(n+added);const outcome=core.damage(target,n+added);if(target===b&&outcome.dealt>0){for(const id of s.relics[1-seat]){const r=RELICS.find(x=>x.id===id);if(r?.effect==='retaliate'&&!b.relicFlags.retaliate){core.damage(a,r.value);b.relicFlags.retaliate=true}}}return outcome},draw:(p,n)=>{const before=p.hand.length;draw(p,n,match.random);actualDraws+=p.hand.length-before},random:match.random,
    get intent(){return {kind:'none',value:0,name:'対人戦',desc:'相手の手番'}},
    set intent(_v){}};
   const before={hp:a.hp,block:a.block,energy:a.energy,fate:a.fate,hand:a.hand.length,deck:a.deck.length,discard:a.discard.length,enemyHp:b.hp,enemyBlock:b.block,enemyFate:b.fate,enemyHand:b.hand.length};
@@ -139,7 +139,7 @@ function apply(match,seat,action){
   if(before.enemyBlock>0&&a.attacksPlayed===1)b.block=Math.max(0,b.block-bonus('breakBlock'));
   a.energy=Math.min(ENERGY_CAP,Math.max(0,a.energy));
   if(a.hp<=0||b.hp<=0){s.over=true;s.winner=a.hp<=0&&b.hp<=0?null:a.hp<=0?1-seat:seat}
-  s.log.push({turn:s.turn,seat,type:'play',cardId:card.id,name:card.name,description:card.desc,enemyFate:b.fate-before.enemyFate,enemyBlock:b.block-before.enemyBlock,drawn:Math.max(0,a.hand.length-before.hand+1),damage:Math.max(0,before.enemyHp-b.hp),healing:Math.max(0,a.hp-before.hp),selfDamage:Math.max(0,before.hp-a.hp),block:Math.max(0,a.block-before.block),energy:a.energy-before.energy, energySpent:card.cost, fate:a.fate-before.fate});
+  s.log.push({turn:s.turn,seat,type:'play',cardId:card.id,name:card.name,description:card.desc,hitValues,enemyFate:b.fate-before.enemyFate,enemyBlock:b.block-before.enemyBlock,drawn:Math.max(0,a.hand.length-before.hand+1),damage:Math.max(0,before.enemyHp-b.hp),healing:Math.max(0,a.hp-before.hp),selfDamage:Math.max(0,before.hp-a.hp),block:Math.max(0,a.block-before.block),energy:a.energy-before.energy, energySpent:card.cost, fate:a.fate-before.fate});
  }else if(action.type==='fate'){
   const outcome=rules.spendFate(a,b);if(!outcome.ok)return outcome;s.log.push({turn:s.turn,seat,type:'fate',damage:0,name:'因果断絶'});
  }else if(action.type==='end_turn'){
@@ -179,7 +179,7 @@ function numericPreview(match,seat,card){
  let rng=match.getRngState(),randomUsed=false;
  const simulated={state,random:()=>{randomUsed=true;rng=(Math.imul(1664525,rng)+1013904223)>>>0;return rng/4294967296},getRngState:()=>rng,setRngState:v=>{rng=v>>>0}};
  try{const result=apply(simulated,seat,{type:'play',uid:card.uid});if(!result.ok)return null;const e=state.log.find(x=>x.type==='play');if(!e)return null;
- const parts=[];if(e.damage)parts.push('敵HP −'+e.damage);if(e.enemyBlock)parts.push('敵防御 '+(e.enemyBlock>0?'+':'')+e.enemyBlock);if(e.block)parts.push('防御 +'+e.block);if(e.healing)parts.push('HP +'+e.healing);if(e.selfDamage)parts.push('HP −'+e.selfDamage);if(e.drawn)parts.push(e.drawn+'枚引く');if(e.fate)parts.push('因果 '+(e.fate>0?'+':'')+e.fate);if(e.enemyFate)parts.push('敵因果 '+(e.enemyFate>0?'+':'')+e.enemyFate);const energy=e.energy+card.cost;if(energy)parts.push('エネルギー '+(energy>0?'+':'')+energy);
+ const parts=[];if(e.hitValues?.length)parts.push('攻撃 '+e.hitValues.join('・'));if(e.damage)parts.push('敵HP −'+e.damage);if(e.enemyBlock)parts.push('敵防御 '+(e.enemyBlock>0?'+':'')+e.enemyBlock);if(e.block)parts.push('防御 +'+e.block);if(e.healing)parts.push('HP +'+e.healing);if(e.selfDamage)parts.push('HP −'+e.selfDamage);if(e.drawn)parts.push(e.drawn+'枚引く');if(e.fate)parts.push('因果 '+(e.fate>0?'+':'')+e.fate);if(e.enemyFate)parts.push('敵因果 '+(e.enemyFate>0?'+':'')+e.enemyFate);const energy=e.energy+card.cost;if(energy)parts.push('エネルギー '+(energy>0?'+':'')+energy);
  return randomUsed?null:(parts.join(' / ')||'現在の状態では数値変化なし');
  }catch(_){return null}
 }
