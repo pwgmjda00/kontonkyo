@@ -33,3 +33,23 @@
 - JOKERは `fifty-two-joker-state-v3` へ単一原子書込（version/revision/owned/equipped/claimed/achievements）。v2保持・安全移行、破損/未来versionは上書き拒否。全日付履歴保持。77所持完了表示。後続取得は装備・明示解除を保持し、最初の1枚のみ自動装備。
 - UI/実績経路はasync Web Locksで同一originの複数タブ直列化。非対応ブラウザー/旧sync APIのlocalStorage leaseはCAS非対応のためbest effort。v2に残らない過去日付履歴は復元不能。オフライン端末なので未取得の未来日付の真偽は検証不能。
 - 全77勝利/未達成の実遷移テスト、既存gameplay/JOKER layout回帰は実行中。index過去セーブの図鑑直接訪問移行を追加調整中。最終テスト・コミット・PR・公開はまだ未完了。
+- 引き継ぎ4ファイルの初期チェックポイントを `7345495` にコミット。実装差分はまだworktree内（77作品HTML、engine、collection、tests、JOKER実装ドキュメント）。作業継続中のため最終実装コミット/公開は未実施。
+
+## チェックポイント 2026-11-24 / 統合検証2
+- `tests/gameplay-smoke.cjs`: 97ケース PASS。
+- `tests/joker-layout.cjs` 本体: 219ケース PASS（追加子テストはまだ最終確認待ち）。
+- Gin benchmark3: 5設定×3=15対局、exit0。`tests/gin-rummy-benchmark.cjs 3`。Gin単体は既述PASS。
+- Node JOKER操作9、永続化8、実績状態418の各チェック成功。旧7択文言/fixture、インベントリの未接続表記を修正。
+- 直接jokers.htmlからindex5作品の旧セーブを検証する共通 `engine/hub-achievements.mjs` を追加。indexテストは直接訪問移行と破損doneフラグ排除で拡張中。
+- レビューで保存対局の再読込時に装備が切り替わる抜け道を確認。shared bridgeの開始時装備snapshot永続化と回帰テストを追加中。
+- 実績報酬の保存失敗を「受取未完了」と表示し、proofから再試行するUIを追加中。
+- 全72独立作品×2モード終局テストはfixture調整中（test-only lexical export、製品の終局判定/APIを置換しない）。未完走/敗北を勝利にしない。全成功とはまだ報告しない。
+
+## チェックポイント 2026-11-24 / 公開前検証
+- 全77作品×通常/JOKER=154シナリオの `tests/achievement-coverage.cjs`: **860 assertions / 0 failures**。勝利/完走・敗北/未達、報酬一度、モード横断重複防止、再読込、勝利数分離を確認。
+  - テスト専用HTTPサーバーのメモリ内で製品スクリプトに状態操作入口を追加し、終局直前のfixtureから本来の判定・遷移を実行。全作品を配札から全手順通して攻略した証明ではない。既存UI gameplay97と併用。
+- `tests/index-achievements.cjs`: 最新69ケース PASS。5作品直接図鑑移行、偽doneフラグ排除、J26、capture保存、装備snapshot復元を含む。
+- `tests/joker-multitab.cjs`: 最新の報酬保存失敗→未完了表示→再試行成功もPASS。
+- `tests/collection-smoke.cjs`: PASS、追加永続化8・実績状態422も既存CI入口から成功。`tests/joker-inventory.cjs`: 77/77接続・72/72明示フック、`tests/joker-actions.cjs`:9 PASS。`git diff --check` 成功。
+- `engine/joker-score-mode.js` は `fifty-two-joker-round-v1-<game>` に開始時装備（null含む）を保存。保存対局を再読込しても保持し、新しい局だけ最新装備に更新。新たな `tests/joker-session.cjs` 回帰4ケース成功（CIはjoker-layoutから呼ぶ）。旧セッションは過去装備不明のため最初の読込時装備を一度採用。
+- ブラウザー75/75とjoker-layout219+追加子テストの最終一括再実行中。実装をコミットしGitHub CIへ進む。
