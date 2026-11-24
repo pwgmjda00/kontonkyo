@@ -19,7 +19,8 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
      static now(){return new OriginalDate(date+'T12:00:00').valueOf()}
     }
     window.Date=FixedDate;
-    localStorage.setItem('fifty-two-joker-equip-'+date,id);
+    localStorage.setItem('fifty-two-joker-collection-v2',JSON.stringify([id]));
+    localStorage.setItem('fifty-two-joker-equipped-v2',id);
     localStorage.setItem('fifty-two-mode-'+game,'joker');
    },{date,id,game});
    await page.goto(base+'/'+game+'.html',{waitUntil:'load'});
@@ -1555,7 +1556,7 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
    try{
     await page.addInitScript(({game,id})=>{
      localStorage.setItem('fifty-two-mode-'+game,'joker');
-     localStorage.setItem('fifty-two-joker-equip-'+(id==='J26'?'2026-11-12':'2026-12-02'),id);
+     localStorage.setItem('fifty-two-joker-collection-v2',JSON.stringify([id]));localStorage.setItem('fifty-two-joker-equipped-v2',id);
      const date=id==='J26'?'2026-11-12':'2026-12-02';const RealDate=Date;window.Date=class extends RealDate{constructor(...a){super(...(a.length?a:[date+'T12:00:00']))}static now(){return new RealDate(date+'T12:00:00').getTime()}};
     },{game,id});
     await page.goto(base+'/'+game+'.html');
@@ -1637,7 +1638,7 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
    try{
     await page.addInitScript(({id})=>{
      localStorage.setItem('fifty-two-mode-'+id,'joker');
-     localStorage.setItem('fifty-two-joker-equip-2026-12-02','J22');
+     localStorage.setItem('fifty-two-joker-collection-v2',JSON.stringify(['J22']));localStorage.setItem('fifty-two-joker-equipped-v2','J22');
      const RealDate=Date;window.Date=class extends RealDate{constructor(...a){super(...(a.length?a:['2026-12-02T12:00:00']))}static now(){return new RealDate('2026-12-02T12:00:00').getTime()}};
     },{id});
     await page.goto(base+'/index.html');
@@ -1728,6 +1729,28 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
     await page.locator('#resume').click();
     assert.equal(await page.locator('#play').isVisible(),true,'resumed game is playable');
     results.push('hub/fresh-save-reload PASS');
+   }finally{await page.close()}
+  }
+  // Permanent collection: actual mobile acquisition, persistence, equip and reward idempotency.
+  {
+   const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+   const errors=[];page.on('pageerror',e=>errors.push(e.message));
+   try{
+    await page.goto(base+'/jokers.html');
+    assert.equal(await page.locator('#daily button').count(),3);
+    await page.locator('#daily button').first().click();
+    assert.equal(await page.locator('#daily button').count(),0);
+    assert.equal(await page.locator('#owned article').count(),1);
+    await page.reload();
+    assert.equal(await page.locator('#owned article').count(),1);
+    await page.locator('#owned button').click();
+    assert.equal(await page.locator('#equipped').innerText(),'なし');
+    await page.locator('#owned button').click();
+    assert.notEqual(await page.locator('#equipped').innerText(),'なし');
+    const result=await page.evaluate(()=>{const j=window.FiftyTwoJokers;const before=j.owned().length;const reward=j.awardAchievement('test-game');return {before,after:j.owned().length,reward:reward?.id,repeat:j.awardAchievement('test-game'),tomorrow:j.dailyOffers('2099-01-01').length}});
+    assert.equal(result.after,result.before+1);assert.ok(result.reward);assert.equal(result.repeat,null);assert.equal(result.tomorrow,3);
+    assert.deepEqual(errors,[]);
+    results.push('joker/permanent-collection PASS');
    }finally{await page.close()}
   }
   console.log(results.join('\n'));console.log('JOKER layout mobile checks PASS '+results.length);
