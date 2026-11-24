@@ -1731,6 +1731,28 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
     results.push('hub/fresh-save-reload PASS');
    }finally{await page.close()}
   }
+  // Permanent collection: actual mobile acquisition, persistence, equip and reward idempotency.
+  {
+   const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+   const errors=[];page.on('pageerror',e=>errors.push(e.message));
+   try{
+    await page.goto(base+'/jokers.html');
+    assert.equal(await page.locator('#daily button').count(),3);
+    await page.locator('#daily button').first().click();
+    assert.equal(await page.locator('#daily button').count(),0);
+    assert.equal(await page.locator('#owned article').count(),1);
+    await page.reload();
+    assert.equal(await page.locator('#owned article').count(),1);
+    await page.locator('#owned button').click();
+    assert.equal(await page.locator('#equipped').innerText(),'なし');
+    await page.locator('#owned button').click();
+    assert.notEqual(await page.locator('#equipped').innerText(),'なし');
+    const result=await page.evaluate(()=>{const j=window.FiftyTwoJokers;const before=j.owned().length;const reward=j.awardAchievement('test-game');return {before,after:j.owned().length,reward:reward?.id,repeat:j.awardAchievement('test-game'),tomorrow:j.dailyOffers('2099-01-01').length}});
+    assert.equal(result.after,result.before+1);assert.ok(result.reward);assert.equal(result.repeat,null);assert.equal(result.tomorrow,3);
+    assert.deepEqual(errors,[]);
+    results.push('joker/permanent-collection PASS');
+   }finally{await page.close()}
+  }
   console.log(results.join('\n'));console.log('JOKER layout mobile checks PASS '+results.length);
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
 })().catch(e=>{console.error(e);process.exitCode=1});
