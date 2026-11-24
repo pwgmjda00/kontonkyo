@@ -1,25 +1,31 @@
 'use strict';
-/* Read-only inventory. Never equate game count with JOKER support count. */
+/* Source inventory checks wiring; browser regressions establish behavior. */
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const root=path.resolve(__dirname,'..');
 const pages=fs.readdirSync(root).filter(f=>f.endsWith('.html')&&!['index.html','jokers.html','joker-test.html'].includes(f)).sort();
 const hub=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const hubIds=['tombstone','accomplice','thirteenth-hour','four-kingdoms','oblivion'];
+const customIds=new Set(['blackjack','high-low','overdrive','war']);
 const rows=pages.map(file=>{
- const source=fs.readFileSync(path.join(root,file),'utf8');
- const bridge=source.includes('joker-score-mode.js')&&source.includes('FiftyTwoJokerScoreMode.create');
- const actions=source.includes('joker-actions.js')&&source.includes('FiftyTwoJokerActions');
- const legacy=source.includes('FiftyTwoJokers')&&!bridge;
- return {game:file.replace(/\.html$/,''),bridge,actions,legacy};
+ const source=fs.readFileSync(path.join(root,file),'utf8'),game=file.replace(/\.html$/,'');
+ const score=source.includes('joker-score-mode.js')&&source.includes('FiftyTwoJokerScoreMode.create');
+ const layout=source.includes('joker-layout-mode.js')&&source.includes('FiftyTwoJokerLayoutMode.create');
+ const custom=customIds.has(game)&&source.includes('FiftyTwoJokers')&&source.includes('.equipped(')&&source.includes('.applyScore(');
+ const actions=layout||source.includes('joker-actions.js')&&source.includes('FiftyTwoJokerActions');
+ const achievement=source.includes('engine/achievements.js')&&source.includes("recordWin('"+game+"'");
+ return {game,score,layout,custom,bridge:score||layout||custom,actions,achievement};
 });
 assert.equal(rows.length,72,'Expected 72 standalone games');
 console.log('FIFTY-TWO JOKER source audit: 72 standalone + 5 hub games = 77');
-console.log('Standalone bridge:',rows.filter(r=>r.bridge).length,'action hooks:',rows.filter(r=>r.actions).length);
-console.log('Not bridged:',rows.filter(r=>!r.bridge).map(r=>r.game).join(', ')||'none');
-console.log('Legacy JOKER references:',rows.filter(r=>r.legacy).map(r=>r.game).join(', ')||'none');
+console.log('Standalone score bridges:',rows.filter(r=>r.score).length,'layout bridges:',rows.filter(r=>r.layout).length,'custom bridges:',rows.filter(r=>r.custom).length);
+console.log('Standalone action hooks:',rows.filter(r=>r.actions).length,'(custom battle/target-power adapters are counted separately)');
+console.log('Missing bridge:',rows.filter(r=>!r.bridge).map(r=>r.game).join(', ')||'none');
 const hubBridge=hub.includes('joker-score-mode.js')&&hub.includes('FiftyTwoJokerScoreMode.create')&&hubIds.every(id=>hub.includes("'"+id+"'"));
-const hubActions=hub.includes('joker-actions.js')&&hub.includes('FiftyTwoJokerActions');
+const hubAchievements=hub.includes('engine/achievements.js')&&hub.includes('recordHubVictory(')&&hub.includes('if(!hubWon(g))return')&&hub.includes('FiftyTwoAchievements?.recordWin(id,mode)');
 const supported=rows.filter(r=>r.bridge).length+(hubBridge?5:0);
-console.log('Hub JOKER bridge:',hubBridge?'5/5 wired':'not fully wired','action hooks:',hubActions?'present':'missing');
+console.log('Hub JOKER bridge:',hubBridge?'5/5 wired':'not fully wired');
 console.log('TOTAL SOURCE-WIRED:',supported+'/77','(not a substitute for interaction tests)');
-assert.equal(rows.length+hubIds.length,77,'Game inventory must equal 77');
+console.log('Achievement hooks:',rows.filter(r=>r.achievement).length+'/72 standalone; hub shared terminal hook:',hubAchievements?'present':'missing');
+assert.equal(supported,77,'Every game must retain its JOKER bridge');
+assert.ok(rows.every(r=>r.achievement),'Every standalone game requires an explicit victory hook');
+assert.ok(hubAchievements,'Hub requires the game-specific terminal hook');

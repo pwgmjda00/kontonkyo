@@ -13,8 +13,19 @@ function create(game,{reset,hasProgress}={}){
  const key='fifty-two-mode-'+game;
  let mode='normal',joker=null,host=null,info=null,status=null,ability=null,normal=null,boosted=null;
  try{mode=localStorage.getItem(key)==='joker'?'joker':'normal'}catch(e){}
- function refreshEquip(){joker=mode==='joker'?engine.equipped():null}
- refreshEquip();
+ const roundKey='fifty-two-joker-round-v1-'+game;
+ function captureEquip(){joker=mode==='joker'?engine.equipped():null}
+ function persistRound(){try{localStorage.setItem(roundKey,JSON.stringify({version:1,mode,jokerId:joker?.id||null}))}catch(e){}}
+ function begin(){captureEquip();persistRound()}
+ // Resuming an existing save keeps its starting card, even after an equipment change
+ // or a daily/achievement acquisition in another tab. Fresh games call begin().
+ function restoreRound(){
+  try{const saved=JSON.parse(localStorage.getItem(roundKey));
+   if(saved?.version===1&&saved.mode===mode&&(saved.jokerId===null||engine.get(saved.jokerId))){joker=mode==='joker'?engine.get(saved.jokerId):null;return}
+  }catch(e){}
+  captureEquip();persistRound(); // Legacy sessions adopt their first captured equipment once.
+ }
+ restoreRound();
  function build(){
   if(host){if(!host.isConnected){const main=document.querySelector('main');if(main)main.append(host)}return;}
   const main=document.querySelector('main');
@@ -37,12 +48,12 @@ function create(game,{reset,hasProgress}={}){
   const label=document.createElement('strong');label.textContent='🃏 JOKER';
   normal=document.createElement('button');normal.type='button';normal.textContent='⚖️ 通常';
   boosted=document.createElement('button');boosted.type='button';boosted.textContent='🃏 JOKER';
-  const link=document.createElement('a');link.href='./jokers.html';link.textContent='今日の7枚・装備';
+  const link=document.createElement('a');link.href='./jokers.html';link.textContent='毎日3択・所持と装備';
   controls.append(label,normal,boosted,link);
   info=document.createElement('div');info.className='ft-joker-status';info.setAttribute('aria-live','polite');
   ability=document.createElement('div');ability.className='ft-joker-ability';ability.setAttribute('aria-live','polite');
   status=document.createElement('div');status.className='ft-joker-result';status.setAttribute('aria-live','polite');
-  const foot=document.createElement('small');foot.textContent='JOKER得点は終了時に別枠で計算。対応する作品では追加のカード能力も発動します。通常モードの記録とは分けて扱います。';
+  const foot=document.createElement('small');foot.textContent='装備の変更・解除は次の新しい局から反映します。JOKER得点は終了時に別枠で計算。対応する作品では追加のカード能力も発動します。通常モードの記録とは分けて扱います。';
   host.append(controls,info,ability,status,foot);
   normal.onclick=()=>change('normal');boosted.onclick=()=>change('joker');
   const panel=main.querySelector('section.panel');
@@ -52,7 +63,7 @@ function create(game,{reset,hasProgress}={}){
   if(mode===next)return;
   if(hasProgress()&&!confirm('モードを変えると現在の対局がリセットされます。続けますか？'))return;
   mode=next;try{localStorage.setItem(key,mode)}catch(e){}
-  refreshEquip();reset();
+  begin();reset();
  }
  function refresh({base=0,finished=false,round=1,totalRounds=1,win=false,streak=0,behind=false,tie=false,previousScore=null,abilityText=''}={}){
   build();
@@ -60,7 +71,7 @@ function create(game,{reset,hasProgress}={}){
   boosted.setAttribute('aria-pressed',String(mode==='joker'));
   info.textContent=mode==='normal'?'通常ルール。JOKER補正なし。':joker?
    '装備中：'+joker.icon+' '+joker.name+'｜'+joker.description+'（終了時に精算）':
-   '本日のJOKERが未装備です。図鑑で7枚から1枚を装備してください。';
+   'JOKERが未装備です。図鑑で所持カードから1枚を装備できます。毎日3択から1枚獲得できます。';
   ability.textContent=mode==='joker'&&joker?abilityText:'';
   const ctx={round,totalRounds,final:finished,win,streak,behind,tie,previousScore};
   const result=compute(mode,joker,base,ctx);
@@ -69,7 +80,7 @@ function create(game,{reset,hasProgress}={}){
    '';
   return result;
  }
- return Object.freeze({refresh,begin:refreshEquip,get mode(){return mode},get joker(){return joker},get panel(){return host}});
+ return Object.freeze({refresh,begin,restore:restoreRound,get mode(){return mode},get joker(){return joker},get panel(){return host}});
 }
 const api=Object.freeze({create,compute});
 if(typeof module!=='undefined'&&module.exports)module.exports=api;

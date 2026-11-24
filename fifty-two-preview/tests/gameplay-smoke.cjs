@@ -360,7 +360,9 @@ const server=http.createServer((req,res)=>{
    await p.clock.setFixedTime(new Date(date+'T12:00:00Z'));
    await p.addInitScript(()=>{Math.random=()=>0.5});
    await p.evaluate(({id,date,game})=>{
-    localStorage.setItem('fifty-two-joker-equip-'+date,id);
+    localStorage.removeItem('fifty-two-joker-state-v3');
+    localStorage.setItem('fifty-two-joker-collection-v2',JSON.stringify([id]));
+    localStorage.setItem('fifty-two-joker-equipped-v2',id);
     localStorage.setItem('fifty-two-mode-'+game,'joker');
    },{id,date,game});
    await p.reload();
@@ -454,12 +456,20 @@ const server=http.createServer((req,res)=>{
   // Daily JOKER catalog, persisted equipment and finite ability values.
   await run('jokers',async p=>{
    assert.equal(await p.locator('#catalog article.joker').count(),77);
-   assert.equal(await p.locator('#daily article.joker').count(),7);
+   assert.equal(await p.locator('#daily article.joker').count(),3);
    await p.locator('#daily article.joker button').first().click();
+   await p.waitForFunction(()=>window.FiftyTwoJokers.owned().length===1);
+   assert.notEqual(await p.locator('#equipped').innerText(),'なし');
+   await p.locator('#owned article.joker button').first().click();
+   await p.waitForFunction(()=>!window.FiftyTwoJokers.equipped());
+   assert.equal(await p.locator('#equipped').innerText(),'なし');
+   await p.locator('#owned article.joker button').first().click();
+   await p.waitForFunction(()=>!!window.FiftyTwoJokers.equipped());
    assert.notEqual(await p.locator('#equipped').innerText(),'なし');
    await p.reload();
    assert.notEqual(await p.locator('#equipped').innerText(),'なし');
-   assert.equal(await p.locator('#daily article.joker button:disabled').count(),1);
+   assert.equal(await p.locator('#daily article.joker').count(),0);
+   assert.equal(await p.locator('#owned article.joker').count(),1);
   });
   await run('joker-test',async p=>{
    assert.match(await p.locator('#summary').innerText(),/0件失敗/);
@@ -475,7 +485,10 @@ const server=http.createServer((req,res)=>{
   ])await run(game,async p=>{
    await p.evaluate(()=>{
     const j=window.FiftyTwoJokers,date=j.localDate();
-    localStorage.setItem('fifty-two-joker-equip-'+date,j.daily(date)[0].id);
+    localStorage.removeItem('fifty-two-joker-state-v3');
+    const id=j.daily(date)[0].id;
+    localStorage.setItem('fifty-two-joker-collection-v2',JSON.stringify([id]));
+    localStorage.setItem('fifty-two-joker-equipped-v2',id);
    });
    await p.reload();
    assert.equal(await p.locator('.ft-joker-mode button[aria-pressed="true"]').innerText(),'⚖️ 通常');

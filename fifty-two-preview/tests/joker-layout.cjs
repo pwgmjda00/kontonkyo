@@ -1739,13 +1739,17 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
     await page.goto(base+'/jokers.html');
     assert.equal(await page.locator('#daily button').count(),3);
     await page.locator('#daily button').first().click();
+    await page.waitForFunction(()=>window.FiftyTwoJokers.owned().length===1);
     assert.equal(await page.locator('#daily button').count(),0);
     assert.equal(await page.locator('#owned article').count(),1);
     await page.reload();
     assert.equal(await page.locator('#owned article').count(),1);
+    assert.notEqual(await page.locator('#equipped').innerText(),'なし');
     await page.locator('#owned button').click();
+    await page.waitForFunction(()=>!window.FiftyTwoJokers.equipped());
     assert.equal(await page.locator('#equipped').innerText(),'なし');
     await page.locator('#owned button').click();
+    await page.waitForFunction(()=>!!window.FiftyTwoJokers.equipped());
     assert.notEqual(await page.locator('#equipped').innerText(),'なし');
     const result=await page.evaluate(()=>{const j=window.FiftyTwoJokers;const before=j.owned().length;const reward=j.awardAchievement('test-game');return {before,after:j.owned().length,reward:reward?.id,repeat:j.awardAchievement('test-game'),tomorrow:j.dailyOffers('2099-01-01').length}});
     assert.equal(result.after,result.before+1);assert.ok(result.reward);assert.equal(result.repeat,null);assert.equal(result.tomorrow,3);
@@ -1754,5 +1758,11 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
    }finally{await page.close()}
   }
   console.log(results.join('\n'));console.log('JOKER layout mobile checks PASS '+results.length);
+  // Keep terminal achievements and real cross-tab persistence in the existing browser CI.
+  for(const name of ['index-achievements.cjs','joker-multitab.cjs','joker-session.cjs','achievement-coverage.cjs']){
+   const result=require('node:child_process').spawnSync(process.execPath,[path.join(__dirname,name)],{stdio:'inherit',env:process.env});
+   if(result.error)throw result.error;
+   assert.equal(result.status,0,name+' failed');
+  }
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
 })().catch(e=>{console.error(e);process.exitCode=1});
