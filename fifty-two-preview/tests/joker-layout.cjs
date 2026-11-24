@@ -1556,7 +1556,7 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
    try{
     await page.addInitScript(({game,id})=>{
      localStorage.setItem('fifty-two-mode-'+game,'joker');
-     localStorage.setItem('fifty-two-joker-equip-'+(id==='J26'?'2026-11-12':'2026-12-02'),id);
+     localStorage.setItem('fifty-two-joker-collection-v2',JSON.stringify([id]));localStorage.setItem('fifty-two-joker-equipped-v2',id);
      const date=id==='J26'?'2026-11-12':'2026-12-02';const RealDate=Date;window.Date=class extends RealDate{constructor(...a){super(...(a.length?a:[date+'T12:00:00']))}static now(){return new RealDate(date+'T12:00:00').getTime()}};
     },{game,id});
     await page.goto(base+'/'+game+'.html');
@@ -1638,7 +1638,7 @@ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+deco
    try{
     await page.addInitScript(({id})=>{
      localStorage.setItem('fifty-two-mode-'+id,'joker');
-     localStorage.setItem('fifty-two-joker-equip-2026-12-02','J22');
+     localStorage.setItem('fifty-two-joker-collection-v2',JSON.stringify(['J22']));localStorage.setItem('fifty-two-joker-equipped-v2','J22');
      const RealDate=Date;window.Date=class extends RealDate{constructor(...a){super(...(a.length?a:['2026-12-02T12:00:00']))}static now(){return new RealDate('2026-12-02T12:00:00').getTime()}};
     },{id});
     await page.goto(base+'/index.html');
