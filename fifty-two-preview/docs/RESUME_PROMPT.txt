@@ -1,0 +1,1 @@
+FIFTY-TWO / JOKER 77の開発を継続せよ。fifty-two-preview/AGENTS.md、docs/HANDOFF.md、docs/achievement-coverage.mdを読み、git status/log・GitHub最新状態・CIを実際に確認し、台帳の次の未完了項目から実装を進めよ。対象はfifty-two-preview/のみ。77作品の最高実績→永久所持JOKER報酬、日次3択1枚、通常/JOKER分離、既存機能・セーブ互換性を保護する。各まとまった実装・テスト・失敗・コミット後に台帳とこのプロンプトを更新し、次のAIにも同規約を継承せよ。作業中断時も常に再開可能に保つ。未確認のテスト・CI・公開を成功と報告しない。
