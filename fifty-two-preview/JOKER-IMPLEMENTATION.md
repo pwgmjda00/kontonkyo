@@ -89,6 +89,10 @@ phase15時点の対応数64/77は履歴であり、現在の対応数ではな�
 
 ## テスト
 
+- `tests/collection-smoke.cjs` は既存の静的検証に加え `joker-state.cjs` と `achievement-state.cjs` を実行し、原子的保存・移行・日次履歴・保存失敗と77作品の実績状態を検査する。
+- `tests/joker-layout.cjs` は既存モバイル操作に加え、`index-achievements.cjs`、`joker-multitab.cjs`、`joker-session.cjs`、`achievement-coverage.cjs` を実行する。5作品の終局/保存移行、実タブ同時取得、局の装備固定、全77作品の通常/JOKER勝利・敗北/未達・再読込・重複防止を継続検証する。
+- 実績統合テストはテスト時のみ終局直前の盤面を注入し、製品の判定分岐を呼び出す。最初からの全経路探索や全JOKER固有操作の網羅を意味しない。
+
 - `joker-test.html`：77種のスコア・戦闘能力値、日替わりの再現性、総ターン数による最終局面の補正などを確認するセルフテスト。
 - `tests/gameplay-smoke.cjs`：装備・保存と、追加4作品のJOKERモード切替、最後までプレイした得点比較、Undo、リロード時のモード記録を自動実行。
 - `tests/joker-actions.cjs`：アクション能力8種類の対応表、数字変異、救済1回制限、山札枚数、ヒント計算、通常スコア分離をNodeで回帰検証。静的スモークワークフローから毎回実行。

@@ -53,3 +53,15 @@
 - `tests/collection-smoke.cjs`: PASS、追加永続化8・実績状態422も既存CI入口から成功。`tests/joker-inventory.cjs`: 77/77接続・72/72明示フック、`tests/joker-actions.cjs`:9 PASS。`git diff --check` 成功。
 - `engine/joker-score-mode.js` は `fifty-two-joker-round-v1-<game>` に開始時装備（null含む）を保存。保存対局を再読込しても保持し、新しい局だけ最新装備に更新。新たな `tests/joker-session.cjs` 回帰4ケース成功（CIはjoker-layoutから呼ぶ）。旧セッションは過去装備不明のため最初の読込時装備を一度採用。
 - ブラウザー75/75とjoker-layout219+追加子テストの最終一括再実行中。実装をコミットしGitHub CIへ進む。
+
+## チェックポイント 2026-11-24 / PR #31・最終ローカル成功
+- 実装コミット `c3d26292a07becd22490096a3d145c59356cb4f3`、push成功。mainは引き続き基点05640f6であることをfetch確認。
+- PR: https://github.com/pwgmjda00/kontonkyo/pull/31 （MERGEABLE）。GitHub CIは開始済み、成功待ち。マージ・今回の公開はまだ未実施。
+- 最終 `tests/browser-smoke.cjs`:75/75 PASS。最終 `tests/joker-layout.cjs` 一括:本体219、index69、multitab（pending retry含む）、saved-session4、全77統合860、すべてPASS。既存CIから追加テストが実行される。
+- 最後のsource変更は装備snapshot・pending保存エラー処理。変更後の静的/状態/全ページ/操作型回帰を完了。テストログは/tmp内（短期環境用、長期証拠はGitHub CI）。
+- root node_modules/は一時依存でコミット対象外。他作品の追跡ファイル変更なし。
+
+## 次の具体的作業（現時点）
+1. この台帳追記とJOKER-IMPLEMENTATION.mdの検証説明をcommit/pushする。
+2. PR #31の最新HEADに対するsmoke/mobile/GinのすべてのCI成功を確認し、失敗ならログから修正。成功後expected headを指定してマージする。
+3. Pagesのmainデプロイと実公開URLを確認。公開ファイルの内容/ハッシュ、図鑑の取得・実績移行・スマホ動作を確認し、結果をこの台帳へ残す。
