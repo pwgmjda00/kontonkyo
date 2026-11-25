@@ -2,7 +2,7 @@
 
 ## 状態（2026-11-25）
 
-8487839を起点に既存実装を改築。本番Worker/D1への反映とmainへの切替は、Cloudflare接続設定待ち。
+8487839を起点に既存実装を改築。本番Worker/D1への反映とmainへの切替は、GitHub ActionsのSecrets/Variables設定待ち。PR #32、ブランチcodex/muka1-512-release。Actions実行45617685570は設定チェックで停止し、本番変更なし。
 現行URLは https://pwgmjda00.github.io/kontonkyo/muka1-preview/ 。開発版はこのURLへまだ反映していない。
 
 ## 互換性
@@ -34,7 +34,7 @@ Node 24で `cd muka1-backend && npm ci && npm test`。
 1. 検証済み開発ブランチのままWorker/D1を先に更新する。Pagesはmain直結なのでmainへ先にpushしない。
 2. 環境にCLOUDFLARE_API_TOKENとCLOUDFLARE_ACCOUNT_IDを設定。対象既存Workerの編集とD1のexport/query権限が必要。値はチャット・コード・URLへ記載しない。
 3. `MUKA_BACKUP_DIR`にリポジトリ外の非公開ディレクトリを指定し `bash tools/deploy-remote.sh`。秘密値はログへ出さない。既存DBを名前で発見し、export+checksum成功後だけ移行・確認SQL・deployする。既存ADMIN_TOKENは取得・上書きしない。
-4. GitHub Actionsを使用する場合は `Deploy MUKA-1 API` を検証済みブランチ指定で実行。GitHubのCLOUDFLARE_API_TOKEN/CLOUDFLARE_ACCOUNT_ID、MUKA1_D1_ID変数、MUKA1_ADMIN_TOKEN secretを使用。DB exportを既存GitHub secretで暗号化してartifactへ7日保存し、保存成功後のみ移行する。
+4. GitHub Actionsを使用する場合は `Deploy MUKA-1 API` を検証済みブランチ指定で実行。GitHubのCLOUDFLARE_API_TOKEN/CLOUDFLARE_ACCOUNT_ID、MUKA1_D1_ID変数、MUKA1_BACKUP_KEY secret（任意に作るバックアップ暗号化専用の長いパスフレーズ。WorkerのADMIN_TOKENとは別）を使用。DB exportを既存GitHub secretで暗号化してartifactへ7日保存し、保存成功後のみ移行する。
 5. `GET /health`のcatalog512、`/duel/daily`、`/ranking`、`/history`、`/festival`と旧票を確認してからmainをfast-forwardする。
 6. Pagesビルド後、公開HTML・catalog.js・app.js・ogp.pngを取得し、作者トップの作品リンクと旧URLを確認。
 
@@ -43,7 +43,7 @@ Node 24で `cd muka1-backend && npm ci && npm test`。
 - バックアップ/移行/整合確認に失敗したらWorkerとPages切替を停止。
 - 移行済みDBは旧Workerの0〜255票にも対応するため、Workerだけ旧版へ戻せる。データを巻き戻すために本番DBを削除・再作成しない。
 - exportは非公開に保持。公開リポジトリにSQLバックアップや管理者キーを追加しない。
-- 暗号化artifactの復号は、非公開端末で `openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in BACKUP.sql.enc -out BACKUP.sql -pass env:ADMIN_TOKEN`。使用したGitHub secretと同じ鍵が必要。設定前に現行ADMIN_TOKENとの一致を推定しない。
+- 暗号化artifactの復号は、非公開端末で `openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in BACKUP.sql.enc -out BACKUP.sql -pass env:BACKUP_KEY`。使用したGitHub secretと同じ鍵が必要。設定前に現行ADMIN_TOKENとの一致を推定しない。
 - 全国API通信失敗時は取得不可と明示し、端末内の遊びだけ継続。0票を取得済みの結果として代用しない。
 - 解析はANALYTICS_ENABLED=falseで停止可能。保持期間は生30日・日別90日、共有操作は投稿成功や実人数ではない。レート制限はWorker isolate内での緩和策であり、全世界で厳密な上限を保証しない。無料枠使用量はCloudflareの管理画面で監視する。
 
