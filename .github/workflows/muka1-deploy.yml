@@ -25,10 +25,18 @@ jobs:
           node-version: 24
       - name: Validate configuration and local tests
         run: |
-          test -n "$CLOUDFLARE_API_TOKEN"
-          test -n "$CLOUDFLARE_ACCOUNT_ID"
-          test -n "$ADMIN_TOKEN"
-          [[ "$D1_ID" =~ ^[a-fA-F0-9-]{36}$ ]]
+          missing=0
+          for required in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID ADMIN_TOKEN; do
+            if [[ -z "${!required}" ]]; then
+              echo "::error::Missing required secret binding: $required"
+              missing=1
+            fi
+          done
+          if [[ ! "$D1_ID" =~ ^[a-fA-F0-9-]{36}$ ]]; then
+            echo "::error::Missing or invalid repository variable: MUKA1_D1_ID"
+            missing=1
+          fi
+          test "$missing" = 0
           sed -i "s/REPLACE_WITH_D1_ID/$D1_ID/" wrangler.toml
           npm ci
           node --test tests/*.test.mjs
