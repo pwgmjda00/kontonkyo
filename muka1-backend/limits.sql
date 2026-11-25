@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS submission_limits (day TEXT NOT NULL, bucket TEXT NOT NULL, n INTEGER NOT NULL, PRIMARY KEY(day,bucket));
