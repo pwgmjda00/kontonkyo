@@ -3,6 +3,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: muka1-production
+  cancel-in-progress: false
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -13,20 +16,70 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       D1_ID: ${{ vars.MUKA1_D1_ID }}
-      ADMIN_TOKEN: ${{ secrets.MUKA1_ADMIN_TOKEN }}
+      BACKUP_KEY: ${{ secrets.MUKA1_BACKUP_KEY }}
+      WRANGLER_SEND_METRICS: 'false'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
-      - run: |
-          test -n "$CLOUDFLARE_API_TOKEN"
-          test -n "$CLOUDFLARE_ACCOUNT_ID"
-          test -n "$ADMIN_TOKEN"
-          [[ "$D1_ID" =~ ^[a-fA-F0-9-]{36}$ ]]
+          node-version: 24
+      - name: Validate configuration and local tests
+        run: |
+          missing=0
+          for required in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID BACKUP_KEY; do
+            if [[ -z "${!required}" ]]; then
+              echo "::error::Missing required secret binding: $required"
+              missing=1
+            fi
+          done
+          if [[ ! "$D1_ID" =~ ^[a-fA-F0-9-]{36}$ ]]; then
+            echo "::error::Missing or invalid repository variable: MUKA1_D1_ID"
+            missing=1
+          fi
+          test "$missing" = 0
           sed -i "s/REPLACE_WITH_D1_ID/$D1_ID/" wrangler.toml
-          npm install --no-save wrangler@4
-          npx wrangler d1 execute muka1-db --remote --file=schema.sql
-          npx wrangler d1 execute muka1-db --remote --file=submissions.sql
+          npm ci
+          node --test tests/*.test.mjs
+      - name: Verify the existing database identity
+        run: |
+          node --input-type=module <<'JS'
+          const account=process.env.CLOUDFLARE_ACCOUNT_ID,id=process.env.D1_ID;
+          if(!/^[a-f0-9]{32}$/i.test(account)||!/^[a-f0-9-]{36}$/i.test(id))throw Error('Invalid Cloudflare account/database configuration');
+          const r=await fetch('https://api.cloudflare.com/client/v4/accounts/'+account+'/d1/database/'+id,{headers:{Authorization:'Bearer '+process.env.CLOUDFLARE_API_TOKEN}});
+          const d=await r.json();
+          if(!r.ok||!d.success||d.result?.name!=='muka1-db'||d.result?.uuid!==id)throw Error('D1_ID must identify the existing muka1-db');
+          JS
+      - name: Back up D1 before any migration
+        run: |
+          umask 077
+          npx wrangler d1 export muka1-db --remote --output="$RUNNER_TEMP/muka1-before.sql"
+          test -s "$RUNNER_TEMP/muka1-before.sql"
+          openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000 -in "$RUNNER_TEMP/muka1-before.sql" -out "$RUNNER_TEMP/muka1-before.sql.enc" -pass env:BACKUP_KEY
+          original_hash="$(sha256sum "$RUNNER_TEMP/muka1-before.sql" | cut -d' ' -f1)"
+          restored_hash="$(openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in "$RUNNER_TEMP/muka1-before.sql.enc" -pass env:BACKUP_KEY | sha256sum | cut -d' ' -f1)"
+          test "$original_hash" = "$restored_hash"
+          printf '%s\n' "$original_hash" > "$RUNNER_TEMP/muka1-before.sha256"
+          rm "$RUNNER_TEMP/muka1-before.sql"
+      - name: Preserve encrypted backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: muka1-d1-before-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/muka1-before.sql.enc
+            ${{ runner.temp }}/muka1-before.sha256
+          retention-days: 7
+          if-no-files-found: error
+      - name: Migrate and verify existing data
+        run: |
+          node tools/check-cutover.mjs
+          npx wrangler d1 migrations apply muka1-db --remote
+          npx wrangler d1 execute muka1-db --remote --file=verify.sql
+      - name: Deploy Worker
+        run: |
+          # Wrangler preserves existing secrets; never overwrite ADMIN_TOKEN.
+          node tools/check-cutover.mjs
           npx wrangler deploy
-          printf '%s' "$ADMIN_TOKEN" | npx wrangler secret put ADMIN_TOKEN
+      - name: Check deployed API
+        run: |
+          curl --fail --silent --show-error https://muka1-api.pwgmjda00.workers.dev/duel/daily | node -e 'let s="";process.stdin.on("data",c=>s+=c).on("end",()=>{const d=JSON.parse(s);if(d.pair?.length!==2||!Number.isInteger(d.total))process.exit(1)})'
+          curl --fail --silent --show-error https://muka1-api.pwgmjda00.workers.dev/festival > /dev/null

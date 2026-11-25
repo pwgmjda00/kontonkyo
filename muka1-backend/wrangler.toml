@@ -7,3 +7,7 @@ workers_dev = true
 binding = "DB"
 database_name = "muka1-db"
 database_id = "REPLACE_WITH_D1_ID"
+
+[triggers]
+# 00:05 JST: snapshot closed periods; lazy reconciliation also catches missed runs.
+crons = ["5 15 * * *"]

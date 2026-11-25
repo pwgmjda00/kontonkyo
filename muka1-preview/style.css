@@ -1,0 +1,237 @@
+* {
+  box-sizing: border-box;
+}
+body {
+  background: #fff200;
+  color: #111;
+  font:
+    16px/1.6 system-ui,
+    -apple-system,
+    sans-serif;
+  margin: auto;
+  max-width: 520px;
+  padding: 16px;
+}
+h1 {
+  font-size: clamp(25px, 7.2vw, 37px);
+  line-height: 1.15;
+  letter-spacing: -0.05em;
+  margin: 8px 0 18px;
+  font-weight: 950;
+  text-align: center;
+}
+h1 span {
+  display: block;
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  margin-top: 8px;
+}
+h2 {
+  font-size: 22px;
+  line-height: 1.5;
+  margin: 16px 0;
+  background: #111;
+  color: #fff;
+  padding: 12px;
+  overflow-wrap: anywhere;
+}
+h3 {
+  font-size: 18px;
+}
+button {
+  display: block;
+  width: 100%;
+  min-height: 62px;
+  padding: 16px;
+  margin: 0 0 10px;
+  background: white;
+  color: #111;
+  border: 2px solid #111;
+  border-radius: 0;
+  box-shadow: 3px 3px 0 #111;
+  font: inherit;
+  font-weight: 750;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+  overflow-wrap: anywhere;
+}
+button.choice {
+  min-height: 110px;
+  font-size: 18px;
+  line-height: 1.6;
+}
+button:active {
+  background: #ffd5c4;
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 #111;
+}
+button.primary {
+  background: #111;
+  color: #fff;
+  text-align: center;
+}
+button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+button:focus-visible,
+a:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #d52200;
+  outline-offset: 3px;
+}
+small,
+.fine {
+  font-size: 12px;
+}
+#round {
+  font-size: 13px;
+  font-weight: 800;
+  margin: 12px 0 6px;
+}
+#bar {
+  height: 4px;
+  background: #111;
+  transition: width 0.2s;
+}
+main {
+  min-height: 250px;
+}
+a {
+  color: #111;
+}
+p {
+  overflow-wrap: anywhere;
+}
+.kicker {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 800;
+  margin: 0;
+}
+.vs {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 950;
+  font-style: italic;
+  margin: 0 0 8px;
+}
+footer {
+  text-align: center;
+  font-size: 12px;
+  border-top: 2px solid #111;
+  padding-top: 12px;
+  margin-top: 18px;
+}
+nav {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+nav a {
+  flex: 1;
+  min-width: 110px;
+  text-align: center;
+  border: 2px solid #111;
+  padding: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+}
+nav a[aria-current] {
+  background: #111;
+  color: #fff;
+}
+.more {
+  border-top: 1px solid #111;
+  margin: 12px 0;
+  padding: 6px 0;
+}
+.more summary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 750;
+  padding: 8px 0;
+}
+.more p {
+  font-size: 13px;
+}
+.result-extra {
+  margin-top: 16px;
+}
+input:not([type="checkbox"]),
+select {
+  width: 100%;
+  padding: 12px;
+  font: inherit;
+  border: 2px solid #111;
+  border-radius: 0;
+  background: #fff;
+  color: #111;
+  margin-bottom: 10px;
+}
+.host-list {
+  max-height: 420px;
+  overflow: auto;
+  margin-bottom: 14px;
+}
+.host-list label {
+  display: flex;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid;
+  padding: 12px;
+  margin: 4px 0;
+  align-items: flex-start;
+}
+.host-list input {
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+.opt {
+  font-size: 13px;
+}
+#festival-banner {
+  border: 2px solid;
+  padding: 12px;
+  margin-top: 18px;
+  font-size: 13px;
+}
+#festival-banner p {
+  margin-top: 0;
+}
+.image-preview {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 12px 0;
+  border: 1px solid #111;
+}
+.notice {
+  font-size: 13px;
+  border-left: 3px solid #111;
+  padding-left: 10px;
+}
+.result-actions {
+  margin-top: 16px;
+}
+meter {
+  width: 100%;
+  height: 14px;
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}
+@media (max-width: 360px) {
+  body {
+    padding: 12px;
+  }
+  button.choice {
+    font-size: 17px;
+    padding: 14px;
+  }
+}
