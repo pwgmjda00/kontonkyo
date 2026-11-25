@@ -1,1 +1,25 @@
-<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MUKA-1 審査室</title><style>body{background:#fff200;color:#111;font:16px system-ui;max-width:600px;margin:20px auto;padding:16px}input,textarea,button{box-sizing:border-box;font:inherit;padding:12px;border:2px solid #111;width:100%;margin:5px 0}button{background:#111;color:white;font-weight:bold}article{background:white;border:2px solid;padding:12px;margin:12px 0}textarea{min-height:100px}</style><h1>薪の審査室</h1><label>API URL<input id="api" type="url" placeholder="https://...workers.dev"></label><label>管理者キー<input id="token" type="password" autocomplete="off"></label><button id="load">承認待ちを取得</button><p id="msg" role="status"></p><main id="list"></main><script>const $=id=>document.getElementById(id);async function call(method,body){const u=new URL($('api').value);if(u.protocol!=='https:'||!u.hostname.endsWith('.workers.dev'))throw Error('Workers URLを入力してください');const r=await fetch(u.origin+'/admin/submissions',{method,headers:{Authorization:'Bearer '+$('token').value,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});if(!r.ok)throw Error('通信エラー '+r.status);return r.json()}async function load(){try{const d=await call('GET');$('list').replaceChildren();$('msg').textContent=d.items.length+'件（最大100件表示）';for(const x of d.items){const a=document.createElement('article'),t=document.createElement('textarea');t.value=x.text;t.maxLength=140;a.append(t);for(const [label,status] of [['修正して承認','approved'],['却下','rejected']]){const b=document.createElement('button');b.textContent=label;b.onclick=async()=>{if(!confirm(label+'しますか？'))return;b.disabled=true;try{const d=await call('POST',{id:x.id,text:t.value,status});if(!d.updated)throw Error('更新されませんでした');a.remove();$('msg').textContent='処理しました'}catch(e){$('msg').textContent=e.message;b.disabled=false}};a.append(b)}$('list').append(a)}}catch(e){$('msg').textContent=e.message}}$('load').onclick=load;</script></html>
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>MUKA-1 審査室</title>
+<style>
+body{background:#fff200;color:#111;font:16px/1.6 system-ui;max-width:700px;margin:20px auto;padding:16px}input,textarea,button,select{box-sizing:border-box;font:inherit;padding:12px;border:2px solid #111;width:100%;margin:5px 0}button{background:#111;color:#fff;font-weight:bold;cursor:pointer}button:disabled{opacity:.55}article{background:white;border:2px solid;padding:12px;margin:12px 0}textarea{min-height:100px}details{border-top:2px solid #111;margin-top:24px;padding-top:16px}summary{cursor:pointer;font-weight:800;padding:8px 0}a{color:inherit}table{width:100%;border-collapse:collapse;background:white;font-size:14px}th,td{padding:8px;border:1px solid #111;text-align:right;overflow-wrap:anywhere}th:first-child,td:first-child{text-align:left}.scroll{overflow-x:auto}dl{background:#fff;padding:14px}dt{font-size:14px}dd{font-size:20px;font-weight:800;margin:0 0 14px}small{display:block;font-size:12px}button:focus-visible{outline:3px solid #d52200;outline-offset:3px}
+</style>
+<a href="./">大会に戻る</a>
+<h1>薪の審査室</h1>
+<label>API URL<input id="api" type="url" readonly></label>
+<label>管理者キー<input id="token" type="password" autocomplete="off" spellcheck="false"></label>
+<small>キーはこの画面だけで使用し、端末には保存しません。</small>
+<button id="forget" type="button">キーと取得データを消す</button>
+<button id="load" type="button">承認待ちを取得</button>
+<p id="msg" role="status"></p>
+<main id="list"></main>
+<details id="analytics-panel"><summary>匿名アクセス・共有操作の集計</summary>
+<label>集計期間<select id="days"><option value="7">過去7日</option><option value="30">過去30日</option></select></label>
+<button id="load-analytics" type="button">解析集計を取得</button>
+<p id="analytics-status" role="status"></p><div id="analytics"></div>
+</details>
+<script src="config.js"></script><script type="module" src="admin.js"></script>
+</html>

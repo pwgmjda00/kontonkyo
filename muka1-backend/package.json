@@ -1,0 +1,17 @@
+{
+  "name": "muka1-verification",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "test:browser": "node tests/game-browser.cjs && node tests/pages-browser.cjs",
+    "audit:catalog": "node tools/audit-catalog.mjs",
+    "deploy:check": "wrangler deploy --dry-run"
+  },
+  "devDependencies": {
+    "playwright": "1.65.1",
+    "pngjs": "7.0.0",
+    "jsqr": "1.4.0",
+    "wrangler": "4.168.0"
+  }
+}
