@@ -1,5 +1,8 @@
 name: Inspect MUKA-1 readiness (read-only)
 on:
+  push:
+    branches: ['codex/muka1-integration-v2']
+    paths: ['.github/workflows/muka1-readiness.yml', 'muka1-backend/tools/readiness.mjs']
   workflow_dispatch:
 permissions:
   contents: read
