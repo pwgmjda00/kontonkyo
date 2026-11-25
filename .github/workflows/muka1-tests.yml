@@ -1,0 +1,35 @@
+name: Verify MUKA-1 catalog
+on:
+  pull_request:
+    paths:
+      - 'muka1-preview/**'
+      - 'muka1-backend/**'
+      - '.github/workflows/muka1-*.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: muka1-backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: npm test
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Start preview
+        working-directory: .
+        run: python -m http.server 3000 --bind 0.0.0.0 > "$RUNNER_TEMP/muka1-preview.log" 2>&1 &
+      - run: npm run test:browser
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: muka1-foundation-browser-evidence
+          path: /tmp/muka1-foundation
+          if-no-files-found: ignore
+          retention-days: 7
