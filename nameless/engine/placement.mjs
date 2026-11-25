@@ -1,0 +1,3 @@
+export function validateObservers(s){const a=s.observers??[];if(!Array.isArray(a)||new Set(a).size!==a.length||!Number.isSafeInteger(s.observerLimit??3)||(s.observerLimit??3)<0||a.length>(s.observerLimit??3)||a.some(id=>!(s.availableWorkers??[]).includes(id)||s.slots?.some(p=>p.owner==='companion'&&p.worker===id)||(!s.battle?.result&&s.battle?.allies.some(u=>u.id===id))))throw Error('invalid observers');}
+export function observe(s,id){const observers=[...(s.observers??[]),id];validateObservers({...s,observers});s.observers=observers;}
+export function releaseObserver(s,id){s.observers=(s.observers??[]).filter(x=>x!==id);}

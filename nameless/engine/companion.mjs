@@ -1,0 +1,2 @@
+import {transact} from './economy.mjs';
+export function slimeConvert(s){const id='primordial_slime';if(!s.worldFlags?.firstContract||!s.availableWorkers?.includes(id))throw Error('companion locked');if(s.observers?.includes(id)||s.slots?.some(p=>p.worker===id&&p.owner==='companion')||(!s.battle?.result&&s.battle?.allies.some(u=>u.id===id)))throw Error('worker busy');if(s.caps.food-s.resources.food<2)return false;return transact(s,{material:1},{food:2});}

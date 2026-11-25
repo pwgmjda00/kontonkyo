@@ -1,0 +1,80 @@
+body {
+  padding-inline: max(14px, env(safe-area-inset-left)) max(14px, env(safe-area-inset-right));
+  padding-top: max(10px, env(safe-area-inset-top));
+  padding-bottom: calc(72px + env(safe-area-inset-bottom));
+}
+#chapter { margin-bottom: 0; }
+.game-status {
+  position: sticky;
+  top: env(safe-area-inset-top);
+  z-index: 2;
+  background: #151816;
+  border-bottom: 1px solid #51594c;
+  padding: 3px 0 6px;
+}
+.status-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 44px;
+}
+#battleShortcut { padding: 4px 9px; }
+#progress { display: block; height: 5px; margin: 0; }
+#message { min-height: 0; margin-bottom: 0; overflow-wrap: anywhere; }
+main { min-width: 0; }
+#inventory { margin-top: 8px; }
+summary, .tap-label {
+  min-height: 44px;
+  align-content: center;
+}
+.tap-label { display: flex; align-items: center; gap: 6px; }
+#hint { min-height: 44px; }
+#actions, #bosses { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+#actions button { overflow-wrap: anywhere; }
+#resources { grid-template-columns: repeat(2, minmax(0, 1fr)); font-variant-numeric: tabular-nums; }
+#resources > div { overflow-wrap: anywhere; }
+#past select, #past input[type=number], #parallelControl select, #jobs select, #jobs input[type=number] {
+  max-width: 100%;
+  min-height: 44px;
+  font-size: 16px;
+}
+#past > p { padding-block: 8px; border-bottom: 1px solid #51594c; overflow-wrap: anywhere; }
+#past > p details { margin-top: 0; }
+#gameNav {
+  position: fixed;
+  z-index: 3;
+  inset: auto 0 0;
+  width: min(100%, 520px);
+  margin: auto;
+  padding: 0 4px env(safe-area-inset-bottom);
+  background: #151816;
+  border-top: 1px solid #51594c;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+#gameNav button { min-height: 52px; background: transparent; border: 0; padding: 5px 2px; font-size: 13px; }
+#gameNav button[aria-current=true] { box-shadow: inset 0 2px #b9c7aa; background: #252c25; }
+#gameNav button:focus-visible { outline-offset: -4px; }
+#feedbackNotice { bottom: calc(60px + env(safe-area-inset-bottom)); }
+#presentation { margin-block: 12px; }
+#firstWork {
+  position: sticky;
+  top: calc(60px + env(safe-area-inset-top));
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  padding: 4px 0;
+  background: #151816;
+  border-bottom: 1px solid #51594c;
+}
+#workNote { flex: 1 1 8em; }
+#workDismiss { font-size: 13px; background: transparent; }
+#firstTrialLink { color: #c8cebb; display: inline-flex; min-height: 44px; align-items: center; }
+#trialLabel { margin-inline-end: 10px; }
+#battleHistoryRows small { display: block; padding-block: 2px; }
+#routeLinks button, #lossRoutes button, #keeperBranch { margin-block: 0 6px; }
+#questList section { display:grid; gap:4px; padding:10px 0; border-top:1px solid #51594c; }
+#questList button { justify-self:start; }
