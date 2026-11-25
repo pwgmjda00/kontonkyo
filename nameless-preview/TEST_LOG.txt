@@ -1,0 +1,280 @@
+TAP version 13
+# Subtest: parallel unlock and duplicate guard
+ok 1 - parallel unlock and duplicate guard
+  ---
+  duration_ms: 1.286659
+  type: 'test'
+  ...
+# Subtest: parallel production partition equality
+ok 2 - parallel production partition equality
+  ---
+  duration_ms: 439.599554
+  type: 'test'
+  ...
+# Subtest: delegation requires mastery and worker; save validation
+ok 3 - delegation requires mastery and worker; save validation
+  ---
+  duration_ms: 1.102626
+  type: 'test'
+  ...
+# Subtest: multiple owners and configurable capacity
+ok 4 - multiple owners and configurable capacity
+  ---
+  duration_ms: 894.934276
+  type: 'test'
+  ...
+# Subtest: gauge battle partition invariance 1000 cases
+ok 5 - gauge battle partition invariance 1000 cases
+  ---
+  duration_ms: 39.005546
+  type: 'test'
+  ...
+# Subtest: victory and defeat stop the battle
+ok 6 - victory and defeat stop the battle
+  ---
+  duration_ms: 0.243932
+  type: 'test'
+  ...
+# Subtest: reject invalid teams and duplicate IDs
+ok 7 - reject invalid teams and duplicate IDs
+  ---
+  duration_ms: 0.284702
+  type: 'test'
+  ...
+# Subtest: rng state survives JSON roundtrip
+ok 8 - rng state survives JSON roundtrip
+  ---
+  duration_ms: 0.44502
+  type: 'test'
+  ...
+# Subtest: chapter one fresh route, two bosses and chapter transition
+ok 9 - chapter one fresh route, two bosses and chapter transition
+  ---
+  duration_ms: 5.854949
+  type: 'test'
+  ...
+# Subtest: chapter one unlock route from fresh state without injected resources
+ok 10 - chapter one unlock route from fresh state without injected resources
+  ---
+  duration_ms: 3.505872
+  type: 'test'
+  ...
+# Subtest: one-time actions cannot repeat or be delegated
+ok 11 - one-time actions cannot repeat or be delegated
+  ---
+  duration_ms: 0.238223
+  type: 'test'
+  ...
+# Subtest: slime sacrifices itself once to protect ally
+ok 12 - slime sacrifices itself once to protect ally
+  ---
+  duration_ms: 1.389502
+  type: 'test'
+  ...
+# Subtest: conversion checks ownership, capacity and busy status
+ok 13 - conversion checks ownership, capacity and busy status
+  ---
+  duration_ms: 0.85577
+  type: 'test'
+  ...
+# Subtest: speed and abyss endpoints
+ok 14 - speed and abyss endpoints
+  ---
+  duration_ms: 1.048345
+  type: 'test'
+  ...
+# Subtest: atomic failure and cap
+ok 15 - atomic failure and cap
+  ---
+  duration_ms: 1.095005
+  type: 'test'
+  ...
+# Subtest: manual one execution and locked repeat
+ok 16 - manual one execution and locked repeat
+  ---
+  duration_ms: 0.695152
+  type: 'test'
+  ...
+# Subtest: locked action
+ok 17 - locked action
+  ---
+  duration_ms: 0.238714
+  type: 'test'
+  ...
+# Subtest: partition invariance 1000 fixtures
+ok 18 - partition invariance 1000 fixtures
+  ---
+  duration_ms: 125.703743
+  type: 'test'
+  ...
+# Subtest: 24h stepping equality
+ok 19 - 24h stepping equality
+  ---
+  duration_ms: 178.760473
+  type: 'test'
+  ...
+# Subtest: all affinity pairs
+ok 20 - all affinity pairs
+  ---
+  duration_ms: 0.337872
+  type: 'test'
+  ...
+# Subtest: individual life clocks and cumulative clock survive multiple rebirths
+ok 21 - individual life clocks and cumulative clock survive multiple rebirths
+  ---
+  duration_ms: 3.228731
+  type: 'test'
+  ...
+# Subtest: invalid life clock rejected
+ok 22 - invalid life clock rejected
+  ---
+  duration_ms: 0.231013
+  type: 'test'
+  ...
+# Subtest: past army duplicate action and independent cost
+ok 23 - past army duplicate action and independent cost
+  ---
+  duration_ms: 4.690761
+  type: 'test'
+  ...
+# Subtest: army load and partition equality
+ok 24 - army load and partition equality
+  ---
+  duration_ms: 50.066092
+  type: 'test'
+  ...
+# Subtest: exclusive companion placement
+ok 25 - exclusive companion placement
+  ---
+  duration_ms: 1.824878
+  type: 'test'
+  ...
+# Subtest: past uses historical mastery, not current mastery
+ok 26 - past uses historical mastery, not current mastery
+  ---
+  duration_ms: 1.444013
+  type: 'test'
+  ...
+# Subtest: equipment and law multiply actual output, full storage pauses without cost
+ok 27 - equipment and law multiply actual output, full storage pauses without cost
+  ---
+  duration_ms: 3.01539
+  type: 'test'
+  ...
+# Subtest: parallel workers stop spending when another fills storage
+ok 28 - parallel workers stop spending when another fills storage
+  ---
+  duration_ms: 5.479751
+  type: 'test'
+  ...
+# Subtest: invalid production settings rejected by save validation
+ok 29 - invalid production settings rejected by save validation
+  ---
+  duration_ms: 0.681361
+  type: 'test'
+  ...
+# Subtest: rebirth gates and independent snapshot
+ok 30 - rebirth gates and independent snapshot
+  ---
+  duration_ms: 1.418424
+  type: 'test'
+  ...
+# Subtest: past summoning gated and idempotent
+ok 31 - past summoning gated and idempotent
+  ---
+  duration_ms: 0.76119
+  type: 'test'
+  ...
+# Subtest: reward unblocks production with identical partition results
+ok 32 - reward unblocks production with identical partition results
+  ---
+  duration_ms: 69.150853
+  type: 'test'
+  ...
+# Subtest: reward is capped and settled exactly once across reload
+ok 33 - reward is capped and settled exactly once across reload
+  ---
+  duration_ms: 1.105691
+  type: 'test'
+  ...
+# Subtest: loss has no reward; invalid reward rejected before battle starts
+ok 34 - loss has no reward; invalid reward rejected before battle starts
+  ---
+  duration_ms: 0.603445
+  type: 'test'
+  ...
+# Subtest: mastery unlocks repeat after eight uses
+ok 35 - mastery unlocks repeat after eight uses
+  ---
+  duration_ms: 2.070833
+  type: 'test'
+  ...
+# Subtest: material unlocks work
+ok 36 - material unlocks work
+  ---
+  duration_ms: 0.492891
+  type: 'test'
+  ...
+# Subtest: save roundtrip, revision conflict and backup recovery
+ok 37 - save roundtrip, revision conflict and backup recovery
+  ---
+  duration_ms: 2.800495
+  type: 'test'
+  ...
+# Subtest: offline bounds
+ok 38 - offline bounds
+  ---
+  duration_ms: 0.172867
+  type: 'test'
+  ...
+# Subtest: story log derives six events without duplicate entries
+ok 39 - story log derives six events without duplicate entries
+  ---
+  duration_ms: 2.013337
+  type: 'test'
+  ...
+# Subtest: first contract unlocks once and survives save validation
+ok 40 - first contract unlocks once and survives save validation
+  ---
+  duration_ms: 0.927536
+  type: 'test'
+  ...
+# Subtest: reject contradictory chapter flags
+ok 41 - reject contradictory chapter flags
+  ---
+  duration_ms: 0.226446
+  type: 'test'
+  ...
+# Subtest: parallel production and combat partition equality 1000 cases
+ok 42 - parallel production and combat partition equality 1000 cases
+  ---
+  duration_ms: 85.275661
+  type: 'test'
+  ...
+# Subtest: defeat does not affect production
+ok 43 - defeat does not affect production
+  ---
+  duration_ms: 0.23633
+  type: 'test'
+  ...
+# Subtest: mid-battle save and resume
+ok 44 - mid-battle save and resume
+  ---
+  duration_ms: 1.636178
+  type: 'test'
+  ...
+# Subtest: explicit recovery preserves backup and permits next commit
+ok 45 - explicit recovery preserves backup and permits next commit
+  ---
+  duration_ms: 0.496426
+  type: 'test'
+  ...
+1..45
+# tests 45
+# suites 0
+# pass 45
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1431.421423

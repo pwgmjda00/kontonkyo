@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {createWorld,advanceWorld} from '../engine/world.mjs';import {reincarnate} from '../engine/reincarnation.mjs';import {validate} from '../engine/save.mjs';
+const rebirth=s=>{s.chapter=3;s.worldFlags={soulExtracted:true};return reincarnate(s)};
+test('individual life clocks and cumulative clock survive multiple rebirths',()=>{let s=createWorld();advanceWorld(s,12345);s=rebirth(s);assert.equal(s.lifeElapsed,0);advanceWorld(s,6789);s=rebirth(s);assert.deepEqual(s.lifeHistory.map(p=>p.elapsed),[12345,6789]);assert.equal(s.elapsed,19134);assert.equal(s.lifeElapsed,0);advanceWorld(s,1000);assert.equal(s.lifeElapsed,1000);assert.equal(s.elapsed,20134);validate({schemaVersion:1,revision:1,savedAt:0,state:s});});
+test('invalid life clock rejected',()=>{let s=createWorld();s.lifeElapsed=1;assert.throws(()=>validate({schemaVersion:1,revision:1,savedAt:0,state:s}));});

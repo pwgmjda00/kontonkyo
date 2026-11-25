@@ -1,0 +1,6 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {startBattle,advanceBattle} from '../engine/battle.mjs';import {random} from '../engine/rng.mjs';
+const unit=(id,over={})=>({id,hp:100,attack:20,resistance:0,speed:100,element:'physical',...over});
+test('gauge battle partition invariance 1000 cases',()=>{for(let i=0;i<1000;i++){let a=startBattle([unit('hero',{speed:1+i%150}),unit('pet')],[unit('enemy',{hp:50+i})]);let b=structuredClone(a);advanceBattle(a,30000);advanceBattle(b,i);advanceBattle(b,30000-i);assert.deepEqual(a,b)}});
+test('victory and defeat stop the battle',()=>{for(const [attack,result] of [[100,'win'],[0,'loss']]){let b=startBattle([unit('hero',{attack})],[unit('enemy')]);advanceBattle(b,100000);assert.equal(b.result,result);let copy=structuredClone(b);advanceBattle(b,100000);assert.deepEqual(b,copy)}});
+test('reject invalid teams and duplicate IDs',()=>{assert.throws(()=>startBattle([], [unit('e')]));assert.throws(()=>startBattle([unit('x')],[unit('x')]));assert.throws(()=>startBattle([unit('h',{speed:0})],[unit('e')]))});
+test('rng state survives JSON roundtrip',()=>{let a={rngState:12345};for(let i=0;i<100;i++)random(a);let b=JSON.parse(JSON.stringify(a));for(let i=0;i<1000;i++)assert.equal(random(a),random(b));assert.throws(()=>random({rngState:0}))});

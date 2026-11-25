@@ -1,0 +1,8 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {speed,transact,abyssEfficiency} from '../engine/economy.mjs';import {damage,affinity,elements} from '../engine/combat.mjs';import {fixture,select,advance} from '../engine/simulation.mjs';
+test('speed and abyss endpoints',()=>{assert.equal(speed(1),1);assert.equal(speed(16),2);assert.ok(Math.abs(abyssEfficiency(100)-.3)<1e-12);assert.equal(abyssEfficiency(100,true),3)});
+test('atomic failure and cap',()=>{let s=fixture();let before=structuredClone(s);assert.equal(transact(s,{hp:1,food:1}),false);assert.deepEqual(s,before);transact(s,{}, {hp:99});assert.equal(s.resources.hp,10)});
+test('manual one execution and locked repeat',()=>{let s=fixture();assert.throws(()=>select(s,'gather',true));select(s,'gather');advance(s,10000);assert.equal(s.resources.food,2);assert.equal(s.completed,1)});
+test('locked action',()=>assert.throws(()=>select(fixture(),'work')));
+test('partition invariance 1000 fixtures',()=>{for(let i=0;i<1000;i++){let a=fixture();a.levels.rest=5;select(a,'rest',true);let b=structuredClone(a);let t=i*123;advance(a,t);advance(b,Math.floor(t/3));advance(b,t-Math.floor(t/3));assert.deepEqual(a,b)}});
+test('24h stepping equality',()=>{let a=fixture();a.levels.rest=5;select(a,'rest',true);let b=structuredClone(a);advance(a,86400000);for(let i=0;i<24;i++)advance(b,3600000);assert.deepEqual(a,b)});
+test('all affinity pairs',()=>{for(let i=0;i<5;i++)for(let j=0;j<5;j++)assert.equal(affinity(elements[i],elements[j]),(i+1)%5===j?1.5:(j+1)%5===i?.75:1);assert.equal(damage(140,1,40,'physical','physical'),100)});

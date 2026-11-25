@@ -1,0 +1,2 @@
+import {createWorld,advanceWorld} from '../engine/world.mjs';import {assign} from '../engine/automation.mjs';
+for(const [n,lv] of [[1,100],[10,10],[20,5],[100,1]]){const s=createWorld();s.lifeHistory=Array.from({length:n},(_,i)=>({id:`life-${i+1}`,elapsed:0,levels:{gather:lv}}));s.availablePast=s.lifeHistory.map(p=>p.id);s.slotLimits={hero:1,companion:1,past:n};s.caps.hp=s.resources.hp=1e6;s.caps.food=1e6;for(const id of s.availablePast)assign(s,'gather',id,'past');advanceWorld(s,60000);console.log(JSON.stringify({n,lv,food:s.resources.food,hpSpent:1e6-s.resources.hp}));}

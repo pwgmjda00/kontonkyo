@@ -1,0 +1,5 @@
+import {engage} from './world.mjs';
+const bosses={well_guard:{hp:100,attack:5,resistance:10,speed:100,element:'physical'},hungry_forest:{hp:180,attack:7,resistance:15,speed:100,element:'physical'}};
+export function challenge(s,id,withSlime=false){const f=s.worldFlags??{};if((s.chapter??1)!==1||!Object.hasOwn(bosses,id)||!f.well||(id==='hungry_forest'&&(!f.well_guard||!f.star)))throw Error('boss locked');const strength=s.stats.strength??0;if(withSlime&&(!f.firstContract||!s.availableWorkers?.includes('primordial_slime')))throw Error('companion locked');engage(s,[{id:'hero',hp:50+strength*3,attack:5+strength,resistance:10,speed:100,element:'physical'},...(withSlime?[{id:'primordial_slime',hp:20,attack:2,resistance:5,speed:80,element:'physical'}]:[])],[{id,...bosses[id]}]);s.battle.chapterBoss=id;}
+export function settleChapterBoss(s,b){if(b.result==='win'&&Object.hasOwn(bosses,b.chapterBoss)){s.worldFlags??={};s.worldFlags[b.chapterBoss]=true;}}
+export function enterRecognition(s){if((s.chapter??1)!==1||!s.worldFlags?.hungry_forest||!s.worldFlags?.star||s.battle&&!s.battle.result)throw Error('chapter locked');s.chapter=2;}
