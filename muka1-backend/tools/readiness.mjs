@@ -1,5 +1,5 @@
 // Read-only readiness inspection. This script never creates, updates or deletes a service or a row.
-const required=['CLOUDFLARE_API_TOKEN','CLOUDFLARE_ACCOUNT_ID','MUKA1_BACKUP_KEY'];
+const required=['CLOUDFLARE_API_TOKEN','CLOUDFLARE_ACCOUNT_ID','MUKA1_BACKUP_KEY','ANALYTICS_ADMIN_TOKEN'];
 const missing=required.filter(name=>!process.env[name]);
 const report={ready:false,missing,checks:{},note:'No production mutations performed'};
 const token=process.env.CLOUDFLARE_API_TOKEN,account=process.env.CLOUDFLARE_ACCOUNT_ID;
@@ -10,7 +10,7 @@ async function api(path,body) {
  return data.result;
 }
 try {
- if(missing.length===0) {
+ if(token && account) {
   if(!/^[a-f0-9]{32}$/i.test(account))throw Error('Invalid account ID format');
   const databases=await api('accounts/'+account+'/d1/database?per_page=100');
   const game=databases.find(d=>d.name==='muka1-db');
@@ -32,7 +32,7 @@ try {
    const names=new Set(schema.map(r=>r.name));
    report.checks.expectedLegacyTables=['votes','submissions'].every(n=>names.has(n));
   }
-  report.ready=Boolean(report.checks.gameDatabase&&report.checks.existingAdminSecret&&report.checks.existingDatabaseBinding&&report.checks.expectedLegacyTables);
+  report.ready=missing.length===0&&Boolean(report.checks.gameDatabase&&report.checks.existingAdminSecret&&report.checks.existingDatabaseBinding&&report.checks.expectedLegacyTables);
  }
 } catch(error){report.error=error.message;}
 console.log(JSON.stringify(report,null,2));
