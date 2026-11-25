@@ -1,0 +1,52 @@
+#presentation { margin: 0; }
+.audio-settings { display: grid; gap: 4px; padding: 4px 0; }
+.audio-settings label { display: flex; align-items: center; gap: 8px; min-height: 44px; }
+.audio-settings input[type=range] { flex: 1; min-width: 0; }
+.hit-space { min-height: 1.3em; margin-top: 4px; }
+#hitNotice { color: #d6cbb5; font-variant-numeric: tabular-nums; }
+#hitNotice[data-kind=critical] { color: #f1d59b; font-weight: bold; }
+#feedbackNotice {
+  position: fixed;
+  inset: auto 12px max(12px, env(safe-area-inset-bottom));
+  max-width: 480px;
+  margin: auto;
+  padding: 10px 12px;
+  background: #20261f;
+  color: #ede9d9;
+  border-inline-start: 2px solid #b9c7aa;
+  box-shadow: 0 4px 20px #0008;
+  pointer-events: none;
+}
+#feedbackNotice[data-kind=boss], #feedbackNotice[data-kind=title] { border-color: #e0bb79; }
+#rebirthScene {
+  width: min(calc(100% - 24px), 460px);
+  text-align: center;
+  color: #e8e4d5;
+  background: #161b17;
+  border: 1px solid #51594c;
+  padding: 18px 10px 14px;
+}
+#rebirthScene::backdrop { background: #080b09dc; }
+#rebirthScene h2 { margin: 0 0 24px; }
+#rebirthChain {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr);
+  align-items: baseline;
+  gap: 4px;
+  font: clamp(19px, 7vw, 38px) ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+#rebirthChain small { display: block; margin-top: 5px; font: 12px system-ui; }
+#rebirthChain b { font-size: 16px; color: #a8ad9f; }
+#rebirthPast { font-style: normal; }
+#rebirthArchive { color: #e0bb79; overflow-wrap: anywhere; }
+#rebirthScene[open] #rebirthArchive, #rebirthScene[open] b:nth-child(2) { animation: inscribe .55s .65s both; }
+#rebirthScene[open] #rebirthNew, #rebirthScene[open] b:nth-child(4) { animation: inscribe .55s 1.3s both; }
+#rebirthTitleAward { min-height: 1.5em; margin-top: 16px; }
+@keyframes inscribe {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: none; }
+}
+html[data-low-motion=true] #rebirthScene *, html[data-low-motion=true] #creditRows .vanish {
+  animation: none !important;
+}

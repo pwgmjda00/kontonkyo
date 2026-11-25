@@ -1,0 +1,8 @@
+import {resources} from './economy.mjs';
+export function lifeRecord(actor){return actor.record??={damage:0,kills:0,battles:0,guards:0,production:{},actions:0};}
+export function recordProduction(actor,before,after,cost,gain,firstWork){const r=lifeRecord(actor);r.actions++;for(const k of Object.keys(gain)){if(k==='hp')continue;const n=Math.max(0,after[k]-before[k]+(cost[k]??0));if(n){
+  r.production[k]=(r.production[k]??0)+n;
+  if(firstWork && !firstWork.receipt) firstWork.receipt={resource:k,amount:n};
+}}if(!r.battles&&Object.values(r.production).reduce((a,b)=>a+b,0)>=10000)r.peace=true;}
+export function recordBattle(s,b){for(const u of b.allies){const actor=u.id==='hero'?s:s.lifeHistory?.find(p=>p.id===u.id);if(!actor)continue;const r=lifeRecord(actor),c=b.contribution?.[u.id];r.battles++;if(u.hp===0)r.downs=(r.downs??0)+1;if(b.result==='win'&&u.hp>0&&b.enemies.some(e=>['perfect_god','nameless_boss'].includes(e.id)))r.godVictory=true;r.damage+=c?.damage??0;r.kills+=c?.kills??0;r.guards+=b.guardCounts?.[u.id]??0;}}
+export function validateRecord(r){if(r===undefined)return;if(!r||typeof r!=='object'||Array.isArray(r)||!['damage','kills','battles','guards','actions'].every(k=>Number.isFinite(r[k])&&r[k]>=0&&(k==='damage'||Number.isSafeInteger(r[k])))||!r.production||typeof r.production!=='object'||Array.isArray(r.production)||Object.entries(r.production).some(([k,v])=>!resources.includes(k)||k==='hp'||!Number.isFinite(v)||v<0))throw Error('invalid life record');if(r.peace!==undefined&&typeof r.peace!=='boolean')throw Error('invalid peace record');if(r.downs!==undefined&&(!Number.isSafeInteger(r.downs)||r.downs<0)||r.godVictory!==undefined&&typeof r.godVictory!=='boolean')throw Error('invalid title record');}

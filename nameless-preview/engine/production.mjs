@@ -1,7 +1,21 @@
+import {skillRank} from './skills.mjs';
+import {jobBonus} from './jobs.mjs';
 import {actions} from './actions.mjs';
-import {resources} from './economy.mjs';
+import {resources,abyssEfficiency,transact} from './economy.mjs';
 // Optional per-action equipment and law multipliers; neutral until chapter data unlocks them.
 export function validateProduction(s){const p=s.production;if(p===undefined)return;if(!p||typeof p!=='object'||Array.isArray(p))throw Error('invalid production');for(const key of ['equipment','law']){const map=p[key]??{};if(!map||typeof map!=='object'||Array.isArray(map)||Object.entries(map).some(([id,v])=>!Object.hasOwn(actions,id)||!Number.isFinite(v)||v<1||v>100))throw Error('invalid multiplier');}if(p.stopAtCap!==undefined&&typeof p.stopAtCap!=='boolean')throw Error('invalid cap policy');}
-export function output(s,id){const a=actions[id],p=s.production;const multiplier=(p?.equipment?.[id]??1)*(p?.law?.[id]??1);return Object.fromEntries(Object.entries(a.gain??{}).map(([k,v])=>[k,v*multiplier]));}
-export function hasRoom(s,id){const gain=output(s,id);return !s.production?.stopAtCap||!Object.keys(gain).length||Object.keys(gain).some(k=>s.resources[k]<s.caps[k]);}
+// Research benefits are shared world knowledge, not stacked per worker.
+export const researchEffects={magicResearch:{refine:1.25},parallelProduction:{gather:1.2,chop:1.2,work:1.2,farm:1.2},lawLife:{gather:1.25,farm:1.25},lawCausality:{causalObserve:1.25,possibilityExtract:1.25},lawObservation:{read:1.25,observe:1.25,timelineExplore:1.25},lawExistence:{alienGather:1.25},lawTime:{timeStore:1.25}};
+export function researchMultiplier(s,id){return Object.entries(researchEffects).reduce((m,[flag,effects])=>m*(s.worldFlags?.[flag]?(effects[id]??1):1),1);}
+export function output(s,id){const a=actions[id],p=s.production;const mutation=skillRank(s,'heretic:0');const other=(mutation>0&&s.resources.abyss>=30-5*mutation&&['gather','chop'].includes(id))||['explore','alienGather','familiarTrain'].includes(id)||['chop','gather','farm'].slice(0,skillRank(s,'outer:3')).includes(id);const environment=(s.chapter??1)>=3?abyssEfficiency(s.resources.abyss,other):1;const artifact=s.worldFlags?.artifactCraft&&['alienGather','refine'].includes(id)?1.2:1;const multiplier=researchMultiplier(s,id)*artifact*(p?.equipment?.[id]??1)*(p?.law?.[id]??1)*jobBonus(s,id);return Object.fromEntries(Object.entries(a.gain??{}).map(([k,v])=>[k,v*multiplier*(['hp','abyss','will','soul','causality','time','truth'].includes(k)?1:environment)]));}
+export function productionRoom(s,k,actor=s){return s.resources[k]<s.caps[k]||(!['hp','abyss'].includes(k)&&(s.overflow?.[k]??0)<10*skillRank(actor,'outer:2'));}
+import {recordProduction} from "./life-record.mjs";
+export function produce(s,cost,gain,actor=s){const before=s.resources;const rank=skillRank(actor,'outer:2');const excess=Object.entries(gain).filter(([k])=>!['hp','abyss'].includes(k)).map(([k,v])=>[k,Math.max(0,s.resources[k]-(cost[k]??0)+v-s.caps[k])]);if(!canSpendProduction(s,cost)||!transact(s,cost,gain))return false;recordProduction(actor,before,s.resources,cost,gain,actor.id==='life-1'?s.firstWork:null);if(rank)for(const [k,v] of excess){const old=s.overflow?.[k]??0;if(v>0&&old<10*rank){s.overflow??={};s.overflow[k]=Math.min(10*rank,old+v);}}return true;}
+export function hasRoom(s,id){const gain=output(s,id);return !s.production?.stopAtCap||!Object.keys(gain).length||Object.keys(gain).some(k=>productionRoom(s,k));}
 export function expandStorage(s,key,cap){if(!resources.includes(key)||key==='abyss'||!Number.isFinite(cap)||cap<s.caps[key]||cap>Number.MAX_SAFE_INTEGER)throw Error('invalid storage');s.caps[key]=cap;}
+
+export const reserveKeys=resources.filter(k=>!['hp','abyss'].includes(k));
+export function validateReserves(s){const r=s.reserves;if(r===undefined)return;if(!r||typeof r!=='object'||Array.isArray(r)||Object.keys(r).length>3||Object.entries(r).some(([k,v])=>!reserveKeys.includes(k)||!Number.isSafeInteger(v)||v<=0||v>s.caps[k]))throw Error('invalid reserves');}
+export function setReserve(s,k,v){const rank=skillRank(s,'merchant:2');if(!rank||!reserveKeys.includes(k)||!Number.isSafeInteger(v)||v<0||v>s.caps[k])throw Error('備蓄設定不可');const r={...s.reserves};if(v)r[k]=v;else delete r[k];if(Object.keys(r).length>rank)throw Error('備蓄枠不足');s.reserves=r;}
+export function canSpendProduction(s,cost){const rank=skillRank(s,'merchant:2');const reserves=rank?Object.fromEntries(Object.entries(s.reserves??{}).slice(0,rank)):{};return Object.entries(cost).every(([k,v])=>s.resources[k]-v>=(reserves[k]??0));}
+export function reinvest(s,k){const rank=skillRank(s,'merchant:3');if(!rank||!s.worldFlags?.build||!reserveKeys.includes(k)||s.futureDebt||s.caps[k]+10*rank>1300)throw Error('再投資不可');if(!canSpendProduction(s,{gold:20})||!transact(s,{gold:20}))throw Error('余剰金貨不足');expandStorage(s,k,s.caps[k]+10*rank);}
