@@ -14,6 +14,17 @@ backup_dir="$(realpath -m -- "$backup_dir")"
 case "$backup_dir/" in "$repo_root/"*) echo 'Backup directory must be outside the repository' >&2; exit 1;; esac
 mkdir -p "$backup_dir"
 chmod 700 "$backup_dir"
+# Require the lockfile installation; npx must not choose an unrelated cached CLI.
+node --input-type=module <<'JS'
+import {readFileSync} from 'node:fs';
+try {
+  const wanted=JSON.parse(readFileSync('package.json','utf8')).devDependencies.wrangler;
+  const installed=JSON.parse(readFileSync('node_modules/wrangler/package.json','utf8')).version;
+  if(installed!==wanted)throw Error('version mismatch');
+} catch {
+  throw Error('Run npm ci in muka1-backend before deploying');
+}
+JS
 node --test tests/*.test.mjs
 # Discover only the existing named database. Do not create or select a substitute.
 node --input-type=module <<'JS'
@@ -36,12 +47,10 @@ sha256sum "$backup" > "$backup.sha256"
 sha256sum --check "$backup.sha256"
 # Abort if deployment slipped past the catalog switch. Move the cutover to a
 # future JST day and rerun compatibility/browser tests before a later release.
-node --input-type=module <<'JS'
-import {jstDay,CATALOG_CUTOVER} from '../muka1-preview/catalog.js';
-if(jstDay()>=CATALOG_CUTOVER)throw Error('Catalog cutover expired; choose a future JST date and reverify before migration');
-JS
+node tools/check-cutover.mjs
 npx --no-install wrangler d1 migrations apply muka1-db --config=.wrangler-deploy.toml --remote
 npx --no-install wrangler d1 execute muka1-db --config=.wrangler-deploy.toml --remote --file=verify.sql
 # Existing ADMIN_TOKEN is retained. Never retrieve or overwrite its value.
+node tools/check-cutover.mjs
 npx --no-install wrangler deploy --config=.wrangler-deploy.toml
 curl --fail --silent --show-error https://muka1-api.pwgmjda00.workers.dev/health | node --input-type=module -e 'let s="";for await(const c of process.stdin)s+=c;const d=JSON.parse(s);if(!d.ok||d.catalog!==512)process.exit(1);console.log("Worker and D1: 512 catalog healthy")'

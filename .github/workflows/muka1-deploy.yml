@@ -47,25 +47,29 @@ jobs:
           npx wrangler d1 export muka1-db --remote --output="$RUNNER_TEMP/muka1-before.sql"
           test -s "$RUNNER_TEMP/muka1-before.sql"
           openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000 -in "$RUNNER_TEMP/muka1-before.sql" -out "$RUNNER_TEMP/muka1-before.sql.enc" -pass env:ADMIN_TOKEN
+          original_hash="$(sha256sum "$RUNNER_TEMP/muka1-before.sql" | cut -d' ' -f1)"
+          restored_hash="$(openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in "$RUNNER_TEMP/muka1-before.sql.enc" -pass env:ADMIN_TOKEN | sha256sum | cut -d' ' -f1)"
+          test "$original_hash" = "$restored_hash"
+          printf '%s\n' "$original_hash" > "$RUNNER_TEMP/muka1-before.sha256"
           rm "$RUNNER_TEMP/muka1-before.sql"
       - name: Preserve encrypted backup
         uses: actions/upload-artifact@v4
         with:
           name: muka1-d1-before-${{ github.run_id }}
-          path: ${{ runner.temp }}/muka1-before.sql.enc
+          path: |
+            ${{ runner.temp }}/muka1-before.sql.enc
+            ${{ runner.temp }}/muka1-before.sha256
           retention-days: 7
           if-no-files-found: error
       - name: Migrate and verify existing data
         run: |
-          node --input-type=module <<'JS'
-          import {jstDay,CATALOG_CUTOVER} from '../muka1-preview/catalog.js';
-          if(jstDay()>=CATALOG_CUTOVER)throw Error('Catalog cutover expired; choose a future JST date and reverify before migration');
-          JS
+          node tools/check-cutover.mjs
           npx wrangler d1 migrations apply muka1-db --remote
           npx wrangler d1 execute muka1-db --remote --file=verify.sql
       - name: Deploy Worker
         run: |
           # Wrangler preserves existing secrets; never overwrite ADMIN_TOKEN.
+          node tools/check-cutover.mjs
           npx wrangler deploy
       - name: Check deployed API
         run: |

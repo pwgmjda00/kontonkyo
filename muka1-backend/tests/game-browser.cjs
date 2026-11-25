@@ -65,6 +65,15 @@ for(const engine of [chromium,webkit]){
  const image=PNG.sync.read(Buffer.from(png));const qr=jsQR(new Uint8ClampedArray(image.data),image.width,image.height);
  assert(qr,'poster QR must decode');const url=new URL(qr.data);assert.deepEqual(url.searchParams.get('cup').split(',').map(Number),ids);
  const dlPromise=page.waitForEvent('download');await page.getByRole('link',{name:/PNGを保存/}).click();const dl=await dlPromise;assert.equal(dl.suggestedFilename(),'muka1-poster.png');
+ const longPoster=await page.evaluate(async()=>{
+  const {createPoster}=await import('./poster.js');const phrase='長文'.repeat(70),ids=[0,1,2,3,4,5,6,7],drawn=[];
+  const original=CanvasRenderingContext2D.prototype.fillText;
+  CanvasRenderingContext2D.prototype.fillText=function(text,...args){drawn.push(String(text));return original.call(this,text,...args)};
+  try{const canvas=await createPoster({title:'長い大会名'.repeat(8),ids,phrases:new Map(ids.map(id=>[id,phrase])),url:location.origin+location.pathname+'?cup='+ids.join(',')});return {png:canvas.toDataURL().split(',')[1],drawn:drawn.join(''),height:canvas.height};}
+  finally{CanvasRenderingContext2D.prototype.fillText=original;}
+ });
+ assert(longPoster.drawn.includes('長文'.repeat(70)),'all 140 characters must be drawn');
+ fs.writeFileSync(output+'/'+engine.name()+'-long-poster.png',Buffer.from(longPoster.png,'base64'));
  await page.screenshot({path:output+'/'+engine.name()+'-host.png',fullPage:true});
  // Persisted opt-out suppresses even visit and automatic start; offline still playable.
  await page.evaluate(()=>localStorage.setItem('muka1-analytics-off','1'));await page.waitForTimeout(100);events=[];
