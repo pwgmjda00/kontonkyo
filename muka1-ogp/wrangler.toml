@@ -1,0 +1,3 @@
+name = "muka1-ogp"
+main = "worker.js"
+compatibility_date = "2026-11-26"
