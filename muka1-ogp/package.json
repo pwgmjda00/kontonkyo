@@ -1,0 +1,15 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "prepare": "node prepare.mjs"
+  },
+  "dependencies": {
+    "@resvg/resvg-wasm": "2.6.2",
+    "satori": "0.12.2"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}
