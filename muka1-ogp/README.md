@@ -1,0 +1,3 @@
+# Dynamic OGP (staging)
+Separate Worker; existing voting Worker and D1 are unchanged.
+Run from this directory: npm install (prepare downloads font and generates phrase JSON), then npm run deploy. Requires Cloudflare login. Verify font license (OFL) and Worker bundle size before deployment; full Japanese font may exceed free plan limits, subset it if necessary. Verify /duel?pair=1,188 and /image.png?pair=1,188 (PNG 1200x630), Japanese glyphs, long text, redirects with pick/jury, X preview. Only fixed 512 phrases supported; approved submissions fall back to existing links. Do not enable frontend until verified. Set window.MUKA_OGP_API in config.js to actual deployed HTTPS origin after verification. No deployment or runtime test performed yet.
